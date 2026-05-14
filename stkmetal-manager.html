@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0f1f0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>STK Metal — จัดการแผนงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f1f0f;
+  --bg2: #162416;
+  --bg3: #1e311e;
+  --green: #4caf50;
+  --green2: #66bb6a;
+  --green-pale: #1a3a1a;
+  --amber: #ffb300;
+  --amber-pale: #2a2000;
+  --red: #ef5350;
+  --red-pale: #2a0f0f;
+  --text: #e8f5e9;
+  --text2: #a5d6a7;
+  --text3: #558b5a;
+  --border: #2a3f2a;
+  --border2: #3a5a3a;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+/* Header */
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 16px; position: sticky; top: 0; z-index: 100; }
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.logo-text { font-size: 16px; font-weight: 700; color: var(--text); }
+.logo-sub { font-size: 11px; color: var(--text3); }
+.header-actions { display: flex; gap: 8px; }
+.hbtn { padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 12px; font-family: inherit; cursor: pointer; }
+.hbtn.primary { background: var(--green); color: #0f1f0f; border-color: var(--green); font-weight: 600; }
+.hbtn:active { opacity: 0.75; }
+
+/* Tabs */
+.tabs { display: flex; gap: 2px; }
+.tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 500; font-family: inherit; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text3); cursor: pointer; }
+.tab.active { background: var(--green-pale); color: var(--green2); }
+
+/* Main */
+.main { padding: 14px 14px 90px; }
+
+/* Date selector */
+.date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.date-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg2); color: var(--text); font-size: 14px; font-family: inherit; }
+.date-input:focus { outline: none; border-color: var(--green); }
+.new-plan-btn { padding: 10px 16px; background: var(--green); color: #0f1f0f; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; }
+.new-plan-btn:active { opacity: 0.8; }
+
+/* Plan card */
+.plan-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+.plan-card-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
+.plan-card-header:active { background: var(--bg3); }
+.plan-num { width: 30px; height: 30px; border-radius: 50%; background: var(--green-pale); color: var(--green2); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.plan-info { flex: 1; min-width: 0; }
+.plan-title { font-size: 14px; font-weight: 600; }
+.plan-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.plan-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.status-wait { background: var(--bg3); color: var(--text3); }
+.status-active { background: var(--amber-pale); color: var(--amber); }
+.status-done { background: var(--green-pale); color: var(--green2); }
+.plan-chevron { color: var(--text3); font-size: 14px; transition: transform 0.2s; }
+.plan-chevron.open { transform: rotate(180deg); }
+.plan-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
+.plan-body.open { display: block; }
+
+/* Section */
+.sec-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 8px; }
+
+/* Input group */
+.input-group { margin-bottom: 8px; }
+.input-label { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+.input-field { width: 100%; padding: 9px 11px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; }
+.input-field:focus { outline: none; border-color: var(--green); }
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+
+/* Pickup point */
+.pickup-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
+.pickup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.pickup-num { font-size: 12px; font-weight: 600; color: var(--green2); }
+.remove-btn { padding: 3px 8px; border: 1px solid var(--border2); border-radius: 6px; background: transparent; color: var(--text3); font-size: 11px; font-family: inherit; cursor: pointer; }
+.remove-btn:active { background: var(--red-pale); color: var(--red); }
+
+/* Product row */
+.product-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+.product-row input { flex: 1; }
+.product-row .qty-input { width: 70px; flex: none; }
+.product-row .src-select { width: 80px; flex: none; padding: 9px 4px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 11px; font-family: inherit; }
+.product-row .src-select:focus { outline: none; border-color: var(--green); }
+.add-row-btn { width: 100%; padding: 8px; border: 1px dashed var(--border2); border-radius: var(--radius-sm); background: transparent; color: var(--text3); font-size: 12px; font-family: inherit; cursor: pointer; margin-top: 4px; }
+.add-row-btn:active { background: var(--bg3); }
+
+/* Customer card */
+.customer-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
+
+/* Share button */
+.share-btn { width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.share-btn:active { opacity: 0.85; }
+.save-btn { width: 100%; padding: 11px; background: var(--green); color: #0f1f0f; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; }
+.save-btn:active { opacity: 0.85; }
+.del-plan-btn { width: 100%; padding: 10px; background: transparent; color: var(--red); border: 1px solid var(--red-pale); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; cursor: pointer; margin-top: 6px; }
+
+/* Progress overview */
+.overview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+.overview-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
+.overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ov-item { text-align: center; }
+.ov-num { font-size: 22px; font-weight: 700; }
+.ov-num.green { color: var(--green2); }
+.ov-num.amber { color: var(--amber); }
+.ov-num.gray { color: var(--text3); }
+.ov-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Driver progress */
+.driver-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+.driver-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.driver-name { font-size: 14px; font-weight: 600; }
+.driver-prog-bar { height: 6px; background: var(--bg3); border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+.driver-prog-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+.driver-steps { display: flex; flex-direction: column; gap: 6px; }
+.driver-step { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--bg3); }
+.step-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.dot-done { background: var(--green); }
+.dot-active { background: var(--amber); }
+.dot-wait { background: var(--text3); }
+.step-text { font-size: 13px; color: var(--text2); flex: 1; }
+.step-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* Photo viewer */
+.photo-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.photo-thumb { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.empty { text-align: center; padding: 40px 20px; }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 15px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; color: var(--text3); }
+
+/* Toast */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Bottom */
+.bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--bg2); border-top: 1px solid var(--border); padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); z-index: 99; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+.modal { background: var(--bg2); border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal-close { float: right; background: var(--bg3); border: none; color: var(--text3); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.hidden { display: none; }
+
+/* Share modal */
+.share-msg-box { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 12px; font-size: 13px; color: var(--text2); white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; margin-bottom: 10px; line-height: 1.6; }
+.copy-btn { width: 100%; padding: 13px; background: var(--green); color: #0f1f0f; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; margin-bottom: 8px; }
+.copy-btn:active { opacity: 0.85; }
+.line-open-btn { width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.line-open-btn:active { opacity: 0.85; }
+.share-hint { font-size: 12px; color: var(--text3); text-align: center; margin-top: 8px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🔩</div>
+      <div>
+        <div class="logo-text">STK Metal</div>
+        <div class="logo-sub">ระบบจัดการส่งสินค้า</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" onclick="exportPDF()">📄 PDF</button>
+      <button class="hbtn" onclick="window.open('stkmetal-driver.html','_blank')">👤 หน้าคนขับ</button>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('plans')">📋 แผนงาน</button>
+    <button class="tab" onclick="switchTab('monitor')">📡 ติดตาม</button>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+
+<div class="bottom-bar" id="bottom-bar">
+  <button class="new-plan-btn" style="width:100%" onclick="showNewPlanModal()">+ สร้างแผนงานใหม่</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- New Plan Modal -->
+<div class="modal-overlay hidden" id="plan-modal">
+  <div class="modal">
+    <div class="modal-title" id="plan-modal-title">📋 สร้างแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button></div>
+
+    <div class="input-group">
+      <div class="input-label">วันที่ส่ง</div>
+      <input class="input-field" type="date" id="plan-date">
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <div class="input-label">รถคันที่</div>
+        <input class="input-field" type="text" id="plan-truck" placeholder="เช่น คันที่ 1">
+      </div>
+      <div class="input-group">
+        <div class="input-label">ชื่อคนขับ</div>
+        <input class="input-field" type="text" id="plan-driver" placeholder="ชื่อคนขับ">
+      </div>
+    </div>
+
+    <div class="sec-title">📦 จุดรับของ</div>
+    <div id="pickups-container"></div>
+    <button class="add-row-btn" onclick="addPickup()">+ เพิ่มจุดรับของ</button>
+
+    <div class="sec-title">🚛 ลูกค้าที่ต้องส่ง</div>
+    <div id="customers-container"></div>
+    <button class="add-row-btn" onclick="addCustomer()">+ เพิ่มลูกค้า</button>
+
+    <button class="save-btn" id="plan-save-btn" onclick="savePlan()">💾 บันทึกแผนงาน</button>
+  </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay hidden" id="share-modal">
+  <div class="modal">
+    <div class="modal-title">💬 ส่งแผนงานให้คนขับ <button class="modal-close" onclick="document.getElementById('share-modal').classList.add('hidden')">✕ ปิด</button></div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:8px">ข้อความที่จะส่ง:</div>
+    <div class="share-msg-box" id="share-msg-box"></div>
+    <button class="copy-btn" id="copy-btn" onclick="copyShareMsg()">📋 คัดลอกข้อความ</button>
+    <button class="line-open-btn" onclick="openLine()">💬 เปิด Line</button>
+    <div class="share-hint">1. กด "คัดลอกข้อความ" → 2. กด "เปิด Line" → 3. วางข้อความส่งให้คนขับ</div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay hidden" id="detail-modal">
+  <div class="modal">
+    <div class="modal-title" id="detail-modal-title">รายละเอียด <button class="modal-close" onclick="document.getElementById('detail-modal').classList.add('hidden')">✕ ปิด</button></div>
+    <div id="detail-modal-content"></div>
+  </div>
+</div>
+
+<!-- Photo Modal -->
+<div class="modal-overlay hidden" id="photo-modal">
+  <div class="modal">
+    <div class="modal-title" id="photo-modal-title">รูปภาพ <button class="modal-close" onclick="closePhotoModal()">✕ ปิด</button></div>
+    <div id="photo-modal-content"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, addDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
+  authDomain: "delivery-stkmetal.firebaseapp.com",
+  projectId: "delivery-stkmetal",
+  storageBucket: "delivery-stkmetal.firebasestorage.app",
+  messagingSenderId: "245602225105",
+  appId: "1:245602225105:web:247e531e379eebabdb6ef0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let currentTab = 'plans';
+let plans = [];
+let pickupCount = 0;
+let customerCount = 0;
+let unsubscribe = null;
+let editingPlanId = null;
+
+// ---- REALTIME LISTENER ----
+function startListener() {
+  if (unsubscribe) unsubscribe();
+  const q = query(collection(db, 'plans'), orderBy('date', 'desc'));
+  unsubscribe = onSnapshot(q, snap => {
+    plans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    render();
+  }, err => {
+    console.error(err);
+    document.getElementById('main').innerHTML = `<div class="loading"><div>❌ เชื่อมต่อ Firebase ไม่ได้<br><small style="color:var(--text3)">${err.message}</small></div></div>`;
+  });
+}
+
+// ---- TABS ----
+window.switchTab = function(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', ['plans','monitor'][i]===tab));
+  document.getElementById('bottom-bar').style.display = tab==='plans' ? 'block' : 'none';
+  render();
+};
+
+// ---- RENDER ----
+function render() {
+  const m = document.getElementById('main');
+  if (currentTab === 'plans') m.innerHTML = renderPlans();
+  else m.innerHTML = renderMonitor();
+}
+
+function renderPlans() {
+  if (!plans.length) return `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ยังไม่มีแผนงาน</div><div class="empty-sub">กด "สร้างแผนงานใหม่" เพื่อเริ่มต้น</div></div>`;
+  return plans.map((p,i) => {
+    const donePickups = (p.pickups||[]).filter(pk=>pk.done).length;
+    const doneCustomers = (p.customers||[]).filter(c=>c.done).length;
+    const totalSteps = (p.pickups||[]).length + (p.customers||[]).length;
+    const doneSteps = donePickups + doneCustomers;
+    let statusClass = 'status-wait', statusText = 'รอดำเนินการ';
+    if (doneSteps===totalSteps && totalSteps>0) { statusClass='status-done'; statusText='เสร็จสิ้น'; }
+    else if (doneSteps>0) { statusClass='status-active'; statusText='กำลังดำเนินการ'; }
+    return `
+    <div class="plan-card">
+      <div class="plan-card-header" onclick="togglePlan('${p.id}')">
+        <div class="plan-num">${i+1}</div>
+        <div class="plan-info">
+          <div class="plan-title">${p.truckName||'รถคันที่ '+(i+1)} — ${p.driver||'ไม่ระบุคนขับ'}</div>
+          <div class="plan-sub">${formatDate(p.date)} • รับ ${(p.pickups||[]).length} จุด • ส่ง ${(p.customers||[]).length} ราย • ${doneSteps}/${totalSteps} เสร็จ</div>
+        </div>
+        <span class="plan-status ${statusClass}">${statusText}</span>
+        <span class="plan-chevron${p._open?' open':''}">▾</span>
+      </div>
+      <div class="plan-body${p._open?' open':''}">
+        <div class="sec-title">📦 จุดรับของ</div>
+        ${(p.pickups||[]).map((pk,pi)=>`
+          <div class="pickup-card">
+            <div class="pickup-header">
+              <span class="pickup-num">จุดที่ ${pi+1} ${pk.done?'✅':''}</span>
+            </div>
+            ${pk.location?`<div style="margin-bottom:6px"><a href="${pk.location}" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>`:''}
+            ${(pk.items||[]).map(it=>`<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• ${it.name} <span style="color:var(--amber);font-weight:600">= ${it.qty}</span>${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px">${it.src}</span>`:''}</div>`).join('')}
+          </div>`).join('')}
+        <div class="sec-title">🚚 ลูกค้าที่ต้องส่ง</div>
+        ${(p.customers||[]).map((c,ci)=>`
+          <div class="customer-card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:600;color:var(--text)">${ci+1}. ${c.name} ${c.done?'✅':''}</span>
+            </div>
+            ${c.location?`<div style="margin-bottom:6px"><a href="${c.location}" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>`:''}
+            ${c.tel?`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">📞 ${c.tel}</div>`:''}
+            ${(c.items||[]).map(it=>`<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• ${it.name} <span style="color:var(--amber);font-weight:600">= ${it.qty}</span>${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px">${it.src}</span>`:''}</div>`).join('')}
+            ${(c.photos||[]).length>0?`<div class="photo-row">${c.photos.map((ph,phi)=>`<img class="photo-thumb" src="${ph}" onclick="viewPhotos('${p.id}',${ci})">`).join('')}</div>`:''}
+          </div>`).join('')}
+        <button class="share-btn" onclick="sharePlan('${p.id}')">💬 คัดลอกแผนงานส่งคนขับ</button>
+        <button class="save-btn" style="margin-top:6px" onclick="showEditModal('${p.id}')">✏️ แก้ไขแผนงาน</button>
+        <button class="del-plan-btn" onclick="deletePlan('${p.id}')">🗑 ลบแผนงานนี้</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMonitor() {
+  if (!plans.length) return `<div class="empty"><div class="empty-icon">📡</div><div class="empty-text">ยังไม่มีแผนงาน</div></div>`;
+  const today = new Date().toISOString().split('T')[0];
+  const todayPlans = plans.filter(p => p.date === today);
+  const showPlans = todayPlans.length ? todayPlans : plans.slice(0,3);
+  const totalSteps = showPlans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s, 0);
+  const doneSteps = showPlans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s, 0);
+  let html = `
+  <div class="overview-card">
+    <div class="overview-title">📊 ภาพรวมวันนี้ ${todayPlans.length?'':'(ล่าสุด)'}</div>
+    <div class="overview-grid">
+      <div class="ov-item"><div class="ov-num gray">${totalSteps}</div><div class="ov-label">ทั้งหมด</div></div>
+      <div class="ov-item"><div class="ov-num green">${doneSteps}</div><div class="ov-label">เสร็จแล้ว</div></div>
+      <div class="ov-item"><div class="ov-num amber">${totalSteps-doneSteps}</div><div class="ov-label">รอดำเนินการ</div></div>
+    </div>
+  </div>`;
+  showPlans.forEach(p => {
+    const pickups = (p.pickups||[]).map((pk,i)=>({type:'pickup', label:`รับของจุดที่ ${i+1}`, done:pk.done, time:pk.doneAt, photos:pk.photos||[], items:pk.items||[], location:pk.location||'', planId:p.id, idx:i}));
+    const customers = (p.customers||[]).map((c,i)=>({type:'deliver', label:`ส่ง ${c.name}`, done:c.done, time:c.doneAt, photos:c.photos||[], items:c.items||[], location:c.location||'', tel:c.tel||'', name:c.name, planId:p.id, idx:i}));
+    const steps = [...pickups, ...customers];
+    const done = steps.filter(s=>s.done).length;
+    const pct = steps.length ? Math.round(done/steps.length*100) : 0;
+    html += `
+    <div class="driver-card">
+      <div class="driver-header">
+        <div class="driver-name">🚛 ${p.truckName||'รถ'} — ${p.driver||'-'}</div>
+        <span style="font-size:12px;color:var(--text3)">${done}/${steps.length}</span>
+      </div>
+      <div class="driver-prog-bar"><div class="driver-prog-fill" style="width:${pct}%"></div></div>
+      <div class="driver-steps">
+        ${steps.map((s,si)=>`
+          <div class="driver-step" onclick="viewStepDetail('${p.id}','${s.type}',${s.idx})" style="cursor:pointer;transition:background 0.15s">
+            <div class="step-dot ${s.done?'dot-done':'dot-wait'}"></div>
+            <div style="flex:1">
+              <div class="step-text">${s.label}</div>
+              ${s.time?`<div class="step-time">✅ ${new Date(s.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div>`:''}
+              ${s.photos.length?`<div style="font-size:11px;color:var(--green2);margin-top:2px">📷 ${s.photos.length} รูป — กดดูรูป</div>`:''}
+            </div>
+            <span style="color:var(--text3);font-size:12px">›</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+// ---- ACTIONS ----
+window.togglePlan = function(id) {
+  const p = plans.find(x=>x.id===id);
+  if (p) { p._open = !p._open; render(); }
+};
+
+window.deletePlan = async function(id) {
+  if (!confirm('ลบแผนงานนี้?')) return;
+  await deleteDoc(doc(db,'plans',id));
+  showToast('🗑 ลบแผนงานแล้ว');
+};
+
+window.sharePlan = function(id) {
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  const driverUrl = 'https://monen087.github.io/stkmetal/stkmetal-driver.html?plan=' + id;
+  let msg = `🔩 STK Metal — แผนงาน ${formatDate(p.date)}\n`;
+  msg += `🚛 ${p.truckName||''} | คนขับ: ${p.driver||'-'}\n\n`;
+  msg += `📦 จุดรับของ:\n`;
+  (p.pickups||[]).forEach((pk,i)=>{
+    msg += `${i+1}. ${pk.location||'ไม่ระบุที่อยู่'}\n`;
+    (pk.items||[]).forEach(it=>{ msg += `   • ${it.name} = ${it.qty}\n`; });
+  });
+  msg += `\n🚚 ส่งลูกค้า:\n`;
+  (p.customers||[]).forEach((c,i)=>{
+    msg += `${i+1}. ${c.name} ${c.tel?'📞'+c.tel:''}\n`;
+    (c.items||[]).forEach(it=>{ msg += `   • ${it.name} = ${it.qty}\n`; });
+  });
+  msg += `\n📱 เปิด Checklist:\n${driverUrl}`;
+  window._shareMsg = msg;
+  document.getElementById('share-msg-box').textContent = msg;
+  document.getElementById('copy-btn').textContent = '📋 คัดลอกข้อความ';
+  document.getElementById('share-modal').classList.remove('hidden');
+};
+
+window.copyShareMsg = async function() {
+  try {
+    await navigator.clipboard.writeText(window._shareMsg || '');
+    document.getElementById('copy-btn').textContent = '✅ คัดลอกแล้ว!';
+    setTimeout(()=>{ document.getElementById('copy-btn').textContent = '📋 คัดลอกข้อความ'; }, 2000);
+  } catch(e) {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = window._shareMsg || '';
+    document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    document.getElementById('copy-btn').textContent = '✅ คัดลอกแล้ว!';
+    setTimeout(()=>{ document.getElementById('copy-btn').textContent = '📋 คัดลอกข้อความ'; }, 2000);
+  }
+};
+
+window.openLine = function() {
+  window.open('https://line.me/R/nv/chat', '_blank');
+};
+
+window.viewStepDetail = function(planId, type, idx) {
+  const p = plans.find(x=>x.id===planId);
+  if (!p) return;
+  const item = type==='pickup' ? p.pickups[idx] : p.customers[idx];
+  if (!item) return;
+  const label = type==='pickup' ? `📦 รับของจุดที่ ${idx+1}` : `🚚 ส่ง ${item.name||''}`;
+  const statusText = item.done ? `✅ เสร็จสิ้น ${item.doneAt?new Date(item.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}` : '⏳ ยังไม่เสร็จ';
+
+  let content = `<div style="margin-bottom:12px">
+    <span style="font-size:13px;padding:4px 10px;border-radius:20px;background:${item.done?'var(--green-pale)':'var(--bg3)'};color:${item.done?'var(--green2)':'var(--text3)'}">${statusText}</span>
+  </div>`;
+
+  if (item.location) content += `<a href="${item.location}" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--green2);font-size:13px;text-decoration:none;margin-bottom:12px">📍 เปิด Google Maps</a>`;
+  if (item.tel) content += `<a href="tel:${item.tel}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;text-decoration:none;margin-bottom:12px">📞 ${item.tel}</a>`;
+
+  if ((item.items||[]).length) {
+    content += `<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">รายการสินค้า</div>`;
+    item.items.forEach(it => {
+      content += `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="color:var(--text2)">${it.name}</span>
+        <span><span style="color:var(--amber);font-weight:600">${it.qty}</span>${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px">${it.src}</span>`:''}</span>
+      </div>`;
+    });
+  }
+
+  const photos = item.photos||[];
+  if (photos.length) {
+    content += `<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">📷 รูปภาพ (${photos.length} รูป)</div>`;
+    content += `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">`;
+    photos.forEach(ph => {
+      content += `<img src="${ph}" style="width:100%;border-radius:8px;object-fit:cover;aspect-ratio:1;cursor:pointer" onclick="this.style.gridColumn=this.style.gridColumn?'':'1/-1'">`;
+    });
+    content += `</div>`;
+  } else {
+    content += `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;margin-top:8px">📷 ยังไม่มีรูปภาพ</div>`;
+  }
+
+  document.getElementById('detail-modal-title').textContent = label;
+  document.getElementById('detail-modal-content').innerHTML = content;
+  document.getElementById('detail-modal').classList.remove('hidden');
+};
+window.viewPhotos = function(planId, custIdx) {
+  const p = plans.find(x=>x.id===planId);
+  if (!p) return;
+  const c = p.customers[custIdx];
+  document.getElementById('photo-modal-title').textContent = `📸 รูปส่งของ — ${c.name}`;
+  document.getElementById('photo-modal-content').innerHTML = (c.photos||[]).map(ph=>`<img src="${ph}" style="width:100%;border-radius:8px;margin-bottom:8px">`).join('');
+  document.getElementById('photo-modal').classList.remove('hidden');
+};
+window.closePhotoModal = ()=>document.getElementById('photo-modal').classList.add('hidden');
+
+// ---- NEW PLAN MODAL ----
+window.showNewPlanModal = function() {
+  editingPlanId = null;
+  pickupCount = 0; customerCount = 0;
+  document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('plan-truck').value = '';
+  document.getElementById('plan-driver').value = '';
+  document.getElementById('pickups-container').innerHTML = '';
+  document.getElementById('customers-container').innerHTML = '';
+  document.getElementById('plan-modal-title').innerHTML = '📋 สร้างแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button>';
+  document.getElementById('plan-save-btn').textContent = '💾 บันทึกแผนงาน';
+  addPickup(); addCustomer();
+  document.getElementById('plan-modal').classList.remove('hidden');
+};
+
+window.showEditModal = function(id) {
+  const p = plans.find(x=>x.id===id);
+  if (!p) return;
+  editingPlanId = id;
+  pickupCount = 0; customerCount = 0;
+  document.getElementById('plan-date').value = p.date || '';
+  document.getElementById('plan-truck').value = p.truckName || '';
+  document.getElementById('plan-driver').value = p.driver || '';
+  document.getElementById('pickups-container').innerHTML = '';
+  document.getElementById('customers-container').innerHTML = '';
+  document.getElementById('plan-modal-title').innerHTML = '✏️ แก้ไขแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button>';
+  document.getElementById('plan-save-btn').textContent = '💾 บันทึกการแก้ไข';
+  // โหลดจุดรับของเดิม
+  (p.pickups||[]).forEach(pk => {
+    pickupCount++;
+    const divId = `pickup-${pickupCount}`;
+    const div = document.createElement('div');
+    div.className = 'pickup-card'; div.id = divId;
+    div.innerHTML = `
+      <div class="pickup-header">
+        <span class="pickup-num">จุดรับที่ ${pickupCount}</span>
+        <button class="remove-btn" onclick="document.getElementById('${divId}').remove()">ลบ</button>
+      </div>
+      <div class="input-group">
+        <div class="input-label">โลเคชั่น (ลิงก์ Google Maps)</div>
+        <input class="input-field pickup-location" type="url" placeholder="https://maps.app.goo.gl/..." value="${pk.location||''}">
+      </div>
+      <div class="input-label" style="margin-bottom:6px">รายการสินค้า</div>
+      <div class="items-list"></div>
+      <button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>`;
+    document.getElementById('pickups-container').appendChild(div);
+    const list = div.querySelector('.items-list');
+    (pk.items||[]).forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'product-row';
+      const knownSrc = ['สาขาใหญ่','ในสต้อค'];
+      const isCustom = it.src && !knownSrc.includes(it.src);
+      const srcVal = isCustom ? 'ระบุเอง' : (it.src||'สาขาใหญ่');
+      const customVal = isCustom ? it.src : '';
+      row.innerHTML = `
+        <input class="input-field item-name" type="text" placeholder="ชื่อสินค้า" value="${it.name||''}">
+        <input class="input-field qty-input item-qty" type="text" placeholder="จำนวน" value="${it.qty||''}">
+        <select class="src-select item-src" onchange="toggleCustom(this)">
+          <option value="สาขาใหญ่" ${srcVal==='สาขาใหญ่'?'selected':''}>สาขาใหญ่</option>
+          <option value="ในสต้อค" ${srcVal==='ในสต้อค'?'selected':''}>ในสต้อค</option>
+          <option value="ระบุเอง" ${isCustom?'selected':''}>ระบุเอง</option>
+        </select>
+        <input class="input-field item-custom" type="text" placeholder="ระบุ..." style="width:80px;flex:none;display:${isCustom?'block':'none'}" value="${customVal}">
+        <button class="remove-btn" onclick="this.parentElement.remove()">✕</button>`;
+      list.appendChild(row);
+    });
+    if (!(pk.items||[]).length) addItemRow(div.querySelector('.add-row-btn'));
+  });
+  // โหลดลูกค้าเดิม
+  (p.customers||[]).forEach(c => {
+    customerCount++;
+    const divId = `cust-${customerCount}`;
+    const div = document.createElement('div');
+    div.className = 'customer-card'; div.id = divId;
+    div.innerHTML = `
+      <div class="pickup-header">
+        <span class="pickup-num">ลูกค้าที่ ${customerCount}</span>
+        <button class="remove-btn" onclick="document.getElementById('${divId}').remove()">ลบ</button>
+      </div>
+      <div class="input-row">
+        <div>
+          <div class="input-label">ชื่อลูกค้า / บริษัท</div>
+          <input class="input-field cust-name" type="text" placeholder="ชื่อลูกค้า" value="${c.name||''}">
+        </div>
+        <div>
+          <div class="input-label">เบอร์โทร</div>
+          <input class="input-field cust-tel" type="tel" placeholder="08x-xxx-xxxx" value="${c.tel||''}">
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">โลเคชั่น (ลิงก์ Google Maps)</div>
+        <input class="input-field cust-location" type="url" placeholder="https://maps.app.goo.gl/..." value="${c.location||''}">
+      </div>
+      <div class="input-label" style="margin-bottom:6px">รายการสินค้า</div>
+      <div class="items-list"></div>
+      <button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>`;
+    document.getElementById('customers-container').appendChild(div);
+    const list = div.querySelector('.items-list');
+    (c.items||[]).forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'product-row';
+      const knownSrc = ['สาขาใหญ่','ในสต้อค'];
+      const isCustom = it.src && !knownSrc.includes(it.src);
+      const srcVal = isCustom ? 'ระบุเอง' : (it.src||'สาขาใหญ่');
+      const customVal = isCustom ? it.src : '';
+      row.innerHTML = `
+        <input class="input-field item-name" type="text" placeholder="ชื่อสินค้า" value="${it.name||''}">
+        <input class="input-field qty-input item-qty" type="text" placeholder="จำนวน" value="${it.qty||''}">
+        <select class="src-select item-src" onchange="toggleCustom(this)">
+          <option value="สาขาใหญ่" ${srcVal==='สาขาใหญ่'?'selected':''}>สาขาใหญ่</option>
+          <option value="ในสต้อค" ${srcVal==='ในสต้อค'?'selected':''}>ในสต้อค</option>
+          <option value="ระบุเอง" ${isCustom?'selected':''}>ระบุเอง</option>
+        </select>
+        <input class="input-field item-custom" type="text" placeholder="ระบุ..." style="width:80px;flex:none;display:${isCustom?'block':'none'}" value="${customVal}">
+        <button class="remove-btn" onclick="this.parentElement.remove()">✕</button>`;
+      list.appendChild(row);
+    });
+    if (!(c.items||[]).length) addItemRow(div.querySelector('.add-row-btn'));
+  });
+  document.getElementById('plan-modal').classList.remove('hidden');
+};
+window.closeModal = ()=>document.getElementById('plan-modal').classList.add('hidden');
+
+window.addPickup = function() {
+  pickupCount++;
+  const id = `pickup-${pickupCount}`;
+  const div = document.createElement('div');
+  div.className = 'pickup-card'; div.id = id;
+  div.innerHTML = `
+    <div class="pickup-header">
+      <span class="pickup-num">จุดรับที่ ${pickupCount}</span>
+      <button class="remove-btn" onclick="document.getElementById('${id}').remove()">ลบ</button>
+    </div>
+    <div class="input-group">
+      <div class="input-label">โลเคชั่น (ลิงก์ Google Maps)</div>
+      <input class="input-field pickup-location" type="url" placeholder="https://maps.app.goo.gl/...">
+    </div>
+    <div class="input-label" style="margin-bottom:6px">รายการสินค้า</div>
+    <div class="items-list"></div>
+    <button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>`;
+  document.getElementById('pickups-container').appendChild(div);
+  addItemRow(div.querySelector('.add-row-btn'));
+};
+
+window.addCustomer = function() {
+  customerCount++;
+  const id = `cust-${customerCount}`;
+  const div = document.createElement('div');
+  div.className = 'customer-card'; div.id = id;
+  div.innerHTML = `
+    <div class="pickup-header">
+      <span class="pickup-num">ลูกค้าที่ ${customerCount}</span>
+      <button class="remove-btn" onclick="document.getElementById('${id}').remove()">ลบ</button>
+    </div>
+    <div class="input-row">
+      <div>
+        <div class="input-label">ชื่อลูกค้า / บริษัท</div>
+        <input class="input-field cust-name" type="text" placeholder="ชื่อลูกค้า">
+      </div>
+      <div>
+        <div class="input-label">เบอร์โทร</div>
+        <input class="input-field cust-tel" type="tel" placeholder="08x-xxx-xxxx">
+      </div>
+    </div>
+    <div class="input-group">
+      <div class="input-label">โลเคชั่น (ลิงก์ Google Maps)</div>
+      <input class="input-field cust-location" type="url" placeholder="https://maps.app.goo.gl/...">
+    </div>
+    <div class="input-label" style="margin-bottom:6px">รายการสินค้า</div>
+    <div class="items-list"></div>
+    <button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>`;
+  document.getElementById('customers-container').appendChild(div);
+  addItemRow(div.querySelector('.add-row-btn'));
+};
+
+window.addItemRow = function(btn, srcVal='', customVal='') {
+  const list = btn.previousElementSibling;
+  const row = document.createElement('div');
+  row.className = 'product-row';
+  const isCustom = srcVal === 'ระบุเอง';
+  row.innerHTML = `
+    <input class="input-field item-name" type="text" placeholder="ชื่อสินค้า เช่น ท่อกลม 304 NB 4&quot;">
+    <input class="input-field qty-input item-qty" type="text" placeholder="จำนวน">
+    <select class="src-select item-src" onchange="toggleCustom(this)">
+      <option value="สาขาใหญ่" ${srcVal==='สาขาใหญ่'||srcVal===''?'selected':''}>สาขาใหญ่</option>
+      <option value="ในสต้อค" ${srcVal==='ในสต้อค'?'selected':''}>ในสต้อค</option>
+      <option value="ระบุเอง" ${isCustom?'selected':''}>ระบุเอง</option>
+    </select>
+    <input class="input-field item-custom" type="text" placeholder="ระบุ..." style="width:80px;flex:none;display:${isCustom?'block':'none'}" value="${customVal||''}">
+    <button class="remove-btn" onclick="this.parentElement.remove()">✕</button>`;
+  list.appendChild(row);
+};
+
+window.toggleCustom = function(sel) {
+  const customInput = sel.parentElement.querySelector('.item-custom');
+  if (sel.value === 'ระบุเอง') {
+    customInput.style.display = 'block';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+    customInput.value = '';
+  }
+};
+
+window.savePlan = async function() {
+  const date = document.getElementById('plan-date').value;
+  const truckName = document.getElementById('plan-truck').value || 'คันที่ 1';
+  const driver = document.getElementById('plan-driver').value;
+  if (!date) { showToast('⚠️ กรุณาเลือกวันที่'); return; }
+  const pickups = [];
+  document.querySelectorAll('#pickups-container .pickup-card').forEach(card => {
+    const location = card.querySelector('.pickup-location')?.value || '';
+    const items = [];
+    card.querySelectorAll('.product-row').forEach(row => {
+      const name = row.querySelector('.item-name')?.value?.trim();
+      const qty = row.querySelector('.item-qty')?.value?.trim();
+      const src = row.querySelector('.item-src')?.value || 'สาขาใหญ่';
+      const custom = row.querySelector('.item-custom')?.value?.trim() || '';
+      const srcFinal = src === 'ระบุเอง' ? (custom || 'ระบุเอง') : src;
+      if (name) items.push({name, qty: qty||'-', src: srcFinal});
+    });
+    // ถ้าแก้ไข ให้เก็บสถานะ done เดิมไว้
+    if (editingPlanId) {
+      const oldPlan = plans.find(x=>x.id===editingPlanId);
+      const oldPickup = oldPlan?.pickups?.[pickups.length];
+      pickups.push({location, items, done: oldPickup?.done||false, doneAt: oldPickup?.doneAt||null, photos: oldPickup?.photos||[]});
+    } else {
+      pickups.push({location, items, done: false, doneAt: null, photos:[]});
+    }
+  });
+  const customers = [];
+  document.querySelectorAll('#customers-container .customer-card').forEach(card => {
+    const name = card.querySelector('.cust-name')?.value?.trim() || 'ไม่ระบุชื่อ';
+    const tel = card.querySelector('.cust-tel')?.value || '';
+    const location = card.querySelector('.cust-location')?.value || '';
+    const items = [];
+    card.querySelectorAll('.product-row').forEach(row => {
+      const n = row.querySelector('.item-name')?.value?.trim();
+      const q = row.querySelector('.item-qty')?.value?.trim();
+      const s = row.querySelector('.item-src')?.value || 'สาขาใหญ่';
+      const sc = row.querySelector('.item-custom')?.value?.trim() || '';
+      const sFinal = s === 'ระบุเอง' ? (sc || 'ระบุเอง') : s;
+      if (n) items.push({name:n, qty:q||'-', src:sFinal});
+    });
+    if (editingPlanId) {
+      const oldPlan = plans.find(x=>x.id===editingPlanId);
+      const oldCust = oldPlan?.customers?.[customers.length];
+      customers.push({name, tel, location, items, done: oldCust?.done||false, doneAt: oldCust?.doneAt||null, photos: oldCust?.photos||[]});
+    } else {
+      customers.push({name, tel, location, items, done:false, doneAt:null, photos:[]});
+    }
+  });
+  try {
+    if (editingPlanId) {
+      await setDoc(doc(db,'plans',editingPlanId), {date, truckName, driver, pickups, customers, updatedAt: Date.now()}, {merge:true});
+      showToast('✅ แก้ไขแผนงานแล้ว');
+    } else {
+      await addDoc(collection(db,'plans'), {date, truckName, driver, pickups, customers, createdAt: Date.now()});
+      showToast('✅ บันทึกแผนงานแล้ว');
+    }
+    closeModal();
+  } catch(e) {
+    showToast('❌ บันทึกไม่สำเร็จ: '+e.message);
+  }
+};
+
+// ---- UTILS ----
+function formatDate(d) {
+  if (!d) return '-';
+  const [y,m,day] = d.split('-');
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${parseInt(day)} ${months[parseInt(m)]} ${parseInt(y)+543}`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+window.showToast = showToast;
+
+// ---- EXPORT PDF ----
+window.exportPDF = function() {
+  if (!plans.length) { showToast('⚠️ ยังไม่มีแผนงาน'); return; }
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const now = new Date();
+  const printDate = `${now.getDate()} ${months[now.getMonth()+1]} ${now.getFullYear()+543} เวลา ${now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}`;
+
+  let html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; font-size: 13px; color: #111; margin: 0; padding: 20px; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    .sub { font-size: 12px; color: #666; margin-bottom: 20px; }
+    .plan { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 16px; overflow: hidden; page-break-inside: avoid; }
+    .plan-head { background: #1e311e; color: white; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .plan-head h2 { font-size: 14px; margin: 0; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+    .badge-done { background: #4caf50; color: white; }
+    .badge-active { background: #ffb300; color: #111; }
+    .badge-wait { background: #aaa; color: white; }
+    .plan-body { padding: 12px 14px; }
+    .section { margin-bottom: 10px; }
+    .sec-title { font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+    .item { padding: 5px 0; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; }
+    .item:last-child { border: none; }
+    .done-row { display: flex; gap: 16px; margin-top: 4px; font-size: 12px; color: #444; }
+    .tag-done { color: #4caf50; font-weight: 600; }
+    .tag-wait { color: #999; }
+    .summary { background: #f9f9f9; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; display: flex; gap: 24px; }
+    .sum-item { text-align: center; }
+    .sum-num { font-size: 22px; font-weight: 700; }
+    .sum-label { font-size: 11px; color: #666; }
+    @media print { body { padding: 10px; } }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  </head><body>
+  <h1>🔩 STK Metal — รายงานแผนงาน</h1>
+  <div class="sub">พิมพ์เมื่อ ${printDate} • ทั้งหมด ${plans.length} แผนงาน</div>`;
+
+  // สรุปภาพรวม
+  const totalStepsAll = plans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s, 0);
+  const doneStepsAll = plans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s, 0);
+  const donePlans = plans.filter(p=>{
+    const total=(p.pickups||[]).length+(p.customers||[]).length;
+    const done=(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length;
+    return total>0 && done===total;
+  }).length;
+  html += `<div class="summary">
+    <div class="sum-item"><div class="sum-num">${plans.length}</div><div class="sum-label">แผนงานทั้งหมด</div></div>
+    <div class="sum-item"><div class="sum-num" style="color:#4caf50">${donePlans}</div><div class="sum-label">เสร็จสิ้น</div></div>
+    <div class="sum-item"><div class="sum-num" style="color:#4caf50">${doneStepsAll}</div><div class="sum-label">รายการเสร็จ</div></div>
+    <div class="sum-item"><div class="sum-num" style="color:#ffb300">${totalStepsAll-doneStepsAll}</div><div class="sum-label">รอดำเนินการ</div></div>
+  </div>`;
+
+  plans.forEach((p,i) => {
+    const pickups = p.pickups||[];
+    const customers = p.customers||[];
+    const total = pickups.length + customers.length;
+    const done = pickups.filter(pk=>pk.done).length + customers.filter(c=>c.done).length;
+    let badgeClass = 'badge-wait', badgeText = 'รอดำเนินการ';
+    if (done===total && total>0) { badgeClass='badge-done'; badgeText='เสร็จสิ้น'; }
+    else if (done>0) { badgeClass='badge-active'; badgeText='กำลังดำเนินการ'; }
+
+    html += `<div class="plan">
+      <div class="plan-head">
+        <h2>${i+1}. ${p.truckName||'รถ'} — ${p.driver||'-'} &nbsp;|&nbsp; ${formatDate(p.date)}</h2>
+        <span class="badge ${badgeClass}">${badgeText} ${done}/${total}</span>
+      </div>
+      <div class="plan-body">`;
+
+    if (pickups.length) {
+      html += `<div class="section"><div class="sec-title">📦 จุดรับของ</div>`;
+      pickups.forEach((pk,pi) => {
+        html += `<div class="item">
+          <span>จุดที่ ${pi+1} ${pk.location?'📍':'ไม่ระบุที่อยู่'}</span>
+          <span class="${pk.done?'tag-done':'tag-wait'}">${pk.done?'✅ รับแล้ว':'⏳ รอรับ'}${pk.doneAt?' '+new Date(pk.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}</span>
+        </div>`;
+        if (pk.items?.length) {
+          pk.items.forEach(it => { html += `<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• ${it.name} = ${it.qty}</div>`; });
+        }
+      });
+      html += `</div>`;
+    }
+
+    if (customers.length) {
+      html += `<div class="section"><div class="sec-title">🚚 ส่งลูกค้า</div>`;
+      customers.forEach((c,ci) => {
+        html += `<div class="item">
+          <span>${ci+1}. ${c.name} ${c.tel?'📞'+c.tel:''}</span>
+          <span class="${c.done?'tag-done':'tag-wait'}">${c.done?'✅ ส่งแล้ว':'⏳ รอส่ง'}${c.doneAt?' '+new Date(c.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}</span>
+        </div>`;
+        if (c.items?.length) {
+          c.items.forEach(it => { html += `<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• ${it.name} = ${it.qty}</div>`; });
+        }
+      });
+      html += `</div>`;
+    }
+
+    html += `</div></div>`;
+  });
+
+  html += `</body></html>`;
+
+  const w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  w.onload = () => { w.focus(); w.print(); };
+};
+
+// Start
+document.getElementById('main').innerHTML = '<div class="loading"><div class="spinner"></div>กำลังโหลดข้อมูล...</div>';
+startListener();
+</script>
+</body>
+</html>

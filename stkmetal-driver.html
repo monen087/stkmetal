@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>STK Metal — คนขับ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a1628; --bg2: #0f2040; --bg3: #162a52;
+  --green: #90caf9; --green2: #1e90ff; --green-pale: #0d2a4a; --green-soft: #1a3a6a;
+  --amber: #ffd166; --amber-pale: #2a2000;
+  --red: #ef5350; --red-pale: #2a0f0f;
+  --text: #ffffff; --text2: #e0f0ff; --text3: #7ab0d4;
+  --border: #1a3a5c; --border2: #2a5080;
+  --radius: 14px; --radius-sm: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 16px; position: sticky; top: 0; z-index: 100; }
+.header-title { font-size: 17px; font-weight: 700; }
+.header-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+.main { padding: 14px 14px 40px; }
+
+/* Progress */
+.prog-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+.prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.prog-label { font-size: 13px; color: var(--text2); }
+.prog-count { font-size: 20px; font-weight: 700; color: var(--green2); }
+.prog-bar { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.4s; }
+
+/* Step card */
+.step-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+.step-card.done { border-color: var(--green-soft); }
+.step-card.active { border-color: var(--amber); }
+.step-header { display: flex; align-items: center; gap: 12px; padding: 14px; cursor: pointer; }
+.step-header:active { background: var(--bg3); }
+.step-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.icon-pickup { background: var(--amber-pale); }
+.icon-deliver { background: var(--green-pale); }
+.icon-done { background: var(--green-soft); }
+.step-info { flex: 1; min-width: 0; }
+.step-title { font-size: 15px; font-weight: 600; }
+.step-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.step-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+.badge-wait { background: var(--bg3); color: var(--text3); }
+.badge-active { background: var(--amber-pale); color: var(--amber); }
+.badge-done { background: var(--green-pale); color: var(--green2); }
+
+.step-body { display: none; border-top: 1px solid var(--border); }
+.step-body.open { display: block; }
+.step-section { padding: 14px; }
+.sec-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+/* Map link */
+.map-btn { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--green2); font-size: 14px; font-weight: 500; text-decoration: none; margin-bottom: 12px; }
+.map-btn:active { opacity: 0.75; }
+
+/* Items */
+.item-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.item-row:last-child { border: none; }
+.item-name { flex: 1; font-size: 13px; color: var(--text2); }
+.item-qty { font-size: 13px; font-weight: 600; color: var(--amber); }
+
+/* Check items */
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); margin-bottom: 6px; cursor: pointer; -webkit-user-select: none; user-select: none; }
+.check-item:active { transform: scale(0.98); }
+.check-item.checked { background: var(--green-pale); border-color: var(--green-soft); }
+.check-item.checked .check-text { color: var(--text3); text-decoration: line-through; }
+.checkbox { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border2); background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; transition: all 0.12s; }
+.check-item.checked .checkbox { background: var(--green); border-color: var(--green); color: white; }
+.check-text { font-size: 14px; line-height: 1.45; }
+
+/* Photo */
+.photo-section { margin: 10px 0; }
+.photo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.photo-thumb-wrap { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--bg3); }
+.photo-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.photo-remove { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.photo-add { aspect-ratio: 1; border-radius: 8px; border: 1.5px dashed var(--border2); background: var(--bg3); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; gap: 4px; }
+.photo-add span { font-size: 11px; color: var(--text3); }
+.photo-input { display: none; }
+
+/* Confirm btn */
+.confirm-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 12px; transition: all 0.15s; }
+.confirm-btn:active { transform: scale(0.97); }
+.btn-inactive { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
+.btn-ready { background: var(--green); color: #fff; }
+.btn-done { background: var(--green-pale); color: var(--green2); cursor: default; }
+
+.btn-problem { background: var(--red-pale); color: var(--red); border: 1px solid var(--red); border-radius: var(--radius-sm); width: 100%; padding: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; }
+.btn-problem:active { opacity: 0.8; }
+.btn-has-problem { background: var(--red-pale); color: var(--red); cursor: default; }
+
+/* Problem modal */
+.problem-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); margin-bottom: 8px; cursor: pointer; }
+.problem-option:active { background: var(--red-pale); border-color: var(--red); }
+.problem-option.selected { background: var(--red-pale); border-color: var(--red); }
+.problem-option-icon { font-size: 20px; }
+.problem-option-text { font-size: 14px; }
+
+/* Tel */
+.tel-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text2); font-size: 13px; text-decoration: none; margin-bottom: 10px; }
+.loading { text-align: center; padding: 60px 20px; color: var(--text3); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 60px 20px; }
+.empty-icon { font-size: 56px; margin-bottom: 14px; }
+.empty-text { font-size: 16px; font-weight: 600; color: var(--text2); }
+.empty-sub { font-size: 13px; color: var(--text3); margin-top: 6px; }
+
+/* Toast */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.prog-mini { height: 4px; background: var(--bg3); border-radius: 2px; margin: 8px 0; overflow: hidden; }
+.prog-mini-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.25s; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div class="header-title" id="header-title">🔩 STK Metal</div>
+      <div class="header-sub" id="header-sub">กำลังโหลดแผนงาน...</div>
+    </div>
+    <button onclick="toggleDriverLang()" id="driver-lang-btn" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border2);background:var(--bg3);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🇹🇭</button>
+  </div>
+</div>
+
+<div class="main" id="main">
+  <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Problem Modal -->
+<div id="problem-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center">
+  <div style="background:var(--bg2);border-radius:14px 14px 0 0;width:100%;max-width:480px;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px" id="problem-modal-title">⚠️ แจ้งปัญหา <button onclick="closeProblemModal()" style="float:right;background:var(--bg3);border:none;color:var(--text3);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:13px">✕</button></div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px" id="problem-modal-sub">เลือกสาเหตุของปัญหา</div>
+    <div id="problem-options"></div>
+    <div style="margin-top:10px">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:4px" id="problem-note-label">รายละเอียดเพิ่มเติม (ถ้ามี)</div>
+      <textarea id="problem-note-input" rows="2" style="width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;resize:none"></textarea>
+    </div>
+    <button id="problem-submit-btn" onclick="submitProblem()" style="width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:10px">⚠️ ยืนยันแจ้งปัญหา</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
+  authDomain: "delivery-stkmetal.firebaseapp.com",
+  projectId: "delivery-stkmetal",
+  storageBucket: "delivery-stkmetal.firebasestorage.app",
+  messagingSenderId: "245602225105",
+  appId: "1:245602225105:web:247e531e379eebabdb6ef0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const planId = new URLSearchParams(location.search).get('plan');
+let plan = null;
+// local check state
+let localChecks = {};
+// open state
+let openSteps = {};
+
+const LANG_DRIVER = {
+  th: {
+    loading: 'กำลังโหลดแผนงาน...',
+    progress: '${getL('progress')}',
+    items: 'รายการ',
+    pickupSection: '${getL('pickupSection')}',
+    deliverSection: '${getL('deliverSection')}',
+    pickupTitle: 'รับของจุดที่',
+    itemList: '${getL('itemList')}',
+    itemListDeliver: '${getL('itemListDeliver')}',
+    checklist: '${getL('checklist')}',
+    photoPickup: '${getL('photoPickup')}',
+    photoDeliver: '${getL('photoDeliver')}',
+    addPhoto: '${getL('addPhoto')}',
+    confirmPickup: '${getL('confirmPickup')}',
+    confirmDeliver: '${getL('confirmDeliver')}',
+    donePickup: '${getL('donePickup')}',
+    doneDeliver: '${getL('doneDeliver')}',
+    notReady: '${getL('notReady')}',
+    problem: '${getL('problem')}',
+    problemDeliver: '${getL('problemDeliver')}',
+    problemDone: '${getL('problemDone')}',
+    undo: '${getL('undo')}',
+    undoProblem: '${getL('undoProblem')}',
+    openMap: '${getL('openMap')}',
+    openMapDeliver: '${getL('openMapDeliver')}',
+    allDone: '${getL('allDone')}',
+    allDoneSub: '${getL('allDoneSub')}',
+    wait: 'รอ', active: 'กำลังทำ', done: 'เสร็จ', sent: 'ส่งแล้ว', sending: 'กำลังส่ง',
+    checks: ['นับจำนวนสินค้าครบตามรายการ','ตรวจสภาพผิว ไม่มีรอยขีดข่วน/บุบ','ห่อกันรอยครบทุกชิ้น','ถ่ายรูปสินค้าก่อนขึ้นรถ'],
+    checksDeliver: ['ตรวจนับสินค้าก่อนยกลง','ผิวสินค้าไม่มีรอยใหม่','ถ่ายรูปสินค้าขณะส่ง','ลูกค้าตรวจรับและเซ็นยืนยัน'],
+    problemTitle: '⚠️ แจ้งปัญหา',
+    problemSub: 'เลือกสาเหตุของปัญหา',
+    problemNote: 'รายละเอียดเพิ่มเติม (ถ้ามี)',
+    problemPlaceholder: 'อธิบายเพิ่มเติม...',
+    problemSubmit: '⚠️ ยืนยันแจ้งปัญหา',
+    photoEvidence: '/ รูปหลักฐานปัญหา',
+    srcMain: 'สาขาใหญ่',
+    srcStock: 'ในสต้อค',
+  },
+  mm: {
+    loading: 'အစီအစဉ်ကိုဖွင့်နေသည်...',
+    progress: 'ယနေ့တိုးတက်မှု',
+    items: 'ခုမြောက်',
+    pickupSection: '📦 ကုန်ပစ္စည်းလက်ခံမည့်နေရာ',
+    deliverSection: '🚚 ဖောက်သည်သို့ပို့ဆောင်ရန်',
+    pickupTitle: 'လက်ခံရမည့်နေရာ',
+    itemList: 'လက်ခံရမည့်ကုန်ပစ္စည်းစာရင်း',
+    itemListDeliver: 'ပို့ဆောင်ရမည့်ကုန်ပစ္စည်းစာရင်း',
+    checklist: 'စစ်ဆေးမှုစာရင်း',
+    photoPickup: '📷 ကားပေါ်တင်ကြောင်းဓာတ်ပုံ',
+    photoDeliver: '📸 ဖောက်သည်သို့ပို့ဆောင်ကြောင်းဓာတ်ပုံ',
+    addPhoto: 'ဓာတ်ပုံထည့်ရန်',
+    confirmPickup: '✅ ကုန်ပစ္စည်းလက်ခံပြီးကြောင်းအတည်ပြုရန်',
+    confirmDeliver: '✅ ကုန်ပစ္စည်းပို့ဆောင်ပြီးကြောင်းအတည်ပြုရန်',
+    donePickup: '✅ လက်ခံပြီးပါပြီ',
+    doneDeliver: '✅ ပို့ဆောင်ပြီးပါပြီ',
+    notReady: 'မပြည့်စုံသေးပါ',
+    problem: '⚠️ ပြဿနာတင်ပြရန်',
+    problemDeliver: '⚠️ ပို့မရကြောင်းတင်ပြရန်',
+    problemDone: '⚠️ ပြဿနာတင်ပြပြီး',
+    undo: '↩️ အတည်ပြုချက်ပယ်ဖျက်ရန်',
+    undoProblem: '↩️ ပြဿနာတင်ပြချက်ပယ်ဖျက်ရန်',
+    openMap: '📍 Google Maps ဖွင့်ရန် — လမ်းညွှန်',
+    openMapDeliver: '📍 Google Maps ဖွင့်ရန် — ပို့ဆောင်ရန်',
+    allDone: 'အားလုံးပြီးဆုံးပါပြီ!',
+    allDoneSub: 'ကောင်းမွန်စွာလုပ်ဆောင်သည့်အတွက်ကျေးဇူးတင်ပါသည်',
+    wait: 'စောင့်', active: 'လုပ်နေ', done: 'ပြီး', sent: 'ပို့ပြီး', sending: 'ပို့နေ',
+    checks: ['ကုန်ပစ္စည်းအရေအတွက်စစ်ဆေးပြီး','မျက်နှာပြင်စစ်ဆေးပြီး မမြင်ကြောင်း','ထုပ်ပိုးမှုပြီးစီး','ကားပေါ်တင်မတင်မှီဓာတ်ပုံရိုက်ပြီး'],
+    checksDeliver: ['ချပေးမတင်မှီကုန်စစ်ဆေးပြီး','မျက်နှာပြင်သစ်ကြောင်းမရှိ','ပို့ဆောင်စဉ်ဓာတ်ပုံရိုက်ပြီး','ဖောက်သည်စစ်ဆေးလက်မှတ်ထိုးပြီး'],
+    problemTitle: '⚠️ ပြဿနာတင်ပြရန်',
+    problemSub: 'ပြဿနာအကြောင်းရင်းရွေးချယ်ပါ',
+    problemNote: 'အသေးစိတ်ရှင်းပြချက် (ရှိပါက)',
+    problemPlaceholder: 'ထပ်မံရှင်းပြပါ...',
+    problemSubmit: '⚠️ ပြဿနာအတည်ပြုရန်',
+    photoEvidence: '/ အထောက်အထားဓာတ်ပုံ',
+    srcMain: 'ဌာနချုပ်',
+    srcStock: 'လှောင်ကုန်',
+  }
+};
+let driverLang = 'th';
+let _itemTranslations = {}; // cache การแปล
+let _isTranslating = false;
+
+window.toggleDriverLang = async function() {
+  driverLang = driverLang === 'th' ? 'mm' : 'th';
+  const btn = document.getElementById('driver-lang-btn');
+  btn.textContent = driverLang === 'th' ? '🇹🇭' : '🇲🇲';
+
+  if (driverLang === 'mm' && plan) {
+    // รวบรวมชื่อสินค้าทั้งหมดที่ยังไม่ได้แปล
+    const allItems = new Set();
+    (plan.pickups||[]).forEach(pk => (pk.items||[]).forEach(it => { if(it.name && !_itemTranslations[it.name]) allItems.add(it.name); }));
+    (plan.customers||[]).forEach(c => (c.items||[]).forEach(it => { if(it.name && !_itemTranslations[it.name]) allItems.add(it.name); }));
+
+    if (allItems.size > 0 && !_isTranslating) {
+      _isTranslating = true;
+      btn.textContent = '⏳';
+      btn.disabled = true;
+      try {
+        await translateItems([...allItems]);
+      } catch(e) { console.error(e); }
+      btn.textContent = '🇲🇲';
+      btn.disabled = false;
+      _isTranslating = false;
+    }
+  }
+  render();
+};
+
+async function translateItems(items) {
+  const prompt = `แปลชื่อสินค้าเหล็กและวัสดุอุตสาหกรรมต่อไปนี้จากภาษาไทยเป็นภาษาพม่า (Myanmar/Burmese) ให้ถูกต้องตามศัพท์เทคนิค ตอบเป็น JSON object เท่านั้น ไม่ต้องมีข้อความอื่น รูปแบบ: {"ชื่อไทย": "ชื่อพม่า"}
+
+รายการ:
+${items.map(i => `- ${i}`).join('\n')}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  const text = data.content?.[0]?.text || '{}';
+  try {
+    const clean = text.replace(/```json|```/g, '').trim();
+    const translations = JSON.parse(clean);
+    Object.assign(_itemTranslations, translations);
+  } catch(e) { console.error('Parse error:', e); }
+}
+
+window.getItemName = function(name) {
+  if (driverLang === 'mm' && _itemTranslations[name]) {
+    return `${_itemTranslations[name]}<br><span style="font-size:11px;opacity:0.6">${name}</span>`;
+  }
+  return name;
+};
+
+window.getL = function(key) {
+  return LANG_DRIVER[driverLang][key] || LANG_DRIVER.th[key] || key;
+};
+
+// checks จะดึงจาก LANG_DRIVER ตาม driverLang
+function getPickupChecks() { return LANG_DRIVER[driverLang].checks; }
+function getDeliverChecks() { return LANG_DRIVER[driverLang].checksDeliver; }
+
+if (!planId) {
+  document.getElementById('main').innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่พบแผนงาน</div><div class="empty-sub">กรุณาเปิดลิงก์จาก Line ที่ได้รับ</div></div>`;
+} else {
+  startListener();
+}
+
+function startListener() {
+  onSnapshot(doc(db,'plans',planId), snap => {
+    if (!snap.exists()) {
+      document.getElementById('main').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">ไม่พบแผนงานนี้</div></div>`;
+      return;
+    }
+    plan = { id: snap.id, ...snap.data() };
+    updateHeader();
+    render();
+  }, err => {
+    document.getElementById('main').innerHTML = `<div class="loading">❌ โหลดไม่ได้: ${err.message}</div>`;
+  });
+}
+
+function updateHeader() {
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const [y,m,d] = (plan.date||'').split('-');
+  const dateStr = d ? `${parseInt(d)} ${months[parseInt(m)]} ${parseInt(y)+543}` : '-';
+  document.getElementById('header-title').textContent = `🚛 ${plan.truckName||'รถ'} — ${plan.driver||'คนขับ'}`;
+  document.getElementById('header-sub').textContent = `แผนงาน ${dateStr}`;
+}
+
+function render() {
+  const pickups = plan.pickups||[];
+  const customers = plan.customers||[];
+  const totalPickups = pickups.length;
+  const totalCustomers = customers.length;
+  const donePickups = pickups.filter(p=>p.done).length;
+  const doneCustomers = customers.filter(c=>c.done).length;
+  const total = totalPickups + totalCustomers;
+  const done = donePickups + doneCustomers;
+  const pct = total ? Math.round(done/total*100) : 0;
+
+  let html = `
+  <div class="prog-card">
+    <div class="prog-row">
+      <div class="prog-label">${getL('progress')}</div>
+      <div class="prog-count">${done}/${total} <span style="font-size:13px;color:var(--text3)">${getL('items')}</span></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+  </div>`;
+
+  // Pickups
+  if (pickups.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${getL('pickupSection')} (${donePickups}/${totalPickups})</div>`;
+    pickups.forEach((pk, i) => {
+      const key = `pickup-${i}`;
+      const checks = localChecks[key] || getPickupChecks().map(()=>false);
+      const checkedCount = checks.filter(Boolean).length;
+      const allChecked = checkedCount === getPickupChecks().length;
+      const isOpen = openSteps[key];
+      let cardClass = pk.done ? 'done' : (checkedCount>0?'active':'');
+      html += `
+      <div class="step-card ${cardClass}">
+        <div class="step-header" onclick="toggleStep('${key}')">
+          <div class="step-icon ${pk.done?'icon-done':'icon-pickup'}">${pk.done?'✅':'📦'}</div>
+          <div class="step-info">
+            <div class="step-title">รับของจุดที่ ${i+1}</div>
+            <div class="step-sub">${(pk.items||[]).length} รายการ • ${checkedCount}/${getPickupChecks().length} เช็ค</div>
+          </div>
+          <span class="step-badge ${pk.done?'badge-done':checkedCount>0?'badge-active':'badge-wait'}">${pk.done?'เสร็จ':checkedCount>0?'กำลังทำ':'รอ'}</span>
+          <span style="color:var(--text3);margin-left:6px;font-size:14px">${isOpen?'▴':'▾'}</span>
+        </div>
+        <div class="step-body${isOpen?' open':''}">
+          <div class="step-section">
+            ${pk.location?`<a class="map-btn" href="${pk.location}" target="_blank">${getL('openMap')}</a>`:''}
+            ${pk.note?`<div style="font-size:13px;color:var(--amber);background:var(--amber-pale);padding:8px 12px;border-radius:8px;margin-bottom:12px">📝 ${pk.note}</div>`:''}
+            <div class="sec-title">${getL('itemList')}</div>
+            ${(pk.items||[]).map(it=>`<div class="item-row"><span class="item-name">${getItemName(it.name)}</span><span class="item-qty">= ${it.qty}${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px">${it.src==='สาขาใหญ่'?getL('srcMain'):it.src==='ในสต้อค'?getL('srcStock'):it.src}</span>`:''}</span></div>`).join('')}
+            <div class="sec-title" style="margin-top:12px">${getL('checklist')}</div>
+            ${getPickupChecks().map((c,ci)=>`
+              <div class="check-item${checks[ci]?' checked':''}" onclick="toggleCheck('${key}',${ci},${getPickupChecks().length})">
+                <div class="checkbox">${checks[ci]?'✓':''}</div>
+                <div class="check-text">${c}</div>
+              </div>`).join('')}
+            <div class="prog-mini"><div class="prog-mini-fill" style="width:${Math.round(checkedCount/getPickupChecks().length*100)}%"></div></div>
+
+            <div class="photo-section">
+              <div class="sec-title">${getL('photoPickup')}${pk.problem?' '+getL('photoEvidence'):''}</div>
+              <div class="photo-grid" id="photo-grid-${key}">
+                ${renderPhotos(pk.photos||[], key, i, 'pickup', pk.done&&!pk.problem)}
+                ${!pk.done?`<label class="photo-add" for="photo-input-${key}"><span>📷</span><span>${getL('addPhoto')}</span></label>
+                <input class="photo-input" id="photo-input-${key}" type="file" accept="image/*" multiple onchange="addPhoto('${key}',this,${i},'pickup')">`:''}
+              </div>
+            </div>
+
+            <button class="confirm-btn ${pk.done?'btn-done':pk.problem?'btn-has-problem':allChecked?'btn-ready':'btn-inactive'}" 
+              onclick="${pk.done||pk.problem||!allChecked?'':(`confirmPickup(${i})`)}" >
+              ${pk.done?'${getL('donePickup')}':pk.problem?'${getL('problemDone')}':allChecked?'${getL('confirmPickup')}':'${getL('notReady')}'}
+            </button>
+            ${pk.done?`<button class="btn-problem" style="margin-top:6px;background:transparent;color:var(--text3);border-color:var(--border2)" onclick="undoConfirm('pickup',${i})">${getL('undo')}</button>`:''}
+            ${!pk.done&&!pk.problem?`<button class="btn-problem" onclick="showProblemModal('pickup',${i})">${getL('problem')}</button>`:''}
+            ${pk.problem?`<div style="margin-top:8px;padding:8px 12px;background:var(--red-pale);border-radius:8px;font-size:12px;color:var(--red)">⚠️ ${pk.problem}${pk.problemNote?' — '+pk.problemNote:''}</div>`:''}
+            ${pk.problem?`<button class="btn-problem" style="margin-top:6px;background:transparent;color:var(--text3);border-color:var(--border2)" onclick="undoConfirm('pickup',${i})">${getL('undoProblem')}</button>`:''}
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Customers
+  if (customers.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">${getL('deliverSection')} (${doneCustomers}/${totalCustomers})</div>`;
+    customers.forEach((c, i) => {
+      const key = `cust-${i}`;
+      const checks = localChecks[key] || getDeliverChecks().map(()=>false);
+      const checkedCount = checks.filter(Boolean).length;
+      const allChecked = checkedCount === getDeliverChecks().length;
+      const isOpen = openSteps[key];
+      let cardClass = c.done ? 'done' : (checkedCount>0?'active':'');
+      html += `
+      <div class="step-card ${cardClass}">
+        <div class="step-header" onclick="toggleStep('${key}')">
+          <div class="step-icon ${c.done?'icon-done':'icon-deliver'}">${c.done?'✅':'🚚'}</div>
+          <div class="step-info">
+            <div class="step-title">${c.name}</div>
+            <div class="step-sub">${(c.items||[]).length} รายการ • ${checkedCount}/${getDeliverChecks().length} เช็ค${c.doneAt?' • ✅ '+new Date(c.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}</div>
+          </div>
+          <span class="step-badge ${c.done?'badge-done':checkedCount>0?'badge-active':'badge-wait'}">${c.done?'ส่งแล้ว':checkedCount>0?'กำลังส่ง':'รอ'}</span>
+          <span style="color:var(--text3);margin-left:6px;font-size:14px">${isOpen?'▴':'▾'}</span>
+        </div>
+        <div class="step-body${isOpen?' open':''}">
+          <div class="step-section">
+            ${c.location?`<a class="map-btn" href="${c.location}" target="_blank">${getL('openMapDeliver')}</a>`:''}
+            ${c.tel?`<a class="tel-btn" href="tel:${c.tel}">📞 โทร ${c.tel}</a>`:''}
+            ${c.note?`<div style="font-size:13px;color:var(--amber);background:var(--amber-pale);padding:8px 12px;border-radius:8px;margin-bottom:12px">📝 ${c.note}</div>`:''}
+            <div class="sec-title">${getL('itemListDeliver')}</div>
+            ${(c.items||[]).map(it=>`<div class="item-row"><span class="item-name">${getItemName(it.name)}</span><span class="item-qty">= ${it.qty}${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px">${it.src==='สาขาใหญ่'?getL('srcMain'):it.src==='ในสต้อค'?getL('srcStock'):it.src}</span>`:''}</span></div>`).join('')}
+            <div class="sec-title" style="margin-top:12px">${getL('checklist')}</div>
+            ${getDeliverChecks().map((ch,ci)=>`
+              <div class="check-item${checks[ci]?' checked':''}" onclick="toggleCheck('${key}',${ci},${getDeliverChecks().length})">
+                <div class="checkbox">${checks[ci]?'✓':''}</div>
+                <div class="check-text">${ch}</div>
+              </div>`).join('')}
+            <div class="prog-mini"><div class="prog-mini-fill" style="width:${Math.round(checkedCount/getDeliverChecks().length*100)}%"></div></div>
+
+            <div class="photo-section">
+              <div class="sec-title">${getL('photoDeliver')}${c.problem?' '+getL('photoEvidence'):''}</div>
+              <div class="photo-grid" id="photo-grid-${key}">
+                ${renderPhotos(c.photos||[], key, i, 'customer', c.done&&!c.problem)}
+                ${!c.done?`<label class="photo-add" for="photo-input-${key}"><span>📸</span><span>${getL('addPhoto')}</span></label>
+                <input class="photo-input" id="photo-input-${key}" type="file" accept="image/*" multiple onchange="addPhoto('${key}',this,${i},'customer')">`:''}
+              </div>
+            </div>
+
+            <button class="confirm-btn ${c.done?'btn-done':c.problem?'btn-has-problem':allChecked?'btn-ready':'btn-inactive'}"
+              onclick="${c.done||c.problem||!allChecked?'':(`confirmDelivery(${i})`)}">
+              ${c.done?'${getL('doneDeliver')}':c.problem?'${getL('problemDone')}':allChecked?'${getL('confirmDeliver')}':'${getL('notReady')}'}
+            </button>
+            ${c.done?`<button class="btn-problem" style="margin-top:6px;background:transparent;color:var(--text3);border-color:var(--border2)" onclick="undoConfirm('customer',${i})">${getL('undo')}</button>`:''}
+            ${!c.done&&!c.problem?`<button class="btn-problem" onclick="showProblemModal('customer',${i})">${getL('problemDeliver')}</button>`:''}
+            ${c.problem?`<div style="margin-top:8px;padding:8px 12px;background:var(--red-pale);border-radius:8px;font-size:12px;color:var(--red)">⚠️ ${c.problem}${c.problemNote?' — '+c.problemNote:''}</div>`:''}
+            ${c.problem?`<button class="btn-problem" style="margin-top:6px;background:transparent;color:var(--text3);border-color:var(--border2)" onclick="undoConfirm('customer',${i})">${getL('undoProblem')}</button>`:''}
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  if (done===total && total>0) {
+    html += `<div style="text-align:center;padding:24px;background:var(--green-pale);border-radius:var(--radius);border:1px solid var(--green-soft);margin-top:14px">
+      <div style="font-size:40px;margin-bottom:8px">🎉</div>
+      <div style="font-size:16px;font-weight:700;color:var(--green2)">${getL('allDone')}</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px">${getL('allDoneSub')}</div>
+    </div>`;
+  }
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function renderPhotos(photos, key, idx, type, isDone) {
+  return photos.map((src,i)=>`
+    <div class="photo-thumb-wrap">
+      <img src="${src}" loading="lazy">
+      ${!isDone?`<button class="photo-remove" onclick="removePhoto('${key}',${i},${idx},'${type}')">✕</button>`:''}
+    </div>`).join('');
+}
+
+window.toggleStep = function(key) {
+  openSteps[key] = !openSteps[key]; render();
+};
+
+window.toggleCheck = function(key, ci, total) {
+  if (!localChecks[key]) localChecks[key] = Array(total).fill(false);
+  localChecks[key][ci] = !localChecks[key][ci]; render();
+};
+
+window.addPhoto = function(key, input, idx, type) {
+  const files = Array.from(input.files);
+  let loaded = 0;
+  showToast('⏳ กำลังบันทึกรูป...');
+  files.forEach(file => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 400; // เล็กลงมากเพื่อให้บันทึกได้ครบ 6 รูป
+      const scale = Math.min(1, maxW/img.width);
+      canvas.width = img.width*scale;
+      canvas.height = img.height*scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL('image/jpeg', 0.4); // quality ต่ำลง
+      URL.revokeObjectURL(url);
+      savePhoto(key, idx, type, data, files.length, ++loaded);
+    };
+    img.onerror = () => { showToast('❌ โหลดรูปไม่สำเร็จ'); URL.revokeObjectURL(url); };
+    img.src = url;
+  });
+};
+
+async function savePhoto(key, idx, type, data, total, loaded) {
+  try {
+    if (type==='pickup') {
+      // ดึงข้อมูลล่าสุดก่อน${getL('addPhoto')}
+      const snap = await getDoc(doc(db,'plans',planId));
+      const latest = snap.data();
+      const photos = [...(latest.pickups[idx].photos||[]), data];
+      const pickups = [...latest.pickups];
+      pickups[idx] = {...pickups[idx], photos};
+      await updateDoc(doc(db,'plans',planId), {pickups});
+    } else {
+      const snap = await getDoc(doc(db,'plans',planId));
+      const latest = snap.data();
+      const photos = [...(latest.customers[idx].photos||[]), data];
+      const customers = [...latest.customers];
+      customers[idx] = {...customers[idx], photos};
+      await updateDoc(doc(db,'plans',planId), {customers});
+    }
+    if (loaded===total) showToast(`📷 บันทึก ${total} รูปแล้ว`);
+  } catch(e) {
+    showToast('❌ รูปใหญ่เกินไป ลองถ่ายรูปใหม่');
+    console.error(e);
+  }
+}
+
+window.removePhoto = async function(key, photoIdx, idx, type) {
+  if (!confirm('ลบรูปนี้?')) return;
+  try {
+    const snap = await getDoc(doc(db,'plans',planId));
+    const latest = snap.data();
+    if (type==='pickup') {
+      const photos = [...(latest.pickups[idx].photos||[])];
+      photos.splice(photoIdx, 1);
+      const pickups = [...latest.pickups];
+      pickups[idx] = {...pickups[idx], photos};
+      await updateDoc(doc(db,'plans',planId), {pickups});
+    } else {
+      const photos = [...(latest.customers[idx].photos||[])];
+      photos.splice(photoIdx, 1);
+      const customers = [...latest.customers];
+      customers[idx] = {...customers[idx], photos};
+      await updateDoc(doc(db,'plans',planId), {customers});
+    }
+    showToast('🗑 ลบรูปแล้ว');
+  } catch(e) {
+    showToast('❌ ลบไม่สำเร็จ');
+  }
+};
+
+window.undoConfirm = async function(type, idx) {
+  if (!confirm('ยกเลิกการยืนยัน/แจ้งปัญหานี้?')) return;
+  try {
+    if (type==='pickup') {
+      const pickups = [...plan.pickups];
+      pickups[idx] = {...pickups[idx], done:false, doneAt:null, problem:null, problemNote:null, problemAt:null};
+      await updateDoc(doc(db,'plans',planId), {pickups});
+    } else {
+      const customers = [...plan.customers];
+      customers[idx] = {...customers[idx], done:false, doneAt:null, problem:null, problemNote:null, problemAt:null};
+      await updateDoc(doc(db,'plans',planId), {customers});
+    }
+    showToast('↩️ ยกเลิกแล้ว');
+  } catch(e) {
+    showToast('❌ ยกเลิกไม่สำเร็จ');
+  }
+};
+
+window.confirmPickup = async function(idx) {
+  const pickups = [...plan.pickups];
+  pickups[idx] = {...pickups[idx], done:true, doneAt: Date.now()};
+  await updateDoc(doc(db,'plans',planId), {pickups});
+  openSteps[`pickup-${idx}`] = false;
+  showToast('✅ บันทึกการรับของแล้ว');
+};
+
+window.confirmDelivery = async function(idx) {
+  const customers = [...plan.customers];
+  customers[idx] = {...customers[idx], done:true, doneAt: Date.now()};
+  await updateDoc(doc(db,'plans',planId), {customers});
+  openSteps[`cust-${idx}`] = false;
+  showToast('✅ บันทึกการส่งสินค้าแล้ว');
+};
+
+// ---- PROBLEM ----
+const PICKUP_PROBLEMS = [
+  {icon:'📦', text:'รับของไม่ครบ'},
+  {icon:'💥', text:'สินค้าเสียหาย'},
+  {icon:'🚫', text:'ไม่มีสินค้าให้รับ'},
+  {icon:'⏰', text:'รอนานเกินไป'},
+  {icon:'📝', text:'อื่นๆ'},
+];
+const DELIVER_PROBLEMS = [
+  {icon:'🚫', text:'ลูกค้าไม่รับสินค้า'},
+  {icon:'💥', text:'สินค้าเสียหายระหว่างส่ง'},
+  {icon:'📦', text:'ส่งของไม่ครบ'},
+  {icon:'📍', text:'หาสถานที่ไม่พบ'},
+  {icon:'📵', text:'ติดต่อลูกค้าไม่ได้'},
+  {icon:'📝', text:'อื่นๆ'},
+];
+
+let _problemType = null;
+let _problemIdx = null;
+let _selectedProblem = null;
+
+window.showProblemModal = function(type, idx) {
+  _problemType = type;
+  _problemIdx = idx;
+  _selectedProblem = null;
+  document.getElementById('problem-note-input').value = '';
+  document.getElementById('problem-note-input').placeholder = getL('problemPlaceholder');
+  document.getElementById('problem-modal-title').innerHTML = getL('problemTitle') + ` <button onclick="closeProblemModal()" style="float:right;background:var(--bg3);border:none;color:var(--text3);padding:4px 10px;border-radius:6px;cursor:pointer;font-size:13px">✕</button>`;
+  document.getElementById('problem-modal-sub').textContent = getL('problemSub');
+  document.getElementById('problem-note-label').textContent = getL('problemNote');
+  document.getElementById('problem-submit-btn').textContent = getL('problemSubmit');
+  const problems = type === 'pickup' ? getPickupChecks().map((_,i) => ([
+    {icon:'📦', text: driverLang==='th'?'รับของไม่ครบ':'ကုန်မပြည့်'},
+    {icon:'💥', text: driverLang==='th'?'สินค้าเสียหาย':'ကုန်ပစ္စည်းပျက်စီး'},
+    {icon:'🚫', text: driverLang==='th'?'ไม่มีสินค้าให้รับ':'ကုန်မရှိ'},
+    {icon:'⏰', text: driverLang==='th'?'รอนานเกินไป':'အချိန်ကြာသည်'},
+    {icon:'📝', text: driverLang==='th'?'อื่นๆ':'အခြား'},
+  ]))[0] : [
+    {icon:'🚫', text: driverLang==='th'?'ลูกค้าไม่รับสินค้า':'ဖောက်သည်မလက်ခံ'},
+    {icon:'💥', text: driverLang==='th'?'สินค้าเสียหายระหว่างส่ง':'ပို့ဆောင်ရင်းပျက်စီး'},
+    {icon:'📦', text: driverLang==='th'?'ส่งของไม่ครบ':'ကုန်မပြည့်'},
+    {icon:'📍', text: driverLang==='th'?'หาสถานที่ไม่พบ':'နေရာမတွေ့'},
+    {icon:'📵', text: driverLang==='th'?'ติดต่อลูกค้าไม่ได้':'ဆက်သွယ်မရ'},
+    {icon:'📝', text: driverLang==='th'?'อื่นๆ':'အခြား'},
+  ];
+  document.getElementById('problem-options').innerHTML = problems.map((p,i) => `
+    <div class="problem-option" id="prob-opt-${i}" onclick="selectProblem(${i},'${p.text}')">
+      <span class="problem-option-icon">${p.icon}</span>
+      <span class="problem-option-text">${p.text}</span>
+    </div>`).join('');
+  const modal = document.getElementById('problem-modal');
+  modal.style.display = 'flex';
+};
+
+window.selectProblem = function(i, text) {
+  _selectedProblem = text;
+  document.querySelectorAll('.problem-option').forEach((el,idx) => {
+    el.classList.toggle('selected', idx === i);
+  });
+};
+
+window.closeProblemModal = function() {
+  document.getElementById('problem-modal').style.display = 'none';
+};
+
+window.submitProblem = async function() {
+  if (!_selectedProblem) { showToast('⚠️ กรุณาเลือกสาเหตุ'); return; }
+  const note = document.getElementById('problem-note-input').value.trim();
+  try {
+    if (_problemType === 'pickup') {
+      const pickups = [...plan.pickups];
+      pickups[_problemIdx] = {...pickups[_problemIdx], problem: _selectedProblem, problemNote: note, problemAt: Date.now()};
+      await updateDoc(doc(db,'plans',planId), {pickups});
+    } else {
+      const customers = [...plan.customers];
+      customers[_problemIdx] = {...customers[_problemIdx], problem: _selectedProblem, problemNote: note, problemAt: Date.now()};
+      await updateDoc(doc(db,'plans',planId), {customers});
+    }
+    closeProblemModal();
+    showToast('${getL('problemDone')}');
+  } catch(e) {
+    showToast('❌ บันทึกไม่สำเร็จ');
+  }
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

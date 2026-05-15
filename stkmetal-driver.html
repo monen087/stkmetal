@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>STK Metal — คนขับ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a1628; --bg2: #0f2040; --bg3: #162a52;
+  --green: #90caf9; --green2: #1e90ff; --green-pale: #0d2a4a; --green-soft: #1a3a6a;
+  --amber: #ffd166; --amber-pale: #2a2000;
+  --red: #ef5350; --red-pale: #2a0f0f;
+  --text: #ffffff; --text2: #e0f0ff; --text3: #7ab0d4;
+  --border: #1a3a5c; --border2: #2a5080;
+  --radius: 14px; --radius-sm: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 16px; position: sticky; top: 0; z-index: 100; }
+.header-title { font-size: 17px; font-weight: 700; }
+.header-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+.main { padding: 14px 14px 40px; }
+
+/* Progress */
+.prog-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+.prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.prog-label { font-size: 13px; color: var(--text2); }
+.prog-count { font-size: 20px; font-weight: 700; color: var(--green2); }
+.prog-bar { height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.4s; }
+
+/* Step card */
+.step-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; transition: border-color 0.2s; }
+.step-card.done { border-color: var(--green-soft); }
+.step-card.active { border-color: var(--amber); }
+.step-header { display: flex; align-items: center; gap: 12px; padding: 14px; cursor: pointer; }
+.step-header:active { background: var(--bg3); }
+.step-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.icon-pickup { background: var(--amber-pale); }
+.icon-deliver { background: var(--green-pale); }
+.icon-done { background: var(--green-soft); }
+.step-info { flex: 1; min-width: 0; }
+.step-title { font-size: 15px; font-weight: 600; }
+.step-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.step-badge { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; flex-shrink: 0; }
+.badge-wait { background: var(--bg3); color: var(--text3); }
+.badge-active { background: var(--amber-pale); color: var(--amber); }
+.badge-done { background: var(--green-pale); color: var(--green2); }
+
+.step-body { display: none; border-top: 1px solid var(--border); }
+.step-body.open { display: block; }
+.step-section { padding: 14px; }
+.sec-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+
+/* Map link */
+.map-btn { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--green2); font-size: 14px; font-weight: 500; text-decoration: none; margin-bottom: 12px; }
+.map-btn:active { opacity: 0.75; }
+
+/* Items */
+.item-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.item-row:last-child { border: none; }
+.item-name { flex: 1; font-size: 13px; color: var(--text2); }
+.item-qty { font-size: 13px; font-weight: 600; color: var(--amber); }
+
+/* Check items */
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); margin-bottom: 6px; cursor: pointer; -webkit-user-select: none; user-select: none; }
+.check-item:active { transform: scale(0.98); }
+.check-item.checked { background: var(--green-pale); border-color: var(--green-soft); }
+.check-item.checked .check-text { color: var(--text3); text-decoration: line-through; }
+.checkbox { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border2); background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; transition: all 0.12s; }
+.check-item.checked .checkbox { background: var(--green); border-color: var(--green); color: white; }
+.check-text { font-size: 14px; line-height: 1.45; }
+
+/* Photo */
+.photo-section { margin: 10px 0; }
+.photo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.photo-thumb-wrap { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--bg3); }
+.photo-thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.photo-remove { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.photo-add { aspect-ratio: 1; border-radius: 8px; border: 1.5px dashed var(--border2); background: var(--bg3); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; gap: 4px; }
+.photo-add span { font-size: 11px; color: var(--text3); }
+.photo-input { display: none; }
+
+/* Confirm btn */
+.confirm-btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 12px; transition: all 0.15s; }
+.confirm-btn:active { transform: scale(0.97); }
+.btn-inactive { background: var(--bg3); color: var(--text3); cursor: not-allowed; }
+.btn-ready { background: var(--green); color: #fff; }
+.btn-done { background: var(--green-pale); color: var(--green2); cursor: default; }
+
+/* Tel */
+.tel-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text2); font-size: 13px; text-decoration: none; margin-bottom: 10px; }
+
+/* Loading / Empty */
+.loading { text-align: center; padding: 60px 20px; color: var(--text3); }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align: center; padding: 60px 20px; }
+.empty-icon { font-size: 56px; margin-bottom: 14px; }
+.empty-text { font-size: 16px; font-weight: 600; color: var(--text2); }
+.empty-sub { font-size: 13px; color: var(--text3); margin-top: 6px; }
+
+/* Toast */
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.prog-mini { height: 4px; background: var(--bg3); border-radius: 2px; margin: 8px 0; overflow: hidden; }
+.prog-mini-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.25s; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title" id="header-title">🔩 STK Metal</div>
+  <div class="header-sub" id="header-sub">กำลังโหลดแผนงาน...</div>
+</div>
+
+<div class="main" id="main">
+  <div class="loading"><div class="spinner"></div>กำลังโหลด...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
+  authDomain: "delivery-stkmetal.firebaseapp.com",
+  projectId: "delivery-stkmetal",
+  storageBucket: "delivery-stkmetal.firebasestorage.app",
+  messagingSenderId: "245602225105",
+  appId: "1:245602225105:web:247e531e379eebabdb6ef0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const planId = new URLSearchParams(location.search).get('plan');
+let plan = null;
+// local check state
+let localChecks = {};
+// open state
+let openSteps = {};
+
+const PICKUP_CHECKS = ['นับจำนวนสินค้าครบตามรายการ','ตรวจสภาพผิว ไม่มีรอยขีดข่วน/บุบ','ห่อกันรอยครบทุกชิ้น','ถ่ายรูปสินค้าก่อนขึ้นรถ'];
+const DELIVER_CHECKS = ['ตรวจนับสินค้าก่อนยกลง','ผิวสินค้าไม่มีรอยใหม่','ถ่ายรูปสินค้าขณะส่ง','ลูกค้าตรวจรับและเซ็นยืนยัน'];
+
+if (!planId) {
+  document.getElementById('main').innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่พบแผนงาน</div><div class="empty-sub">กรุณาเปิดลิงก์จาก Line ที่ได้รับ</div></div>`;
+} else {
+  startListener();
+}
+
+function startListener() {
+  onSnapshot(doc(db,'plans',planId), snap => {
+    if (!snap.exists()) {
+      document.getElementById('main').innerHTML = `<div class="empty"><div class="empty-icon">❌</div><div class="empty-text">ไม่พบแผนงานนี้</div></div>`;
+      return;
+    }
+    plan = { id: snap.id, ...snap.data() };
+    updateHeader();
+    render();
+  }, err => {
+    document.getElementById('main').innerHTML = `<div class="loading">❌ โหลดไม่ได้: ${err.message}</div>`;
+  });
+}
+
+function updateHeader() {
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const [y,m,d] = (plan.date||'').split('-');
+  const dateStr = d ? `${parseInt(d)} ${months[parseInt(m)]} ${parseInt(y)+543}` : '-';
+  document.getElementById('header-title').textContent = `🚛 ${plan.truckName||'รถ'} — ${plan.driver||'คนขับ'}`;
+  document.getElementById('header-sub').textContent = `แผนงาน ${dateStr}`;
+}
+
+function render() {
+  const pickups = plan.pickups||[];
+  const customers = plan.customers||[];
+  const totalPickups = pickups.length;
+  const totalCustomers = customers.length;
+  const donePickups = pickups.filter(p=>p.done).length;
+  const doneCustomers = customers.filter(c=>c.done).length;
+  const total = totalPickups + totalCustomers;
+  const done = donePickups + doneCustomers;
+  const pct = total ? Math.round(done/total*100) : 0;
+
+  let html = `
+  <div class="prog-card">
+    <div class="prog-row">
+      <div class="prog-label">ความคืบหน้าวันนี้</div>
+      <div class="prog-count">${done}/${total} <span style="font-size:13px;color:var(--text3)">รายการ</span></div>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+  </div>`;
+
+  // Pickups
+  if (pickups.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📦 จุดรับของ (${donePickups}/${totalPickups})</div>`;
+    pickups.forEach((pk, i) => {
+      const key = `pickup-${i}`;
+      const checks = localChecks[key] || PICKUP_CHECKS.map(()=>false);
+      const checkedCount = checks.filter(Boolean).length;
+      const allChecked = checkedCount === PICKUP_CHECKS.length;
+      const isOpen = openSteps[key];
+      let cardClass = pk.done ? 'done' : (checkedCount>0?'active':'');
+      html += `
+      <div class="step-card ${cardClass}">
+        <div class="step-header" onclick="toggleStep('${key}')">
+          <div class="step-icon ${pk.done?'icon-done':'icon-pickup'}">${pk.done?'✅':'📦'}</div>
+          <div class="step-info">
+            <div class="step-title">รับของจุดที่ ${i+1}</div>
+            <div class="step-sub">${(pk.items||[]).length} รายการ • ${checkedCount}/${PICKUP_CHECKS.length} เช็ค</div>
+          </div>
+          <span class="step-badge ${pk.done?'badge-done':checkedCount>0?'badge-active':'badge-wait'}">${pk.done?'เสร็จ':checkedCount>0?'กำลังทำ':'รอ'}</span>
+          <span style="color:var(--text3);margin-left:6px;font-size:14px">${isOpen?'▴':'▾'}</span>
+        </div>
+        <div class="step-body${isOpen?' open':''}">
+          <div class="step-section">
+            ${pk.location?`<a class="map-btn" href="${pk.location}" target="_blank">📍 เปิด Google Maps — นำทางไปจุดรับ</a>`:''}
+            <div class="sec-title">รายการสินค้าที่ต้องรับ</div>
+            ${(pk.items||[]).map(it=>`<div class="item-row"><span class="item-name">${it.name}</span><span class="item-qty">= ${it.qty}</span></div>`).join('')}
+            <div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>
+            ${PICKUP_CHECKS.map((c,ci)=>`
+              <div class="check-item${checks[ci]?' checked':''}" onclick="toggleCheck('${key}',${ci},${PICKUP_CHECKS.length})">
+                <div class="checkbox">${checks[ci]?'✓':''}</div>
+                <div class="check-text">${c}</div>
+              </div>`).join('')}
+            <div class="prog-mini"><div class="prog-mini-fill" style="width:${Math.round(checkedCount/PICKUP_CHECKS.length*100)}%"></div></div>
+
+            <div class="photo-section">
+              <div class="sec-title">📷 รูปสินค้าตอนรับขึ้นรถ</div>
+              <div class="photo-grid" id="photo-grid-${key}">
+                ${renderPhotos(pk.photos||[], key)}
+                ${!pk.done?`<label class="photo-add" for="photo-input-${key}"><span>📷</span><span>เพิ่มรูป</span></label>
+                <input class="photo-input" id="photo-input-${key}" type="file" accept="image/*" multiple onchange="addPhoto('${key}',this,${i},'pickup')">`:''}
+              </div>
+            </div>
+
+            <button class="confirm-btn ${pk.done?'btn-done':allChecked?'btn-ready':'btn-inactive'}" 
+              onclick="${pk.done||!allChecked?'':(`confirmPickup(${i})`)}" >
+              ${pk.done?'✅ รับของเสร็จแล้ว':allChecked?'✅ ยืนยันรับของเสร็จสิ้น':'ยังไม่ครบทุกรายการ'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // Customers
+  if (customers.length) {
+    html += `<div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">🚚 ส่งลูกค้า (${doneCustomers}/${totalCustomers})</div>`;
+    customers.forEach((c, i) => {
+      const key = `cust-${i}`;
+      const checks = localChecks[key] || DELIVER_CHECKS.map(()=>false);
+      const checkedCount = checks.filter(Boolean).length;
+      const allChecked = checkedCount === DELIVER_CHECKS.length;
+      const isOpen = openSteps[key];
+      let cardClass = c.done ? 'done' : (checkedCount>0?'active':'');
+      html += `
+      <div class="step-card ${cardClass}">
+        <div class="step-header" onclick="toggleStep('${key}')">
+          <div class="step-icon ${c.done?'icon-done':'icon-deliver'}">${c.done?'✅':'🚚'}</div>
+          <div class="step-info">
+            <div class="step-title">${c.name}</div>
+            <div class="step-sub">${(c.items||[]).length} รายการ • ${checkedCount}/${DELIVER_CHECKS.length} เช็ค${c.doneAt?' • ✅ '+new Date(c.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}</div>
+          </div>
+          <span class="step-badge ${c.done?'badge-done':checkedCount>0?'badge-active':'badge-wait'}">${c.done?'ส่งแล้ว':checkedCount>0?'กำลังส่ง':'รอ'}</span>
+          <span style="color:var(--text3);margin-left:6px;font-size:14px">${isOpen?'▴':'▾'}</span>
+        </div>
+        <div class="step-body${isOpen?' open':''}">
+          <div class="step-section">
+            ${c.location?`<a class="map-btn" href="${c.location}" target="_blank">📍 เปิด Google Maps — นำทางไปส่ง</a>`:''}
+            ${c.tel?`<a class="tel-btn" href="tel:${c.tel}">📞 โทร ${c.tel}</a>`:''}
+            <div class="sec-title">รายการสินค้าที่ต้องส่ง</div>
+            ${(c.items||[]).map(it=>`<div class="item-row"><span class="item-name">${it.name}</span><span class="item-qty">= ${it.qty}</span></div>`).join('')}
+            <div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>
+            ${DELIVER_CHECKS.map((ch,ci)=>`
+              <div class="check-item${checks[ci]?' checked':''}" onclick="toggleCheck('${key}',${ci},${DELIVER_CHECKS.length})">
+                <div class="checkbox">${checks[ci]?'✓':''}</div>
+                <div class="check-text">${ch}</div>
+              </div>`).join('')}
+            <div class="prog-mini"><div class="prog-mini-fill" style="width:${Math.round(checkedCount/DELIVER_CHECKS.length*100)}%"></div></div>
+
+            <div class="photo-section">
+              <div class="sec-title">📸 รูปส่งสินค้าให้ลูกค้า</div>
+              <div class="photo-grid" id="photo-grid-${key}">
+                ${renderPhotos(c.photos||[], key)}
+                ${!c.done?`<label class="photo-add" for="photo-input-${key}"><span>📸</span><span>เพิ่มรูป</span></label>
+                <input class="photo-input" id="photo-input-${key}" type="file" accept="image/*" multiple onchange="addPhoto('${key}',this,${i},'customer')">`:''}
+              </div>
+            </div>
+
+            <button class="confirm-btn ${c.done?'btn-done':allChecked?'btn-ready':'btn-inactive'}"
+              onclick="${c.done||!allChecked?'':(`confirmDelivery(${i})`)}">
+              ${c.done?'✅ ส่งสำเร็จแล้ว':allChecked?'✅ ยืนยันส่งสินค้าเสร็จสิ้น':'ยังไม่ครบทุกรายการ'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  if (done===total && total>0) {
+    html += `<div style="text-align:center;padding:24px;background:var(--green-pale);border-radius:var(--radius);border:1px solid var(--green-soft);margin-top:14px">
+      <div style="font-size:40px;margin-bottom:8px">🎉</div>
+      <div style="font-size:16px;font-weight:700;color:var(--green2)">เสร็จสิ้นทุกรายการแล้ว!</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px">ขอบคุณที่ทำงานอย่างดี</div>
+    </div>`;
+  }
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function renderPhotos(photos, key) {
+  return photos.map((src,i)=>`
+    <div class="photo-thumb-wrap">
+      <img src="${src}" loading="lazy">
+    </div>`).join('');
+}
+
+window.toggleStep = function(key) {
+  openSteps[key] = !openSteps[key]; render();
+};
+
+window.toggleCheck = function(key, ci, total) {
+  if (!localChecks[key]) localChecks[key] = Array(total).fill(false);
+  localChecks[key][ci] = !localChecks[key][ci]; render();
+};
+
+window.addPhoto = function(key, input, idx, type) {
+  const files = Array.from(input.files);
+  let loaded = 0;
+  showToast('⏳ กำลังบันทึกรูป...');
+  files.forEach(file => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 600;
+      const scale = Math.min(1, maxW/img.width);
+      canvas.width = img.width*scale;
+      canvas.height = img.height*scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const data = canvas.toDataURL('image/jpeg', 0.5);
+      URL.revokeObjectURL(url);
+      savePhoto(key, idx, type, data, files.length, ++loaded);
+    };
+    img.onerror = () => { showToast('❌ โหลดรูปไม่สำเร็จ'); URL.revokeObjectURL(url); };
+    img.src = url;
+  });
+};
+
+async function savePhoto(key, idx, type, data, total, loaded) {
+  try {
+    if (type==='pickup') {
+      const photos = [...(plan.pickups[idx].photos||[]), data];
+      const pickups = [...plan.pickups];
+      pickups[idx] = {...pickups[idx], photos};
+      await updateDoc(doc(db,'plans',planId), {pickups});
+    } else {
+      const photos = [...(plan.customers[idx].photos||[]), data];
+      const customers = [...plan.customers];
+      customers[idx] = {...customers[idx], photos};
+      await updateDoc(doc(db,'plans',planId), {customers});
+    }
+    if (loaded===total) showToast('📷 บันทึกรูปแล้ว');
+  } catch(e) {
+    showToast('❌ บันทึกรูปไม่สำเร็จ: ไฟล์ใหญ่เกินไป');
+    console.error(e);
+  }
+}
+
+window.confirmPickup = async function(idx) {
+  const pickups = [...plan.pickups];
+  pickups[idx] = {...pickups[idx], done:true, doneAt: Date.now()};
+  await updateDoc(doc(db,'plans',planId), {pickups});
+  openSteps[`pickup-${idx}`] = false;
+  showToast('✅ บันทึกการรับของแล้ว');
+};
+
+window.confirmDelivery = async function(idx) {
+  const customers = [...plan.customers];
+  customers[idx] = {...customers[idx], done:true, doneAt: Date.now()};
+  await updateDoc(doc(db,'plans',planId), {customers});
+  openSteps[`cust-${idx}`] = false;
+  showToast('✅ บันทึกการส่งสินค้าแล้ว');
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

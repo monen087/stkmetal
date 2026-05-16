@@ -500,6 +500,25 @@ window.viewPhotos = function(planId, custIdx) {
 window.closePhotoModal = ()=>document.getElementById('photo-modal').classList.add('hidden');
 
 // ---- NEW PLAN MODAL ----
+
+window.addPickupCard = function() {
+  pickupCount++;
+  const div = document.createElement('div');
+  div.className = 'pickup-card'; div.id = 'pickup-'+pickupCount;
+  div.innerHTML = '<div class="pickup-header"><span class="pickup-num">จุดรับที่ '+pickupCount+'</span><button class="remove-btn" onclick="this.closest(\'.pickup-card\').remove()">ลบ</button></div><div class="input-group"><div class="input-label">📍 โลเคชั่น Google Maps</div><input class="input-field pickup-location" type="url" placeholder="https://maps.app.goo.gl/..."></div><div class="input-group"><div class="input-label">📝 Note ถึงคนขับ</div><textarea class="input-field pickup-note" rows="2" style="resize:none" placeholder="เช่น จอดรถหน้าโกดัง..."></textarea></div><div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div><button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
+  document.getElementById('pickups-container').appendChild(div);
+  addItemRow(div.querySelector('.add-row-btn'));
+};
+
+window.addCustomerCard = function() {
+  customerCount++;
+  const div = document.createElement('div');
+  div.className = 'customer-card'; div.id = 'cust-'+customerCount;
+  div.innerHTML = '<div class="pickup-header"><span class="pickup-num">ลูกค้าที่ '+customerCount+'</span><button class="remove-btn" onclick="this.closest(\'.customer-card\').remove()">ลบ</button></div><div class="input-row"><div><div class="input-label">ชื่อลูกค้า</div><input class="input-field cust-name" type="text" placeholder="เช่น บริษัท ABC"></div><div><div class="input-label">เบอร์โทร</div><input class="input-field cust-tel" type="tel" placeholder="0812345678"></div></div><div class="input-group"><div class="input-label">📍 โลเคชั่น</div><input class="input-field cust-location" type="url" placeholder="https://maps.app.goo.gl/..."></div><div class="input-group"><div class="input-label">📝 Note ถึงคนขับ</div><textarea class="input-field cust-note" rows="2" style="resize:none" placeholder="เช่น ส่งโกดังหลัง..."></textarea></div><div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div><button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
+  document.getElementById('customers-container').appendChild(div);
+  addItemRow(div.querySelector('.add-row-btn'));
+};
+
 window.showNewPlanModal = function() {
   pickupCount = 0; customerCount = 0;
   document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];

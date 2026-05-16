@@ -6,7 +6,12 @@
 <meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>STK Metal — คนขับ</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest-driver.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="STK คนขับ">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0a1628; --bg2: #0f2040; --bg3: #162a52;
@@ -471,21 +476,19 @@ function compressImage(file) {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // ย่อขนาดให้เล็ก เพื่อให้ Firestore รับได้
-      const maxW = 600;
+      const maxW = 480;
       const scale = Math.min(1, maxW / img.width);
       canvas.width = img.width * scale;
       canvas.height = img.height * scale;
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
-      // บีบ quality ลงจนขนาดไม่เกิน 100KB
-      let quality = 0.6;
+      // บีบจนเหลือไม่เกิน 80KB
+      let quality = 0.5;
       let data = canvas.toDataURL('image/jpeg', quality);
-      while (data.length > 130000 && quality > 0.1) {
+      while (data.length > 100000 && quality > 0.1) {
         quality = Math.round((quality - 0.1) * 10) / 10;
         data = canvas.toDataURL('image/jpeg', quality);
       }
-      console.log(`รูปขนาด: ${Math.round(data.length/1024)}KB, quality: ${quality}`);
       resolve(data);
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('โหลดรูปไม่ได้')); };
@@ -586,6 +589,15 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2500);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/stkmetal/sw.js')
+      .then(r => console.log('SW registered'))
+      .catch(e => console.log('SW error:', e));
+  });
 }
 </script>
 </body>

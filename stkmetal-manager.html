@@ -240,11 +240,11 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 
     <div class="sec-title">📦 จุดรับของ</div>
     <div id="pickups-container"></div>
-    <button class="add-row-btn" onclick="addPickup()">+ เพิ่มจุดรับของ</button>
+    <button class="add-row-btn" onclick="addPickupCard()">+ เพิ่มจุดรับของ</button>
 
     <div class="sec-title">🚛 ลูกค้าที่ต้องส่ง</div>
     <div id="customers-container"></div>
-    <button class="add-row-btn" onclick="addCustomer()">+ เพิ่มลูกค้า</button>
+    <button class="add-row-btn" onclick="addCustomerCard()">+ เพิ่มลูกค้า</button>
 
     <button class="save-btn" onclick="savePlan()">💾 บันทึกแผนงาน</button>
   </div>
@@ -526,7 +526,7 @@ window.showNewPlanModal = function() {
   document.getElementById('plan-driver').value = '';
   document.getElementById('pickups-container').innerHTML = '';
   document.getElementById('customers-container').innerHTML = '';
-  addPickup(); addCustomer();
+  addPickupCard(); addCustomerCard();
   document.getElementById('plan-modal').classList.remove('hidden');
 };
 window.closeModal = ()=>document.getElementById('plan-modal').classList.add('hidden');
@@ -861,6 +861,5 @@ window.changeMonitorDate=function(dir){const cur=window._monitorDate||new Date()
 document.getElementById('main').innerHTML = '<div class="loading"><div class="spinner"></div>กำลังโหลดข้อมูล...</div>';
 startListener();
 </script>
-<script>if("serviceWorker"in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("/stkmetal/sw.js")})}</script>
 </body>
 </html>

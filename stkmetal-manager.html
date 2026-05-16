@@ -376,7 +376,7 @@ function renderPlans() {
   }).join('');
   let html = '<div class="overview-card" style="margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div><button onclick="selectPlansDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(selectedDate===today?'var(--green)':'var(--bg3)')+';color:'+(selectedDate===today?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button></div><div style="position:relative;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px"><button onclick="changePlansDate(-1)" style="padding:8px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;font-family:inherit">‹</button><div style="flex:1;text-align:center;font-size:15px;font-weight:600;color:var(--text)">'+formatDate(selectedDate)+'</div><button onclick="changePlansDate(1)" style="padding:8px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;font-family:inherit">›</button></div><input type="date" value="'+selectedDate+'" onchange="selectPlansDate(this.value)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%"></div><div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+dateBtns+'</div></div>';
   if (!filteredPlans.length) { html += '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่มีแผนงานวันนี้</div><div class="empty-sub">เลือกวันอื่น หรือกด "สร้างแผนงานใหม่"</div></div>'; return html; }
-  html += filteredPlans.map((p,i) => {
+  filteredPlans.forEach((p,i) => {
     const donePickups = (p.pickups||[]).filter(pk=>pk.done).length;
     const doneCustomers = (p.customers||[]).filter(c=>c.done).length;
     const totalSteps = (p.pickups||[]).length + (p.customers||[]).length;
@@ -384,44 +384,24 @@ function renderPlans() {
     let statusClass = 'status-wait', statusText = 'รอดำเนินการ';
     if (doneSteps===totalSteps && totalSteps>0) { statusClass='status-done'; statusText='เสร็จสิ้น'; }
     else if (doneSteps>0) { statusClass='status-active'; statusText='กำลังดำเนินการ'; }
-    return `
-    <div class="plan-card">
-      <div class="plan-card-header" onclick="togglePlan('${p.id}')">
-        <div class="plan-num">${i+1}</div>
-        <div class="plan-info">
-          <div class="plan-title">${p.truckName||'รถคันที่ '+(i+1)} — ${p.driver||'ไม่ระบุคนขับ'}</div>
-          <div class="plan-sub">${formatDate(p.date)} • รับ ${(p.pickups||[]).length} จุด • ส่ง ${(p.customers||[]).length} ราย • ${doneSteps}/${totalSteps} เสร็จ</div>
-        </div>
-        <span class="plan-status ${statusClass}">${statusText}</span>
-        <span class="plan-chevron${p._open?' open':''}">▾</span>
-      </div>
-      <div class="plan-body${p._open?' open':''}">
-        <div class="sec-title">📦 จุดรับของ</div>
-        ${(p.pickups||[]).map((pk,pi)=>`
-          <div class="pickup-card">
-            <div class="pickup-header">
-              <span class="pickup-num">จุดที่ ${pi+1} ${pk.done?'✅':''}</span>
-            </div>
-            ${pk.location?`<div style="margin-bottom:6px"><a href="${pk.location}" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>`:''}
-            ${(pk.items||[]).map(it=>`<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• ${it.name} <span style="color:var(--amber);font-weight:600">= ${it.qty}</span>${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">${it.src}</span>`:''}</div>`).join('')}
-          </div>`).join('')}
-        <div class="sec-title">🚚 ลูกค้าที่ต้องส่ง</div>
-        ${(p.customers||[]).map((c,ci)=>`
-          <div class="customer-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-              <span style="font-size:13px;font-weight:600;color:var(--text)">${ci+1}. ${c.name} ${c.done?'✅':''}</span>
-            </div>
-            ${c.location?`<div style="margin-bottom:6px"><a href="${c.location}" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>`:''}
-            ${c.tel?`<div style="font-size:12px;color:var(--text3);margin-bottom:4px">📞 ${c.tel}</div>`:''}
-            ${(c.items||[]).map(it=>`<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• ${it.name} <span style="color:var(--amber);font-weight:600">= ${it.qty}</span>${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">${it.src}</span>`:''}</div>`).join('')}
-            ${(c.photos||[]).length>0?`<div class="photo-row">${c.photos.map((ph,phi)=>`<img class="photo-thumb" src="${ph}" onclick="viewPhotos('${p.id}',${ci})">`).join('')}</div>`:''}
-          </div>`).join('')}
-        <button class="share-btn" onclick="sharePlan('${p.id}')">💬 คัดลอกแผนงานส่งคนขับ</button>
-        <button class="save-btn" style="margin-top:6px" onclick="showEditPlanModal('${p.id}')">✏️ แก้ไขแผนงาน</button>
-        <button class="del-plan-btn" onclick="deletePlan('${p.id}')">🗑 ลบแผนงานนี้</button>
-      </div>
-    </div>`;
-  }).join('');
+
+    // pickups HTML
+    let pkHtml = '';
+    (p.pickups||[]).forEach((pk,pi) => {
+      const itemsHtml = (pk.items||[]).map(it => '<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• '+it.name+' <span style="color:var(--amber);font-weight:600">= '+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</div>').join('');
+      pkHtml += '<div class="pickup-card"><div class="pickup-header"><span class="pickup-num">จุดที่ '+(pi+1)+' '+(pk.done?'✅':pk.problem?'⚠️':'')+'</span></div>'+(pk.location?'<div style="margin-bottom:6px"><a href="'+pk.location+'" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>':'')+(pk.note?'<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:6px">📝 '+pk.note+'</div>':'')+itemsHtml+'</div>';
+    });
+
+    // customers HTML
+    let cuHtml = '';
+    (p.customers||[]).forEach((cu,ci) => {
+      const itemsHtml = (cu.items||[]).map(it => '<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• '+it.name+' <span style="color:var(--amber);font-weight:600">= '+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</div>').join('');
+      const photosHtml = (cu.photos||[]).length>0 ? '<div class="photo-row">'+cu.photos.map((ph,phi)=>'<img class="photo-thumb" src="'+ph+'" onclick="openImgViewerFromPlan(\''+p.id+'\',\'customer\','+ci+','+phi+')">').join('')+'</div>' : '';
+      cuHtml += '<div class="customer-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:600;color:var(--text)">'+(ci+1)+'. '+cu.name+' '+(cu.done?'✅':cu.problem?'⚠️':'')+'</span></div>'+(cu.location?'<div style="margin-bottom:6px"><a href="'+cu.location+'" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>':'')+(cu.tel?'<div style="font-size:12px;color:var(--text3);margin-bottom:4px">📞 '+cu.tel+'</div>':'')+(cu.note?'<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:6px">📝 '+cu.note+'</div>':'')+itemsHtml+photosHtml+'</div>';
+    });
+
+    html += '<div class="plan-card"><div class="plan-card-header" onclick="togglePlan(\''+p.id+'\')"><div class="plan-num">'+(i+1)+'</div><div class="plan-info"><div class="plan-title">'+(p.truckName||'รถคันที่ '+(i+1))+' — '+(p.driver||'ไม่ระบุคนขับ')+'</div><div class="plan-sub">'+formatDate(p.date)+' • รับ '+(p.pickups||[]).length+' จุด • ส่ง '+(p.customers||[]).length+' ราย • '+doneSteps+'/'+totalSteps+' เสร็จ</div></div><span class="plan-status '+statusClass+'">'+statusText+'</span><span class="plan-chevron'+(p._open?' open':'')+'">▾</span></div><div class="plan-body'+(p._open?' open':'')+'"><div class="sec-title">📦 จุดรับของ</div>'+pkHtml+'<div class="sec-title">🚚 ลูกค้าที่ต้องส่ง</div>'+cuHtml+'<button class="share-btn" onclick="sharePlan(\''+p.id+'\')">💬 คัดลอกแผนงานส่งคนขับ</button><button class="save-btn" style="margin-top:6px" onclick="showEditPlanModal(\''+p.id+'\')">✏️ แก้ไขแผนงาน</button><button class="del-plan-btn" onclick="deletePlan(\''+p.id+'\')">🗑 ลบแผนงานนี้</button></div></div>';
+  });
   return html;
 }
 

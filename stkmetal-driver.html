@@ -226,6 +226,31 @@ window.toggleLang = () => {
   else renderAll();
 };
 
+
+// ---- Item Translation Dictionary ----
+const ITEM_DICT = [
+  ['ท่อเหลี่ยม','ပိုက်စတုဂံ'],['ท่อกลม','ပိုက်ဝိုင်း'],['ท่อแป','ပိုက်ပြားချပ်'],['ท่อ','ပိုက်'],
+  ['เพลากลม','ရိုးစက်ဝိုင်း'],['เพลาแบน','ရိုးပြား'],['เพลา','ရိုး'],
+  ['เส้นแบนซีด','ကြိုးပြားချပ်'],['เส้น','ကြိုး'],
+  ['แผ่นเหล็ก','သံပြား'],['เหล็กแผ่น','သံပြား'],['แผ่น','ပြား'],
+  ['ฉากรีด','ထောင့်မှန်ဆွဲ'],['ฉากเชื่อม','ထောင့်မှန်ဂဟေ'],['ฉาก','ထောင့်မှန်'],
+  ['ข้องอ','ကွေးချိတ်'],['ข้อต่อ','ချိတ်ဆက်'],['ข้อ','ချိတ်'],
+  ['หนาเต็ม','အထူပြည့်'],['หนา','အထူ'],['บาง','ပါး'],
+  ['สแตนเลส','စတိန်းလက်စ်'],['เหล็ก','သံ'],
+  ['กลม','ဝိုင်း'],['สี่เหลี่ยม','စတုဂံ'],['แบน','ပြား'],
+  ['รีด','ဆွဲ'],['เชื่อม','ဂဟေ'],['ดำ','မည်း'],['ขาว','ဖြူ'],
+  ['นิ้ว','လက်မ'],['สาขาใหญ่','ဌာနချုပ်'],['ในสต้อค','လှောင်ကုန်'],
+];
+
+function translateItem(name) {
+  if (driverLang === 'th') return name;
+  let result = name;
+  for (const [th, mm] of ITEM_DICT) {
+    result = result.split(th).join(mm);
+  }
+  return result;
+}
+
 // ---- Init ----
 if (!planId) {
   startAllListener();
@@ -359,7 +384,7 @@ function render() {
         if (pk.note) html += '<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:10px">📝 '+pk.note+'</div>';
         html += '<div class="sec-title">รายการสินค้า</div>';
         (pk.items||[]).forEach(it => {
-          html += '<div class="item-row"><span class="item-name">'+it.name+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</span></div>';
+          html += '<div class="item-row"><span class="item-name">'+translateItem(it.name)+(driverLang==="mm"&&translateItem(it.name)!==it.name?'<br><span style="font-size:10px;opacity:0.6">'+it.name+'</span>':'')+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+(it.src==="สาขาใหญ่"?"ဌာနချုပ်":it.src==="ในสต้อค"?"လှောင်ကုန်":it.src)+'</span>':'')+'</span></div>';
         });
         html += '<div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>';
         getPickupChecks().forEach((ch,ci) => {
@@ -414,7 +439,7 @@ function render() {
         if (cu.note) html += '<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:10px">📝 '+cu.note+'</div>';
         html += '<div class="sec-title">รายการสินค้า</div>';
         (cu.items||[]).forEach(it => {
-          html += '<div class="item-row"><span class="item-name">'+it.name+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</span></div>';
+          html += '<div class="item-row"><span class="item-name">'+translateItem(it.name)+(driverLang==="mm"&&translateItem(it.name)!==it.name?'<br><span style="font-size:10px;opacity:0.6">'+it.name+'</span>':'')+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+(it.src==="สาขาใหญ่"?"ဌာနချုပ်":it.src==="ในสต้อค"?"လှောင်ကုန်":it.src)+'</span>':'')+'</span></div>';
         });
         html += '<div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>';
         getDeliverChecks().forEach((ch,ci) => {
@@ -469,17 +494,27 @@ function compressImg(file) {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const maxW = 600;
-      const scale = Math.min(1, maxW / img.width);
-      canvas.width = img.width * scale;
-      canvas.height = img.height * scale;
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      let q = 0.6;
-      let data = canvas.toDataURL('image/jpeg', q);
-      while (data.length > 120000 && q > 0.1) { q = Math.round((q-0.1)*10)/10; data = canvas.toDataURL('image/jpeg', q); }
-      resolve(data);
+      try {
+        const canvas = document.createElement('canvas');
+        const maxW = 800;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        // บีบจนเหลือไม่เกิน 100KB
+        let q = 0.7;
+        let data = canvas.toDataURL('image/jpeg', q);
+        while (data.length > 130000 && q > 0.1) {
+          q = Math.round((q - 0.1) * 10) / 10;
+          data = canvas.toDataURL('image/jpeg', q);
+        }
+        resolve(data);
+      } catch(e) {
+        URL.revokeObjectURL(url);
+        reject(e);
+      }
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('โหลดรูปไม่ได้')); };
     img.src = url;
@@ -505,12 +540,19 @@ async function saveImgToFirestore(type, idx, data) {
 }
 
 window.addPhoto = async (type, idx, input) => {
-  const files = Array.from(input.files); input.value = '';
+  const files = Array.from(input.files);
+  input.value = ''; // reset ให้ถ่ายซ้ำได้
   if (!files.length) return;
-  showToast('⏳ กำลังบันทึกรูป...');
   for (const file of files) {
-    try { const data = await compressImg(file); await saveImgToFirestore(type, idx, data); showToast('📷 บันทึกรูปแล้ว'); }
-    catch(e) { showToast('❌ '+e.message); }
+    showToast('⏳ กำลังบันทึกรูป...');
+    try {
+      const data = await compressImg(file);
+      await saveImgToFirestore(type, idx, data);
+      showToast('📷 บันทึกรูปแล้ว');
+    } catch(e) {
+      console.error('Photo error:', e);
+      showToast('❌ บันทึกรูปไม่สำเร็จ');
+    }
   }
 };
 

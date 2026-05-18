@@ -15,6 +15,7 @@
   --green: #90caf9;
   --green2: #1e90ff;
   --green-pale: #0d2a4a;
+  --green-soft: #1a3a6a;
   --amber: #ffd166;
   --amber-pale: #2a2000;
   --red: #ef5350;
@@ -26,39 +27,26 @@
   --border2: #2a5080;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; }
 
-/* Header */
 .header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 14px 16px; position: sticky; top: 0; z-index: 100; }
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .logo { display: flex; align-items: center; gap: 8px; }
-.logo-icon { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.logo-icon { width: 32px; height: 32px; background: var(--green2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .logo-text { font-size: 16px; font-weight: 700; color: var(--text); }
 .logo-sub { font-size: 11px; color: var(--text3); }
-.header-actions { display: flex; gap: 8px; }
-.hbtn { padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 12px; font-family: inherit; cursor: pointer; }
-.hbtn.primary { background: var(--green); color: #fff; border-color: var(--green); font-weight: 600; }
+.header-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.hbtn { padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 12px; font-family: inherit; cursor: pointer; }
 .hbtn:active { opacity: 0.75; }
 
-/* Tabs */
 .tabs { display: flex; gap: 2px; }
 .tab { flex: 1; padding: 9px; text-align: center; font-size: 13px; font-weight: 500; font-family: inherit; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text3); cursor: pointer; }
 .tab.active { background: var(--green-pale); color: var(--green2); }
 
-/* Main */
 .main { padding: 14px 14px 90px; }
 
-/* Date selector */
-.date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.date-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg2); color: var(--text); font-size: 14px; font-family: inherit; }
-.date-input:focus { outline: none; border-color: var(--green); }
-.new-plan-btn { padding: 10px 16px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; white-space: nowrap; }
-.new-plan-btn:active { opacity: 0.8; }
-
-/* Plan card */
 .plan-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
 .plan-card-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
 .plan-card-header:active { background: var(--bg3); }
@@ -66,7 +54,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 .plan-info { flex: 1; min-width: 0; }
 .plan-title { font-size: 14px; font-weight: 600; }
 .plan-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
-.plan-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+.plan-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
 .status-wait { background: var(--bg3); color: var(--text3); }
 .status-active { background: var(--amber-pale); color: var(--amber); }
 .status-done { background: var(--green-pale); color: var(--green2); }
@@ -75,41 +63,36 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 .plan-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--border); }
 .plan-body.open { display: block; }
 
-/* Section */
 .sec-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 8px; }
 
-/* Input group */
 .input-group { margin-bottom: 8px; }
 .input-label { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
 .input-field { width: 100%; padding: 9px 11px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; }
-.input-field:focus { outline: none; border-color: var(--green); }
+.input-field:focus { outline: none; border-color: var(--green2); }
 .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
 
-/* Pickup point */
 .pickup-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
 .pickup-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .pickup-num { font-size: 12px; font-weight: 600; color: var(--green2); }
 .remove-btn { padding: 3px 8px; border: 1px solid var(--border2); border-radius: 6px; background: transparent; color: var(--text3); font-size: 11px; font-family: inherit; cursor: pointer; }
 .remove-btn:active { background: var(--red-pale); color: var(--red); }
 
-/* Product row */
 .product-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
-.product-row input { flex: 1; }
-.product-row .qty-input { width: 70px; flex: none; }
+.product-row .item-name { flex: 1; }
+.product-row .qty-input { width: 65px; flex: none; }
+.product-row .src-select { width: 80px; flex: none; padding: 9px 4px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 11px; font-family: inherit; }
 .add-row-btn { width: 100%; padding: 8px; border: 1px dashed var(--border2); border-radius: var(--radius-sm); background: transparent; color: var(--text3); font-size: 12px; font-family: inherit; cursor: pointer; margin-top: 4px; }
 .add-row-btn:active { background: var(--bg3); }
 
-/* Customer card */
 .customer-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; }
 
-/* Share button */
-.share-btn { width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.share-btn { width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 12px; }
 .share-btn:active { opacity: 0.85; }
-.save-btn { width: 100%; padding: 11px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; }
+.save-btn { width: 100%; padding: 11px; background: var(--green2); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; margin-top: 8px; }
 .save-btn:active { opacity: 0.85; }
 .del-plan-btn { width: 100%; padding: 10px; background: transparent; color: var(--red); border: 1px solid var(--red-pale); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; cursor: pointer; margin-top: 6px; }
+.edit-plan-btn { width: 100%; padding: 10px; background: var(--bg3); color: var(--text2); border: 1px solid var(--border2); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; cursor: pointer; margin-top: 6px; }
 
-/* Progress overview */
 .overview-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
 .overview-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
 .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -120,71 +103,73 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 .ov-num.gray { color: var(--text3); }
 .ov-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
-/* Driver progress */
 .driver-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
 .driver-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
 .driver-name { font-size: 14px; font-weight: 600; }
 .driver-prog-bar { height: 6px; background: var(--bg3); border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
-.driver-prog-fill { height: 100%; background: var(--green); border-radius: 3px; transition: width 0.3s; }
+.driver-prog-fill { height: 100%; background: var(--green2); border-radius: 3px; transition: width 0.3s; }
 .driver-steps { display: flex; flex-direction: column; gap: 6px; }
-.driver-step { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--bg3); }
+.driver-step { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--bg3); cursor: pointer; }
+.driver-step:active { opacity: 0.8; }
 .step-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-.dot-done { background: var(--green); }
+.dot-done { background: var(--green2); }
 .dot-active { background: var(--amber); }
 .dot-wait { background: var(--text3); }
 .step-text { font-size: 13px; color: var(--text2); flex: 1; }
 .step-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
-/* Photo viewer */
 .photo-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
 .photo-thumb { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); cursor: pointer; }
 
+.date-nav { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; position: relative; }
+.date-nav-btn { padding: 8px 14px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg3); color: var(--text); font-size: 16px; cursor: pointer; font-family: inherit; flex-shrink: 0; }
+.date-nav-label { flex: 1; text-align: center; font-size: 15px; font-weight: 600; color: var(--text); }
+.date-nav input[type=date] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
 
-/* Share modal */
-.share-msg-box { background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 12px; font-size: 13px; color: var(--text2); white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; margin-bottom: 10px; line-height: 1.6; }
-.copy-btn { width: 100%; padding: 13px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; margin-bottom: 8px; }
-.line-open-btn { width: 100%; padding: 12px; background: #25D366; color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
-.share-hint { font-size: 12px; color: var(--text3); text-align: center; margin-top: 8px; }
-/* src-select */
-.product-row .src-select { width: 90px; flex: none; padding: 9px 4px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 11px; font-family: inherit; }
-/* img-viewer */
-.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.img-viewer-img { max-width: 100%; max-height: 75vh; object-fit: contain; border-radius: 8px; }
-.img-viewer-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(0,0,0,0.8); z-index: 501; }
-.img-viewer-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-.img-viewer-close { background: rgba(255,255,255,0.15); color: #fff; }
-.img-viewer-save { background: var(--green); color: #fff; }
-.img-viewer-nav { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 22px; padding: 12px 16px; border-radius: 8px; cursor: pointer; z-index: 501; }
-.img-viewer-prev { left: 8px; }
-.img-viewer-next { right: 8px; }
-.img-viewer-dots { display: flex; gap: 6px; margin-top: 14px; }
-.img-viewer-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); }
-.img-viewer-dot.active { background: #fff; }
+.date-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.date-chip { padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text3); font-size: 12px; cursor: pointer; font-family: inherit; }
+.date-chip.active { border-color: var(--green2); background: var(--green-pale); color: var(--green2); }
 
-/* Loading */
 .loading { text-align: center; padding: 40px 20px; color: var(--text3); font-size: 14px; }
-.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--green2); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Empty */
 .empty { text-align: center; padding: 40px 20px; }
 .empty-icon { font-size: 48px; margin-bottom: 12px; }
 .empty-text { font-size: 15px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
 .empty-sub { font-size: 13px; color: var(--text3); }
 
-/* Toast */
-.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 300; white-space: nowrap; }
+.toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: all 0.25s; z-index: 400; white-space: nowrap; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* Bottom */
 .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--bg2); border-top: 1px solid var(--border); padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); z-index: 99; }
+.new-plan-btn { width: 100%; padding: 12px; background: var(--green2); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.new-plan-btn:active { opacity: 0.8; }
 
-/* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
-.modal { background: var(--bg2); border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+.modal { background: var(--bg2); border-radius: var(--radius) var(--radius) 0 0; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
 .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
-.modal-close { float: right; background: var(--bg3); border: none; color: var(--text3); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.modal-close { float: right; background: var(--bg3); border: none; color: var(--text3); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: inherit; }
 .hidden { display: none; }
+
+/* Image viewer */
+.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 500; flex-direction: column; align-items: center; justify-content: center; }
+.img-viewer-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(0,0,0,0.8); }
+.img-viewer-title { font-size: 13px; color: #fff; }
+.iv-btn { padding: 7px 14px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.iv-save { background: var(--green2); color: #fff; margin-right: 8px; }
+.iv-close { background: rgba(255,255,255,0.15); color: #fff; }
+.img-viewer-img { max-width: 100%; max-height: 75vh; object-fit: contain; border-radius: 8px; margin-top: 56px; }
+.iv-nav { position: fixed; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 22px; padding: 12px 16px; border-radius: 8px; cursor: pointer; z-index: 501; }
+.iv-prev { left: 8px; }
+.iv-next { right: 8px; }
+.iv-dots { display: flex; gap: 6px; margin-top: 14px; }
+.iv-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+.iv-dot.active { background: #fff; }
+
+/* Detail modal items */
+.detail-item { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.detail-item:last-child { border: none; }
 </style>
 </head>
 <body>
@@ -201,28 +186,27 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
     <div class="header-actions">
       <button class="hbtn" onclick="exportPDF()">📄 PDF</button>
       <button class="hbtn" style="color:var(--red)" onclick="showCleanupModal()">🗑 ลบเก่า</button>
-      <button class="hbtn" onclick="window.open('stkmetal-driver.html','_blank')">👤 หน้าคนขับ</button>
+      <button class="hbtn" onclick="window.open('stkmetal-driver.html','_blank')">👤 คนขับ</button>
     </div>
   </div>
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('plans')">📋 แผนงาน</button>
-    <button class="tab" onclick="switchTab('monitor')">📡 ติดตาม</button>
+    <button class="tab active" id="tab-plans" onclick="switchTab('plans')">📋 แผนงาน</button>
+    <button class="tab" id="tab-monitor" onclick="switchTab('monitor')">📡 ติดตาม</button>
   </div>
 </div>
 
 <div class="main" id="main"></div>
 
 <div class="bottom-bar" id="bottom-bar">
-  <button class="new-plan-btn" style="width:100%" onclick="showNewPlanModal()"><span id="new-plan-btn-text">+ สร้างแผนงานใหม่</span></button>
+  <button class="new-plan-btn" onclick="showNewPlanModal()">+ สร้างแผนงานใหม่</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- New Plan Modal -->
+<!-- Plan Modal (สร้าง/แก้ไข) -->
 <div class="modal-overlay hidden" id="plan-modal">
   <div class="modal">
-    <div class="modal-title">📋 สร้างแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button></div>
-
+    <div class="modal-title" id="plan-modal-title">📋 สร้างแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button></div>
     <div class="input-group">
       <div class="input-label">วันที่ส่ง</div>
       <input class="input-field" type="date" id="plan-date">
@@ -237,29 +221,25 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
         <input class="input-field" type="text" id="plan-driver" placeholder="ชื่อคนขับ">
       </div>
     </div>
-
     <div class="sec-title">📦 จุดรับของ</div>
     <div id="pickups-container"></div>
-    <button class="add-row-btn" onclick="addPickupCard()">+ เพิ่มจุดรับของ</button>
-
+    <button class="add-row-btn" onclick="addPickup()">+ เพิ่มจุดรับของ</button>
     <div class="sec-title">🚛 ลูกค้าที่ต้องส่ง</div>
     <div id="customers-container"></div>
-    <button class="add-row-btn" onclick="addCustomerCard()">+ เพิ่มลูกค้า</button>
-
-    <button class="save-btn" onclick="savePlan()">💾 บันทึกแผนงาน</button>
+    <button class="add-row-btn" onclick="addCustomer()">+ เพิ่มลูกค้า</button>
+    <button class="save-btn" onclick="savePlan()" style="margin-top:16px">💾 บันทึกแผนงาน</button>
   </div>
 </div>
-
 
 <!-- Share Modal -->
 <div class="modal-overlay hidden" id="share-modal">
   <div class="modal">
     <div class="modal-title">💬 ส่งแผนงานให้คนขับ <button class="modal-close" onclick="document.getElementById('share-modal').classList.add('hidden')">✕ ปิด</button></div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:8px">ข้อความที่จะส่ง:</div>
-    <div class="share-msg-box" id="share-msg-box"></div>
-    <button class="copy-btn" id="copy-btn" onclick="copyShareMsg()">📋 คัดลอกข้อความ</button>
-    <button class="line-open-btn" onclick="openLine()">💬 เปิด Line</button>
-    <div class="share-hint">1. คัดลอก → 2. เปิด Line → 3. วางข้อความส่งคนขับ</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">ข้อความที่จะส่ง:</div>
+    <div id="share-msg-box" style="background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--text2);white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;margin-bottom:10px;line-height:1.6"></div>
+    <button id="copy-btn" onclick="copyShareMsg()" style="width:100%;padding:13px;background:var(--green2);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:8px">📋 คัดลอกข้อความ</button>
+    <button onclick="openLine()" style="width:100%;padding:12px;background:#25D366;color:white;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer">💬 เปิด Line</button>
+    <div style="font-size:12px;color:var(--text3);text-align:center;margin-top:8px">1. คัดลอก → 2. เปิด Line → 3. วางข้อความส่งคนขับ</div>
   </div>
 </div>
 
@@ -267,7 +247,6 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 <div class="modal-overlay hidden" id="cleanup-modal">
   <div class="modal">
     <div class="modal-title">🗑 ลบแผนงานเก่า <button class="modal-close" onclick="document.getElementById('cleanup-modal').classList.add('hidden')">✕ ปิด</button></div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:16px">ลบแผนงานที่เก่ากว่าที่กำหนด</div>
     <div class="input-group">
       <div class="input-label">ลบแผนงานที่เก่ากว่า</div>
       <select class="input-field" id="cleanup-days">
@@ -278,13 +257,13 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
         <option value="90">90 วัน</option>
       </select>
     </div>
-    <div id="cleanup-preview" style="margin:12px 0;padding:12px;background:var(--bg);border-radius:var(--radius-sm);font-size:13px"></div>
-    <button class="save-btn" onclick="previewCleanup()" style="background:var(--bg3);color:var(--text2);margin-bottom:8px">🔍 ดูตัวอย่างก่อนลบ</button>
-    <button class="del-plan-btn" id="cleanup-confirm-btn" onclick="confirmCleanup()" style="display:none">🗑 ยืนยันลบแผนงานที่เลือก</button>
+    <div id="cleanup-preview" style="margin:10px 0;padding:12px;background:var(--bg);border-radius:var(--radius-sm);font-size:13px;min-height:40px;color:var(--text3)">กด "ดูตัวอย่าง" เพื่อดูรายการที่จะลบ</div>
+    <button onclick="previewCleanup()" style="width:100%;padding:11px;background:var(--bg3);color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;margin-bottom:8px">🔍 ดูตัวอย่างก่อนลบ</button>
+    <button id="cleanup-confirm-btn" onclick="confirmCleanup()" style="display:none;width:100%;padding:11px;background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">🗑 ยืนยันลบ</button>
   </div>
 </div>
 
-<!-- Detail Modal -->
+<!-- Detail Modal (ดูรายละเอียดจากหน้าติดตาม) -->
 <div class="modal-overlay hidden" id="detail-modal" onclick="if(event.target===this)this.classList.add('hidden')">
   <div class="modal">
     <div class="modal-title" id="detail-modal-title">รายละเอียด <button class="modal-close" onclick="document.getElementById('detail-modal').classList.add('hidden')">✕ ปิด</button></div>
@@ -292,32 +271,32 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
   </div>
 </div>
 
-<!-- Image Viewer -->
-<div id="img-viewer" class="img-viewer" style="display:none">
-  <div class="img-viewer-bar">
-    <span class="img-viewer-title" id="img-viewer-title">รูปภาพ</span>
-    <div style="display:flex;gap:8px">
-      <button class="img-viewer-btn img-viewer-save" onclick="saveCurrentPhoto()">💾 บันทึก</button>
-      <button class="img-viewer-btn img-viewer-close" onclick="closeImgViewer()">✕ ปิด</button>
-    </div>
-  </div>
-  <button class="img-viewer-nav img-viewer-prev" onclick="navPhoto(-1)">‹</button>
-  <img id="img-viewer-img" class="img-viewer-img" src="">
-  <div class="img-viewer-dots" id="img-viewer-dots"></div>
-  <button class="img-viewer-nav img-viewer-next" onclick="navPhoto(1)">›</button>
-</div>
-
 <!-- Photo Modal -->
 <div class="modal-overlay hidden" id="photo-modal">
   <div class="modal">
-    <div class="modal-title" id="photo-modal-title">รูปภาพ <button class="modal-close" onclick="closePhotoModal()">✕ ปิด</button></div>
+    <div class="modal-title" id="photo-modal-title">รูปภาพ <button class="modal-close" onclick="document.getElementById('photo-modal').classList.add('hidden')">✕ ปิด</button></div>
     <div id="photo-modal-content"></div>
   </div>
 </div>
 
+<!-- Image Viewer -->
+<div id="img-viewer" class="img-viewer" style="display:none">
+  <div class="img-viewer-bar">
+    <span class="img-viewer-title" id="iv-title">รูปภาพ</span>
+    <div>
+      <button class="iv-btn iv-save" onclick="savePhoto()">💾 บันทึก</button>
+      <button class="iv-btn iv-close" onclick="closeViewer()">✕ ปิด</button>
+    </div>
+  </div>
+  <button class="iv-nav iv-prev" onclick="navPhoto(-1)">‹</button>
+  <img id="iv-img" class="img-viewer-img" src="">
+  <div class="iv-dots" id="iv-dots"></div>
+  <button class="iv-nav iv-next" onclick="navPhoto(1)">›</button>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, getDocs, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
@@ -335,9 +314,17 @@ let currentTab = 'plans';
 let plans = [];
 let pickupCount = 0;
 let customerCount = 0;
+let editPlanId = null;
 let unsubscribe = null;
+let _plansDate = new Date().toISOString().split('T')[0];
+let _monitorDate = new Date().toISOString().split('T')[0];
+let _shareMsg = '';
+let _cleanupList = [];
+let _viewerPhotos = [];
+let _viewerIdx = 0;
+let _viewerTitle = '';
 
-// ---- REALTIME LISTENER ----
+// ---- FIREBASE ----
 function startListener() {
   if (unsubscribe) unsubscribe();
   const q = query(collection(db, 'plans'), orderBy('date', 'desc'));
@@ -345,16 +332,16 @@ function startListener() {
     plans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     render();
   }, err => {
-    console.error(err);
-    document.getElementById('main').innerHTML = `<div class="loading"><div>❌ เชื่อมต่อ Firebase ไม่ได้<br><small style="color:var(--text3)">${err.message}</small></div></div>`;
+    document.getElementById('main').innerHTML = '<div class="loading"><div>❌ เชื่อมต่อ Firebase ไม่ได้<br><small style="color:var(--text3)">'+err.message+'</small></div></div>';
   });
 }
 
 // ---- TABS ----
 window.switchTab = function(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', ['plans','monitor'][i]===tab));
-  document.getElementById('bottom-bar').style.display = tab==='plans' ? 'block' : 'none';
+  document.getElementById('tab-plans').classList.toggle('active', tab === 'plans');
+  document.getElementById('tab-monitor').classList.toggle('active', tab === 'monitor');
+  document.getElementById('bottom-bar').style.display = tab === 'plans' ? 'block' : 'none';
   render();
 };
 
@@ -365,289 +352,531 @@ function render() {
   else m.innerHTML = renderMonitor();
 }
 
+// ---- RENDER PLANS ----
 function renderPlans() {
   const today = new Date().toISOString().split('T')[0];
-  const selectedDate = window._plansDate || today;
-  const planDates = [...new Set(plans.map(p=>p.date).filter(Boolean))].sort().reverse();
-  const filteredPlans = plans.filter(p => p.date === selectedDate);
-  const dateBtns = planDates.slice(0,10).map(d => {
-    const sel = d===selectedDate;
-    return '<button onclick="selectPlansDate(\''+d+'\')" style="padding:5px 10px;border-radius:20px;border:1px solid '+(sel?'var(--green)':'var(--border2)')+';background:'+(sel?'var(--green-pale)':'var(--bg3)')+';color:'+(sel?'var(--green2)':'var(--text3)')+';font-size:12px;cursor:pointer;font-family:inherit">'+formatDate(d)+'</button>';
+  const allDates = [...new Set(plans.map(p => p.date).filter(Boolean))].sort().reverse();
+  const filtered = plans.filter(p => p.date === _plansDate);
+
+  // Date nav HTML
+  const chips = allDates.slice(0, 10).map(d => {
+    const active = d === _plansDate ? 'active' : '';
+    return '<button class="date-chip '+active+'" onclick="selectPlansDate(\''+d+'\')">'+formatDate(d)+'</button>';
   }).join('');
-  let html = '<div class="overview-card" style="margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div><button onclick="selectPlansDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(selectedDate===today?'var(--green)':'var(--bg3)')+';color:'+(selectedDate===today?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button></div><div style="position:relative;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px"><button onclick="changePlansDate(-1)" style="padding:8px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;font-family:inherit">‹</button><div style="flex:1;text-align:center;font-size:15px;font-weight:600;color:var(--text)">'+formatDate(selectedDate)+'</div><button onclick="changePlansDate(1)" style="padding:8px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;font-family:inherit">›</button></div><input type="date" value="'+selectedDate+'" onchange="selectPlansDate(this.value)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%"></div><div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+dateBtns+'</div></div>';
-  if (!filteredPlans.length) { html += '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่มีแผนงานวันนี้</div><div class="empty-sub">เลือกวันอื่น หรือกด "สร้างแผนงานใหม่"</div></div>'; return html; }
-  filteredPlans.forEach((p,i) => {
-    const donePickups = (p.pickups||[]).filter(pk=>pk.done).length;
-    const doneCustomers = (p.customers||[]).filter(c=>c.done).length;
-    const totalSteps = (p.pickups||[]).length + (p.customers||[]).length;
-    const doneSteps = donePickups + doneCustomers;
-    let statusClass = 'status-wait', statusText = 'รอดำเนินการ';
-    if (doneSteps===totalSteps && totalSteps>0) { statusClass='status-done'; statusText='เสร็จสิ้น'; }
-    else if (doneSteps>0) { statusClass='status-active'; statusText='กำลังดำเนินการ'; }
 
-    // pickups HTML
-    let pkHtml = '';
-    (p.pickups||[]).forEach((pk,pi) => {
-      const itemsHtml = (pk.items||[]).map(it => '<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• '+it.name+' <span style="color:var(--amber);font-weight:600">= '+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</div>').join('');
-      pkHtml += '<div class="pickup-card"><div class="pickup-header"><span class="pickup-num">จุดที่ '+(pi+1)+' '+(pk.done?'✅':pk.problem?'⚠️':'')+'</span></div>'+(pk.location?'<div style="margin-bottom:6px"><a href="'+pk.location+'" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>':'')+(pk.note?'<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:6px">📝 '+pk.note+'</div>':'')+itemsHtml+'</div>';
-    });
+  const todayBtn = '<button onclick="selectPlansDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(today===_plansDate?'var(--green2)':'var(--bg3)')+';color:'+(today===_plansDate?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button>';
 
-    // customers HTML
-    let cuHtml = '';
-    (p.customers||[]).forEach((cu,ci) => {
-      const itemsHtml = (cu.items||[]).map(it => '<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• '+it.name+' <span style="color:var(--amber);font-weight:600">= '+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</div>').join('');
-      const photosHtml = (cu.photos||[]).length>0 ? '<div class="photo-row">'+cu.photos.map((ph,phi)=>'<img class="photo-thumb" src="'+ph+'" onclick="openImgViewerFromPlan(\''+p.id+'\',\'customer\','+ci+','+phi+')">').join('')+'</div>' : '';
-      cuHtml += '<div class="customer-card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:600;color:var(--text)">'+(ci+1)+'. '+cu.name+' '+(cu.done?'✅':cu.problem?'⚠️':'')+'</span></div>'+(cu.location?'<div style="margin-bottom:6px"><a href="'+cu.location+'" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>':'')+(cu.tel?'<div style="font-size:12px;color:var(--text3);margin-bottom:4px">📞 '+cu.tel+'</div>':'')+(cu.note?'<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:6px">📝 '+cu.note+'</div>':'')+itemsHtml+photosHtml+'</div>';
-    });
+  let html = '<div class="overview-card">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div>'+todayBtn+'</div>';
+  html += '<div class="date-nav"><button class="date-nav-btn" onclick="changePlansDate(-1)">‹</button><div class="date-nav-label">'+formatDate(_plansDate)+'</div><button class="date-nav-btn" onclick="changePlansDate(1)">›</button><input type="date" value="'+_plansDate+'" onchange="selectPlansDate(this.value)"></div>';
+  html += '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div>';
+  html += '<div class="date-chips">'+chips+'</div>';
+  html += '</div>';
 
-    html += '<div class="plan-card"><div class="plan-card-header" onclick="togglePlan(\''+p.id+'\')"><div class="plan-num">'+(i+1)+'</div><div class="plan-info"><div class="plan-title">'+(p.truckName||'รถคันที่ '+(i+1))+' — '+(p.driver||'ไม่ระบุคนขับ')+'</div><div class="plan-sub">'+formatDate(p.date)+' • รับ '+(p.pickups||[]).length+' จุด • ส่ง '+(p.customers||[]).length+' ราย • '+doneSteps+'/'+totalSteps+' เสร็จ</div></div><span class="plan-status '+statusClass+'">'+statusText+'</span><span class="plan-chevron'+(p._open?' open':'')+'">▾</span></div><div class="plan-body'+(p._open?' open':'')+'"><div class="sec-title">📦 จุดรับของ</div>'+pkHtml+'<div class="sec-title">🚚 ลูกค้าที่ต้องส่ง</div>'+cuHtml+'<button class="share-btn" onclick="sharePlan(\''+p.id+'\')">💬 คัดลอกแผนงานส่งคนขับ</button><button class="save-btn" style="margin-top:6px" onclick="showEditPlanModal(\''+p.id+'\')">✏️ แก้ไขแผนงาน</button><button class="del-plan-btn" onclick="deletePlan(\''+p.id+'\')">🗑 ลบแผนงานนี้</button></div></div>';
+  if (!filtered.length) {
+    html += '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่มีแผนงานวันนี้</div><div class="empty-sub">เลือกวันอื่น หรือกด "สร้างแผนงานใหม่"</div></div>';
+    return html;
+  }
+
+  filtered.forEach((p, i) => {
+    const doneP = (p.pickups||[]).filter(pk=>pk.done).length;
+    const doneC = (p.customers||[]).filter(c=>c.done).length;
+    const total = (p.pickups||[]).length + (p.customers||[]).length;
+    const done = doneP + doneC;
+    let sc = 'status-wait', st = 'รอดำเนินการ';
+    if (done === total && total > 0) { sc = 'status-done'; st = 'เสร็จสิ้น'; }
+    else if (done > 0) { sc = 'status-active'; st = 'กำลังดำเนินการ'; }
+
+    html += '<div class="plan-card">';
+    html += '<div class="plan-card-header" onclick="togglePlan(\''+p.id+'\')">';
+    html += '<div class="plan-num">'+(i+1)+'</div>';
+    html += '<div class="plan-info"><div class="plan-title">'+(p.truckName||'รถ')+' — '+(p.driver||'ไม่ระบุ')+'</div>';
+    html += '<div class="plan-sub">'+formatDate(p.date)+' • รับ '+(p.pickups||[]).length+' จุด • ส่ง '+(p.customers||[]).length+' ราย • '+done+'/'+total+' เสร็จ</div></div>';
+    html += '<span class="plan-status '+sc+'">'+st+'</span>';
+    html += '<span class="plan-chevron'+(p._open?' open':'')+'">▾</span>';
+    html += '</div>';
+
+    if (p._open) {
+      html += '<div class="plan-body open">';
+
+      // Pickups
+      html += '<div class="sec-title">📦 จุดรับของ</div>';
+      (p.pickups||[]).forEach((pk, pi) => {
+        html += '<div class="pickup-card">';
+        html += '<div class="pickup-header"><span class="pickup-num">จุดที่ '+(pi+1)+' '+(pk.done?'✅':pk.problem?'⚠️':'')+'</span></div>';
+        if (pk.location) html += '<div style="margin-bottom:6px"><a href="'+pk.location+'" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>';
+        if (pk.note) html += '<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:5px 8px;border-radius:6px;margin-bottom:6px">📝 '+pk.note+'</div>';
+        if (pk.problem) html += '<div style="font-size:12px;color:var(--red);margin-bottom:4px">⚠️ '+pk.problem+(pk.problemNote?' — '+pk.problemNote:'')+'</div>';
+        (pk.items||[]).forEach(it => {
+          html += '<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• '+it.name+' <span style="color:var(--amber);font-weight:600">= '+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</div>';
+        });
+        html += '</div>';
+      });
+
+      // Customers
+      html += '<div class="sec-title">🚚 ลูกค้าที่ต้องส่ง</div>';
+      (p.customers||[]).forEach((c, ci) => {
+        html += '<div class="customer-card">';
+        html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:600">'+(ci+1)+'. '+c.name+' '+(c.done?'✅':c.problem?'⚠️':'')+'</span></div>';
+        if (c.location) html += '<div style="margin-bottom:4px"><a href="'+c.location+'" target="_blank" style="color:var(--green2);font-size:12px">📍 เปิด Google Maps</a></div>';
+        if (c.tel) html += '<div style="font-size:12px;color:var(--text3);margin-bottom:4px">📞 '+c.tel+'</div>';
+        if (c.note) html += '<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:5px 8px;border-radius:6px;margin-bottom:6px">📝 '+c.note+'</div>';
+        if (c.problem) html += '<div style="font-size:12px;color:var(--red);margin-bottom:4px">⚠️ '+c.problem+(c.problemNote?' — '+c.problemNote:'')+'</div>';
+        (c.items||[]).forEach(it => {
+          html += '<div style="font-size:13px;color:var(--text2);padding:3px 0;border-bottom:1px solid var(--border)">• '+it.name+' <span style="color:var(--amber);font-weight:600">= '+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</div>';
+        });
+        if ((c.photos||[]).length > 0) {
+          html += '<div class="photo-row">';
+          c.photos.forEach((ph, phi) => {
+            html += '<img class="photo-thumb" src="'+ph+'" onclick="openViewer(\''+p.id+'\',\'customer\','+ci+','+phi+')">';
+          });
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+
+      html += '<button class="share-btn" onclick="sharePlan(\''+p.id+'\')">💬 คัดลอกแผนงานส่งคนขับ</button>';
+      html += '<button class="edit-plan-btn" onclick="showEditModal(\''+p.id+'\')">✏️ แก้ไขแผนงาน</button>';
+      html += '<button class="del-plan-btn" onclick="deletePlan(\''+p.id+'\')">🗑 ลบแผนงานนี้</button>';
+      html += '</div>';
+    }
+    html += '</div>';
   });
+
   return html;
 }
 
+// ---- RENDER MONITOR ----
 function renderMonitor() {
-  if (!plans.length) return '<div class="empty"><div class="empty-icon">📡</div><div class="empty-text">ยังไม่มีแผนงาน</div></div>';
   const today = new Date().toISOString().split('T')[0];
-  const selectedDate = window._monitorDate || today;
-  const planDates = [...new Set(plans.map(p=>p.date).filter(Boolean))].sort().reverse();
-  const showPlans = plans.filter(p => p.date === selectedDate);
-  const dateBtns2 = planDates.slice(0,10).map(d => {
-    const sel = d===selectedDate;
-    return '<button onclick="selectMonitorDate(\''+d+'\')" style="padding:5px 10px;border-radius:20px;border:1px solid '+(sel?'var(--green)':'var(--border2)')+';background:'+(sel?'var(--green-pale)':'var(--bg3)')+';color:'+(sel?'var(--green2)':'var(--text3)')+';font-size:12px;cursor:pointer;font-family:inherit">'+formatDate(d)+'</button>';
+  const allDates = [...new Set(plans.map(p => p.date).filter(Boolean))].sort().reverse();
+  const showPlans = plans.filter(p => p.date === _monitorDate);
+  const total = showPlans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s, 0);
+  const done = showPlans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s, 0);
+
+  const chips = allDates.slice(0, 10).map(d => {
+    const active = d === _monitorDate ? 'active' : '';
+    return '<button class="date-chip '+active+'" onclick="selectMonitorDate(\''+d+'\')">'+formatDate(d)+'</button>';
   }).join('');
-  const totalSteps = showPlans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s, 0);
-  const doneSteps = showPlans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s, 0);
-  let html = '<div class="overview-card" style="margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div><button onclick="selectMonitorDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(selectedDate===today?'var(--green)':'var(--bg3)')+';color:'+(selectedDate===today?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button></div><div style="position:relative;margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px"><button onclick="changeMonitorDate(-1)" style="padding:8px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;font-family:inherit">‹</button><div style="flex:1;text-align:center;font-size:15px;font-weight:600;color:var(--text)">'+formatDate(selectedDate)+'</div><button onclick="changeMonitorDate(1)" style="padding:8px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3);color:var(--text);font-size:16px;cursor:pointer;font-family:inherit">›</button></div><input type="date" value="'+selectedDate+'" onchange="selectMonitorDate(this.value)" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%"></div><div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+dateBtns2+'</div></div>';
-  html += '<div class="overview-card"><div class="overview-title">📊 '+formatDate(selectedDate)+(showPlans.length?'':'— ไม่มีแผนงาน')+'</div>'+(showPlans.length?'<div class="overview-grid"><div class="ov-item"><div class="ov-num gray">'+totalSteps+'</div><div class="ov-label">ทั้งหมด</div></div><div class="ov-item"><div class="ov-num green">'+doneSteps+'</div><div class="ov-label">เสร็จแล้ว</div></div><div class="ov-item"><div class="ov-num amber">'+(totalSteps-doneSteps)+'</div><div class="ov-label">รอดำเนินการ</div></div></div>':'<div style="font-size:13px;color:var(--text3);text-align:center;padding:10px">ไม่มีแผนงาน เลือกวันอื่นด้านบนได้เลย</div>')+'</div>';
+
+  const todayBtn = '<button onclick="selectMonitorDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(today===_monitorDate?'var(--green2)':'var(--bg3)')+';color:'+(today===_monitorDate?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button>';
+
+  let html = '<div class="overview-card">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div>'+todayBtn+'</div>';
+  html += '<div class="date-nav"><button class="date-nav-btn" onclick="changeMonitorDate(-1)">‹</button><div class="date-nav-label">'+formatDate(_monitorDate)+'</div><button class="date-nav-btn" onclick="changeMonitorDate(1)">›</button><input type="date" value="'+_monitorDate+'" onchange="selectMonitorDate(this.value)"></div>';
+  html += '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div>';
+  html += '<div class="date-chips">'+chips+'</div>';
+  html += '</div>';
+
+  html += '<div class="overview-card"><div class="overview-title">📊 ภาพรวม '+formatDate(_monitorDate)+'</div>';
+  html += '<div class="overview-grid">';
+  html += '<div class="ov-item"><div class="ov-num gray">'+total+'</div><div class="ov-label">ทั้งหมด</div></div>';
+  html += '<div class="ov-item"><div class="ov-num green">'+done+'</div><div class="ov-label">เสร็จแล้ว</div></div>';
+  html += '<div class="ov-item"><div class="ov-num amber">'+(total-done)+'</div><div class="ov-label">รอดำเนินการ</div></div>';
+  html += '</div></div>';
+
+  if (!showPlans.length) {
+    html += '<div class="empty"><div class="empty-icon">📡</div><div class="empty-text">ไม่มีแผนงานวันที่นี้</div></div>';
+    return html;
+  }
+
   showPlans.forEach(p => {
-    const steps = [...(p.pickups||[]).map((pk,i)=>({type:'pickup',label:'รับของจุดที่ '+(i+1),done:pk.done,time:pk.doneAt,photos:pk.photos||[],problem:pk.problem||'',idx:i})),...(p.customers||[]).map((cu,i)=>({type:'deliver',label:'ส่ง '+cu.name,done:cu.done,time:cu.doneAt,photos:cu.photos||[],problem:cu.problem||'',idx:i}))];
-    const done = steps.filter(s=>s.done).length;
-    const pct = steps.length ? Math.round(done/steps.length*100) : 0;
-    html += `
-    <div class="driver-card">
-      <div class="driver-header">
-        <div class="driver-name">🚛 ${p.truckName||'รถ'} — ${p.driver||'-'}</div>
-        <span style="font-size:12px;color:var(--text3)">${done}/${steps.length}</span>
-      </div>
-      <div class="driver-prog-bar"><div class="driver-prog-fill" style="width:${pct}%"></div></div>
-      <div class="driver-steps">
-        ${steps.map(s=>'<div class="driver-step" onclick="viewStepDetail(\''+p.id+'\',\''+s.type+'\','+s.idx+')" style="cursor:pointer"><div class="step-dot '+(s.done?'dot-done':s.problem?'dot-active':'dot-wait')+'" style="'+(s.problem?'background:var(--red)':'')+'"></div><div style="flex:1"><div class="step-text">'+s.label+'</div>'+(s.time?'<div class="step-time">✅ '+new Date(s.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+'</div>':'')+(s.problem?'<div style="font-size:11px;color:var(--red);margin-top:2px">⚠️ '+s.problem+'</div>':'')+(s.photos.length?'<div style="font-size:11px;color:var(--green2);margin-top:2px">📷 '+s.photos.length+' รูป</div>':'')+'</div><span style="color:var(--text3);font-size:12px">›</span></div>').join('')}
-      </div>
-    </div>`;
+    const steps = [
+      ...(p.pickups||[]).map((pk,i) => ({ type:'pickup', label:'รับของจุดที่ '+(i+1), done:pk.done, time:pk.doneAt, photos:pk.photos||[], problem:pk.problem||'', idx:i })),
+      ...(p.customers||[]).map((c,i) => ({ type:'customer', label:'ส่ง '+c.name, done:c.done, time:c.doneAt, photos:c.photos||[], problem:c.problem||'', idx:i }))
+    ];
+    const doneSteps = steps.filter(s=>s.done).length;
+    const pct = steps.length ? Math.round(doneSteps/steps.length*100) : 0;
+
+    html += '<div class="driver-card">';
+    html += '<div class="driver-header"><div class="driver-name">🚛 '+(p.truckName||'รถ')+' — '+(p.driver||'-')+'</div><span style="font-size:12px;color:var(--text3)">'+doneSteps+'/'+steps.length+'</span></div>';
+    html += '<div class="driver-prog-bar"><div class="driver-prog-fill" style="width:'+pct+'%"></div></div>';
+    html += '<div class="driver-steps">';
+    steps.forEach(s => {
+      const dotClass = s.done ? 'dot-done' : s.problem ? 'dot-active' : 'dot-wait';
+      const dotStyle = s.problem && !s.done ? 'background:var(--red)' : '';
+      html += '<div class="driver-step" onclick="viewDetail(\''+p.id+'\',\''+s.type+'\','+s.idx+')">';
+      html += '<div class="step-dot '+dotClass+'" style="'+dotStyle+'"></div>';
+      html += '<div style="flex:1"><div class="step-text">'+s.label+'</div>';
+      if (s.time) html += '<div class="step-time">✅ '+new Date(s.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+'</div>';
+      if (s.problem && !s.done) html += '<div style="font-size:11px;color:var(--red);margin-top:2px">⚠️ '+s.problem+'</div>';
+      if (s.photos.length) html += '<div style="font-size:11px;color:var(--green2);margin-top:2px">📷 '+s.photos.length+' รูป</div>';
+      html += '</div><span style="color:var(--text3);font-size:12px">›</span>';
+      html += '</div>';
+    });
+    html += '</div></div>';
   });
+
   return html;
 }
 
-// ---- ACTIONS ----
-window.togglePlan = function(id) {
-  const p = plans.find(x=>x.id===id);
-  if (p) { p._open = !p._open; render(); }
-};
+// ---- DATE NAV ----
+window.selectPlansDate = d => { _plansDate = d; render(); };
+window.changePlansDate = dir => { const d = new Date(_plansDate); d.setDate(d.getDate()+dir); _plansDate = d.toISOString().split('T')[0]; render(); };
+window.selectMonitorDate = d => { _monitorDate = d; render(); };
+window.changeMonitorDate = dir => { const d = new Date(_monitorDate); d.setDate(d.getDate()+dir); _monitorDate = d.toISOString().split('T')[0]; render(); };
 
-window.deletePlan = async function(id) {
+// ---- TOGGLE PLAN ----
+window.togglePlan = id => { const p = plans.find(x=>x.id===id); if(p){p._open=!p._open;render();} };
+
+// ---- DELETE PLAN ----
+window.deletePlan = async id => {
   if (!confirm('ลบแผนงานนี้?')) return;
   await deleteDoc(doc(db,'plans',id));
   showToast('🗑 ลบแผนงานแล้ว');
 };
 
-window.sharePlan = function(id) {
-  const p = plans.find(x=>x.id===id);
-  if (!p) return;
-  const driverUrl = 'https://monen087.github.io/stkmetal/stkmetal-driver.html?plan=' + id;
-  let msg = '🔩 STK Metal — แผนงาน ' + formatDate(p.date) + '\n';
-  msg += '🚛 ' + (p.truckName||'') + ' | คนขับ: ' + (p.driver||'-') + '\n\n';
-  msg += '📱 Checklist:\n' + driverUrl + '\n\n';
+// ---- SHARE ----
+window.sharePlan = id => {
+  const p = plans.find(x=>x.id===id); if (!p) return;
+  const url = 'https://monen087.github.io/stkmetal/stkmetal-driver.html?plan='+id;
+  let msg = '🔩 STK Metal — แผนงาน '+formatDate(p.date)+'\n';
+  msg += '🚛 '+(p.truckName||'')+' | คนขับ: '+(p.driver||'-')+'\n\n';
+  msg += '📱 Checklist:\n'+url+'\n\n';
   msg += '📦 จุดรับของ:\n';
-  (p.pickups||[]).forEach((pk,i)=>{
-    msg += (i+1) + '. ' + (pk.location||'ไม่ระบุที่อยู่') + '\n';
-    (pk.items||[]).forEach(it=>{ msg += '   • ' + it.name + ' = ' + it.qty + (it.src?' ('+it.src+')':'') + '\n'; });
-    if (pk.note) msg += '   📝 ' + pk.note + '\n';
+  (p.pickups||[]).forEach((pk,i) => {
+    msg += (i+1)+'. '+(pk.location||'ไม่ระบุที่อยู่')+'\n';
+    (pk.items||[]).forEach(it => { msg += '   • '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'\n'; });
+    if (pk.note) msg += '   📝 '+pk.note+'\n';
   });
   msg += '\n🚚 ส่งลูกค้า:\n';
-  (p.customers||[]).forEach((c,i)=>{
-    msg += (i+1) + '. ' + c.name + ' ' + (c.tel?'📞'+c.tel:'') + '\n';
-    (c.items||[]).forEach(it=>{ msg += '   • ' + it.name + ' = ' + it.qty + (it.src?' ('+it.src+')':'') + '\n'; });
-    if (c.note) msg += '   📝 ' + c.note + '\n';
+  (p.customers||[]).forEach((c,i) => {
+    msg += (i+1)+'. '+c.name+(c.tel?' 📞'+c.tel:'')+'\n';
+    (c.items||[]).forEach(it => { msg += '   • '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'\n'; });
+    if (c.note) msg += '   📝 '+c.note+'\n';
   });
-  window._shareMsg = msg;
+  _shareMsg = msg;
   document.getElementById('share-msg-box').textContent = msg;
   document.getElementById('copy-btn').textContent = '📋 คัดลอกข้อความ';
   document.getElementById('share-modal').classList.remove('hidden');
 };
-
-window.copyShareMsg = async function() {
-  try {
-    await navigator.clipboard.writeText(window._shareMsg || '');
-  } catch(e) {
-    const ta = document.createElement('textarea');
-    ta.value = window._shareMsg || '';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-  }
+window.copyShareMsg = async () => {
+  try { await navigator.clipboard.writeText(_shareMsg); }
+  catch(e) { const ta=document.createElement('textarea'); ta.value=_shareMsg; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
   document.getElementById('copy-btn').textContent = '✅ คัดลอกแล้ว!';
-  setTimeout(()=>{ document.getElementById('copy-btn').textContent = '📋 คัดลอกข้อความ'; }, 2000);
+  setTimeout(() => { document.getElementById('copy-btn').textContent = '📋 คัดลอกข้อความ'; }, 2000);
 };
-window.openLine = function() { window.open('https://line.me/R/nv/chat', '_blank'); };
+window.openLine = () => window.open('https://line.me/R/nv/chat','_blank');
 
-window.viewPhotos = function(planId, custIdx) {
-  const p = plans.find(x=>x.id===planId);
-  if (!p) return;
-  const c = p.customers[custIdx];
-  document.getElementById('photo-modal-title').textContent = `📸 รูปส่งของ — ${c.name}`;
-  document.getElementById('photo-modal-content').innerHTML = (c.photos||[]).map(ph=>`<img src="${ph}" style="width:100%;border-radius:8px;margin-bottom:8px">`).join('');
-  document.getElementById('photo-modal').classList.remove('hidden');
+// ---- CLEANUP ----
+window.showCleanupModal = () => {
+  _cleanupList = [];
+  document.getElementById('cleanup-preview').textContent = 'กด "ดูตัวอย่าง" เพื่อดูรายการที่จะลบ';
+  document.getElementById('cleanup-confirm-btn').style.display = 'none';
+  document.getElementById('cleanup-modal').classList.remove('hidden');
 };
-window.closePhotoModal = ()=>document.getElementById('photo-modal').classList.add('hidden');
+window.previewCleanup = () => {
+  const days = parseInt(document.getElementById('cleanup-days').value);
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate()-days);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  _cleanupList = plans.filter(p => p.date && p.date < cutoffStr);
+  const btn = document.getElementById('cleanup-confirm-btn');
+  if (!_cleanupList.length) {
+    document.getElementById('cleanup-preview').innerHTML = '<span style="color:var(--green2)">✅ ไม่มีแผนงานที่เก่ากว่า '+days+' วัน</span>';
+    btn.style.display = 'none'; return;
+  }
+  let html = '<div style="color:var(--red);font-weight:600;margin-bottom:8px">⚠️ จะลบ '+_cleanupList.length+' แผนงาน</div>';
+  _cleanupList.forEach(p => { html += '<div style="padding:4px 0;border-bottom:1px solid var(--border);font-size:12px">📅 '+formatDate(p.date)+' — '+(p.truckName||'รถ')+'</div>'; });
+  document.getElementById('cleanup-preview').innerHTML = html;
+  btn.style.display = 'block';
+  btn.textContent = '🗑 ยืนยันลบ '+_cleanupList.length+' แผนงาน';
+};
+window.confirmCleanup = async () => {
+  if (!_cleanupList.length || !confirm('ยืนยันลบ '+_cleanupList.length+' แผนงาน?')) return;
+  for (const p of _cleanupList) await deleteDoc(doc(db,'plans',p.id));
+  document.getElementById('cleanup-modal').classList.add('hidden');
+  showToast('🗑 ลบแผนงานแล้ว');
+};
+
+// ---- DETAIL MODAL ----
+window.viewDetail = (planId, type, idx) => {
+  const p = plans.find(x=>x.id===planId); if(!p) return;
+  const item = type==='pickup' ? p.pickups[idx] : p.customers[idx]; if(!item) return;
+  const label = type==='pickup' ? '📦 รับของจุดที่ '+(idx+1) : '🚚 ส่ง '+item.name;
+
+  let stBg, stColor, stText;
+  if (item.done) { stBg='var(--green-pale)'; stColor='var(--green2)'; stText='✅ เสร็จสิ้น '+(item.doneAt?new Date(item.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''); }
+  else if (item.problem) { stBg='var(--red-pale)'; stColor='var(--red)'; stText='⚠️ มีปัญหา'; }
+  else { stBg='var(--bg3)'; stColor='var(--text3)'; stText='⏳ ยังไม่เสร็จ'; }
+
+  let html = '<div style="margin-bottom:12px"><span style="font-size:13px;padding:4px 10px;border-radius:20px;background:'+stBg+';color:'+stColor+'">'+stText+'</span></div>';
+  if (item.problem) html += '<div style="padding:8px 12px;background:var(--red-pale);border-left:3px solid var(--red);border-radius:6px;font-size:13px;color:var(--red);margin-bottom:12px">⚠️ '+item.problem+(item.problemNote?' — '+item.problemNote:'')+'</div>';
+  if (item.location) html += '<a href="'+item.location+'" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--green2);font-size:13px;text-decoration:none;margin-bottom:12px">📍 เปิด Google Maps</a>';
+  if (item.tel) html += '<a href="tel:'+item.tel+'" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;text-decoration:none;margin-bottom:12px">📞 '+item.tel+'</a>';
+  if (item.note) html += '<div style="font-size:13px;color:var(--amber);background:var(--amber-pale);padding:8px 12px;border-radius:8px;margin-bottom:12px">📝 '+item.note+'</div>';
+
+  if ((item.items||[]).length) {
+    html += '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">รายการสินค้า</div>';
+    item.items.forEach(it => {
+      html += '<div class="detail-item"><span style="color:var(--text2)">'+it.name+'</span><span><span style="color:var(--amber);font-weight:600">'+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</span></div>';
+    });
+  }
+
+  const photos = item.photos||[];
+  if (photos.length) {
+    const bc = item.problem ? '#ef5350' : '#2a5080';
+    html += '<div style="font-size:11px;font-weight:600;color:'+(item.problem?'#ef5350':'#4a7fa8')+';margin:14px 0 8px">'+(item.problem?'📷 รูปหลักฐาน':'📷 รูปภาพ')+' ('+photos.length+' รูป)</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">';
+    photos.forEach((ph,pi) => {
+      html += '<img src="'+ph+'" style="width:100%;border-radius:8px;object-fit:cover;aspect-ratio:1;cursor:pointer;border:2px solid '+bc+'" onclick="openViewerDirect(\''+planId+'\',\''+type+'\','+idx+','+pi+')">';
+    });
+    html += '</div>';
+  } else {
+    html += '<div style="text-align:center;padding:20px;color:var(--text3)">📷 ยังไม่มีรูปภาพ</div>';
+  }
+
+  document.getElementById('detail-modal-title').textContent = label;
+  document.getElementById('detail-modal-content').innerHTML = html;
+  document.getElementById('detail-modal').classList.remove('hidden');
+};
+
+// ---- IMAGE VIEWER ----
+window.openViewer = (planId, type, idx, pi) => {
+  const p = plans.find(x=>x.id===planId); if(!p) return;
+  const item = type==='pickup' ? p.pickups[idx] : p.customers[idx]; if(!item) return;
+  const photos = item.photos||[]; if(!photos.length) return;
+  _viewerPhotos = photos; _viewerIdx = pi;
+  _viewerTitle = type==='pickup' ? 'รูปรับของจุดที่ '+(idx+1) : 'รูปส่ง '+item.name;
+  showViewer();
+};
+window.openViewerDirect = (planId, type, idx, pi) => {
+  document.getElementById('detail-modal').classList.add('hidden');
+  setTimeout(() => openViewer(planId, type, idx, pi), 50);
+};
+function showViewer() {
+  document.getElementById('iv-img').src = _viewerPhotos[_viewerIdx];
+  document.getElementById('iv-title').textContent = _viewerTitle+' ('+(_viewerIdx+1)+'/'+_viewerPhotos.length+')';
+  document.getElementById('iv-dots').innerHTML = _viewerPhotos.map((_,i)=>'<div class="iv-dot'+(i===_viewerIdx?' active':'')+'"></div>').join('');
+  document.getElementById('img-viewer').style.display = 'flex';
+}
+window.navPhoto = dir => { _viewerIdx = (_viewerIdx+dir+_viewerPhotos.length)%_viewerPhotos.length; showViewer(); };
+window.closeViewer = () => { document.getElementById('img-viewer').style.display = 'none'; };
+window.savePhoto = () => { const a=document.createElement('a'); a.href=_viewerPhotos[_viewerIdx]; a.download='stkmetal-'+Date.now()+'.jpg'; a.click(); showToast('💾 บันทึกรูปแล้ว'); };
 
 // ---- NEW PLAN MODAL ----
-
-window.addPickupCard = function() {
-  pickupCount++;
-  const div = document.createElement('div');
-  div.className = 'pickup-card'; div.id = 'pickup-'+pickupCount;
-  div.innerHTML = '<div class="pickup-header"><span class="pickup-num">จุดรับที่ '+pickupCount+'</span><button class="remove-btn" onclick="this.closest(\'.pickup-card\').remove()">ลบ</button></div><div class="input-group"><div class="input-label">📍 โลเคชั่น Google Maps</div><input class="input-field pickup-location" type="url" placeholder="https://maps.app.goo.gl/..."></div><div class="input-group"><div class="input-label">📝 Note ถึงคนขับ</div><textarea class="input-field pickup-note" rows="2" style="resize:none" placeholder="เช่น จอดรถหน้าโกดัง..."></textarea></div><div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div><button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
-  document.getElementById('pickups-container').appendChild(div);
-  addItemRow(div.querySelector('.add-row-btn'));
-};
-
-window.addCustomerCard = function() {
-  customerCount++;
-  const div = document.createElement('div');
-  div.className = 'customer-card'; div.id = 'cust-'+customerCount;
-  div.innerHTML = '<div class="pickup-header"><span class="pickup-num">ลูกค้าที่ '+customerCount+'</span><button class="remove-btn" onclick="this.closest(\'.customer-card\').remove()">ลบ</button></div><div class="input-row"><div><div class="input-label">ชื่อลูกค้า</div><input class="input-field cust-name" type="text" placeholder="เช่น บริษัท ABC"></div><div><div class="input-label">เบอร์โทร</div><input class="input-field cust-tel" type="tel" placeholder="0812345678"></div></div><div class="input-group"><div class="input-label">📍 โลเคชั่น</div><input class="input-field cust-location" type="url" placeholder="https://maps.app.goo.gl/..."></div><div class="input-group"><div class="input-label">📝 Note ถึงคนขับ</div><textarea class="input-field cust-note" rows="2" style="resize:none" placeholder="เช่น ส่งโกดังหลัง..."></textarea></div><div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div><button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
-  document.getElementById('customers-container').appendChild(div);
-  addItemRow(div.querySelector('.add-row-btn'));
-};
-
-window.showNewPlanModal = function() {
+window.showNewPlanModal = () => {
+  editPlanId = null;
   pickupCount = 0; customerCount = 0;
+  document.getElementById('plan-modal-title').innerHTML = '📋 สร้างแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button>';
   document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('plan-truck').value = '';
   document.getElementById('plan-driver').value = '';
   document.getElementById('pickups-container').innerHTML = '';
   document.getElementById('customers-container').innerHTML = '';
-  addPickupCard(); addCustomerCard();
+  addPickup(); addCustomer();
   document.getElementById('plan-modal').classList.remove('hidden');
 };
-window.closeModal = ()=>document.getElementById('plan-modal').classList.add('hidden');
 
-window.addPickup = function() {
+// ---- EDIT PLAN MODAL ----
+window.showEditModal = id => {
+  const p = plans.find(x=>x.id===id); if(!p) return;
+  editPlanId = id;
+  pickupCount = 0; customerCount = 0;
+  document.getElementById('plan-modal-title').innerHTML = '✏️ แก้ไขแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button>';
+  document.getElementById('plan-date').value = p.date||'';
+  document.getElementById('plan-truck').value = p.truckName||'';
+  document.getElementById('plan-driver').value = p.driver||'';
+  document.getElementById('pickups-container').innerHTML = '';
+  document.getElementById('customers-container').innerHTML = '';
+  (p.pickups||[]).forEach(pk => {
+    addPickup();
+    const last = document.getElementById('pickups-container').lastElementChild;
+    last.querySelector('.pickup-location').value = pk.location||'';
+    if (last.querySelector('.pickup-note')) last.querySelector('.pickup-note').value = pk.note||'';
+    (pk.items||[]).forEach(it => {
+      addItemRow(last.querySelector('.add-row-btn'));
+      const rows = last.querySelectorAll('.product-row');
+      const row = rows[rows.length-1];
+      row.querySelector('.item-name').value = it.name||'';
+      row.querySelector('.item-qty').value = it.qty||'';
+      if (row.querySelector('.src-select')) row.querySelector('.src-select').value = it.src||'สาขาใหญ่';
+    });
+    // ลบ row เปล่าที่ถูกเพิ่มอัตโนมัติ ถ้ามี items
+    if ((pk.items||[]).length > 0) {
+      const rows = last.querySelectorAll('.product-row');
+      if (rows.length > pk.items.length) rows[0].remove();
+    }
+  });
+  (p.customers||[]).forEach(c => {
+    addCustomer();
+    const last = document.getElementById('customers-container').lastElementChild;
+    last.querySelector('.cust-name').value = c.name||'';
+    last.querySelector('.cust-tel').value = c.tel||'';
+    last.querySelector('.cust-location').value = c.location||'';
+    if (last.querySelector('.cust-note')) last.querySelector('.cust-note').value = c.note||'';
+    (c.items||[]).forEach(it => {
+      addItemRow(last.querySelector('.add-row-btn'));
+      const rows = last.querySelectorAll('.product-row');
+      const row = rows[rows.length-1];
+      row.querySelector('.item-name').value = it.name||'';
+      row.querySelector('.item-qty').value = it.qty||'';
+      if (row.querySelector('.src-select')) row.querySelector('.src-select').value = it.src||'สาขาใหญ่';
+    });
+    if ((c.items||[]).length > 0) {
+      const rows = last.querySelectorAll('.product-row');
+      if (rows.length > c.items.length) rows[0].remove();
+    }
+  });
+  document.getElementById('plan-modal').classList.remove('hidden');
+};
+
+window.closeModal = () => { document.getElementById('plan-modal').classList.add('hidden'); editPlanId = null; };
+
+// ---- ADD PICKUP/CUSTOMER ----
+window.addPickup = () => {
   pickupCount++;
-  const id = `pickup-${pickupCount}`;
+  const id = 'pickup-'+pickupCount;
   const div = document.createElement('div');
   div.className = 'pickup-card'; div.id = id;
-  div.innerHTML = `
-    <div class="pickup-header">
-      <span class="pickup-num">จุดรับที่ ${pickupCount}</span>
-      <button class="remove-btn" onclick="document.getElementById('${id}').remove()">ลบ</button>
-    </div>
-    <div class="input-group">
-      <div class="input-label">โลเคชั่น (ลิงก์ Google Maps)</div>
-      <input class="input-field pickup-location" type="url" placeholder="https://maps.app.goo.gl/...">
-    </div>
-    <div class="input-group">
-      <div class="input-label">📝 Note ถึงคนขับ</div>
-      <textarea class="input-field pickup-note" rows="2" placeholder="เช่น จอดรถหน้าโกดัง..." style="resize:none;line-height:1.5"></textarea>
-    </div>
-    <div class="input-label" style="margin-bottom:6px">รายการสินค้า</div>
-    <div class="items-list"></div>
-    <button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>`;
+  div.innerHTML = '<div class="pickup-header"><span class="pickup-num">จุดรับที่ '+pickupCount+'</span><button class="remove-btn" onclick="document.getElementById(\''+id+'\').remove()">ลบ</button></div>'
+    +'<div class="input-group"><div class="input-label">📍 โลเคชั่น Google Maps</div><input class="input-field pickup-location" type="url" placeholder="https://maps.app.goo.gl/..."></div>'
+    +'<div class="input-group"><div class="input-label">📝 Note ถึงคนขับ</div><textarea class="input-field pickup-note" rows="2" style="resize:none" placeholder="เช่น จอดรถหน้าโกดัง..."></textarea></div>'
+    +'<div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div>'
+    +'<button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
   document.getElementById('pickups-container').appendChild(div);
   addItemRow(div.querySelector('.add-row-btn'));
 };
 
-window.addCustomer = function() {
+window.addCustomer = () => {
   customerCount++;
-  const id = `cust-${customerCount}`;
+  const id = 'cust-'+customerCount;
   const div = document.createElement('div');
   div.className = 'customer-card'; div.id = id;
-  div.innerHTML = `
-    <div class="pickup-header">
-      <span class="pickup-num">ลูกค้าที่ ${customerCount}</span>
-      <button class="remove-btn" onclick="document.getElementById('${id}').remove()">ลบ</button>
-    </div>
-    <div class="input-row">
-      <div>
-        <div class="input-label">ชื่อลูกค้า / บริษัท</div>
-        <input class="input-field cust-name" type="text" placeholder="ชื่อลูกค้า">
-      </div>
-      <div>
-        <div class="input-label">เบอร์โทร</div>
-        <input class="input-field cust-tel" type="tel" placeholder="08x-xxx-xxxx">
-      </div>
-    </div>
-    <div class="input-group">
-      <div class="input-label">โลเคชั่น (ลิงก์ Google Maps)</div>
-      <input class="input-field cust-location" type="url" placeholder="https://maps.app.goo.gl/...">
-    </div>
-    <div class="input-group">
-      <div class="input-label">📝 Note ถึงคนขับ</div>
-      <textarea class="input-field cust-note" rows="2" placeholder="เช่น ส่งที่โกดังหลัง..." style="resize:none;line-height:1.5"></textarea>
-    </div>
-    <div class="input-label" style="margin-bottom:6px">รายการสินค้า</div>
-    <div class="items-list"></div>
-    <button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>`;
+  div.innerHTML = '<div class="pickup-header"><span class="pickup-num">ลูกค้าที่ '+customerCount+'</span><button class="remove-btn" onclick="document.getElementById(\''+id+'\').remove()">ลบ</button></div>'
+    +'<div class="input-row"><div><div class="input-label">ชื่อลูกค้า / บริษัท</div><input class="input-field cust-name" type="text" placeholder="ชื่อลูกค้า"></div>'
+    +'<div><div class="input-label">เบอร์โทร</div><input class="input-field cust-tel" type="tel" placeholder="08x-xxx-xxxx"></div></div>'
+    +'<div class="input-group"><div class="input-label">📍 โลเคชั่น Google Maps</div><input class="input-field cust-location" type="url" placeholder="https://maps.app.goo.gl/..."></div>'
+    +'<div class="input-group"><div class="input-label">📝 Note ถึงคนขับ</div><textarea class="input-field cust-note" rows="2" style="resize:none" placeholder="เช่น ส่งที่โกดังหลัง..."></textarea></div>'
+    +'<div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div>'
+    +'<button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มลูกค้า</button>';
   document.getElementById('customers-container').appendChild(div);
   addItemRow(div.querySelector('.add-row-btn'));
 };
 
-window.addItemRow = function(btn) {
+window.addItemRow = btn => {
   const list = btn.previousElementSibling;
   const row = document.createElement('div');
   row.className = 'product-row';
-  row.innerHTML = '<input class="input-field item-name" type="text" placeholder="ชื่อสินค้า เช่น ท่อกลม 304 NB 4&quot;"><input class="input-field qty-input item-qty" type="text" placeholder="จำนวน"><select class="src-select item-src"><option value="สาขาใหญ่">สาขาใหญ่</option><option value="ในสต้อค">ในสต้อค</option><option value="ระบุเอง">ระบุเอง</option></select><input class="input-field item-custom" type="text" placeholder="ระบุ..." style="width:80px;flex:none;display:none"><button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
+  row.innerHTML = '<input class="input-field item-name" type="text" placeholder="ชื่อสินค้า เช่น ท่อกลม 304">'
+    +'<input class="input-field qty-input item-qty" type="text" placeholder="จำนวน">'
+    +'<select class="src-select"><option value="สาขาใหญ่">สาขาใหญ่</option><option value="ในสต้อค">ในสต้อค</option><option value="ระบุเอง">ระบุเอง</option></select>'
+    +'<button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
   list.appendChild(row);
-  row.querySelector('.item-src').addEventListener('change', function() {
-    const ci = this.parentElement.querySelector('.item-custom');
-    ci.style.display = this.value === 'ระบุเอง' ? 'block' : 'none';
-    if (this.value !== 'ระบุเอง') ci.value = '';
-  });
 };
 
-window.savePlan = async function() {
+// ---- SAVE PLAN ----
+window.savePlan = async () => {
   const date = document.getElementById('plan-date').value;
   const truckName = document.getElementById('plan-truck').value || 'คันที่ 1';
   const driver = document.getElementById('plan-driver').value;
   if (!date) { showToast('⚠️ กรุณาเลือกวันที่'); return; }
+
   const pickups = [];
   document.querySelectorAll('#pickups-container .pickup-card').forEach(card => {
-    const location = card.querySelector('.pickup-location')?.value || '';
+    const location = card.querySelector('.pickup-location')?.value||'';
+    const note = card.querySelector('.pickup-note')?.value?.trim()||'';
     const items = [];
-    const note_p = card.querySelector('.pickup-note')?.value?.trim() || '';
     card.querySelectorAll('.product-row').forEach(row => {
       const name = row.querySelector('.item-name')?.value?.trim();
       const qty = row.querySelector('.item-qty')?.value?.trim();
-      const s = row.querySelector('.item-src')?.value || 'สาขาใหญ่';
-      const sc = row.querySelector('.item-custom')?.value?.trim() || '';
-      const src = s === 'ระบุเอง' ? (sc || 'ระบุเอง') : s;
+      const src = row.querySelector('.src-select')?.value||'สาขาใหญ่';
       if (name) items.push({name, qty: qty||'-', src});
     });
-    pickups.push({location, note: note_p, items, done: false, doneAt: null, photos:[]});
+    pickups.push({location, note, items, done:false, doneAt:null, photos:[]});
   });
+
   const customers = [];
   document.querySelectorAll('#customers-container .customer-card').forEach(card => {
-    const name = card.querySelector('.cust-name')?.value?.trim() || 'ไม่ระบุชื่อ';
-    const tel = card.querySelector('.cust-tel')?.value || '';
-    const location = card.querySelector('.cust-location')?.value || '';
+    const name = card.querySelector('.cust-name')?.value?.trim()||'ไม่ระบุชื่อ';
+    const tel = card.querySelector('.cust-tel')?.value||'';
+    const location = card.querySelector('.cust-location')?.value||'';
+    const note = card.querySelector('.cust-note')?.value?.trim()||'';
     const items = [];
-    const note_c = card.querySelector('.cust-note')?.value?.trim() || '';
     card.querySelectorAll('.product-row').forEach(row => {
       const n = row.querySelector('.item-name')?.value?.trim();
       const q = row.querySelector('.item-qty')?.value?.trim();
-      const s = row.querySelector('.item-src')?.value || 'สาขาใหญ่';
-      const sc = row.querySelector('.item-custom')?.value?.trim() || '';
-      const src = s === 'ระบุเอง' ? (sc || 'ระบุเอง') : s;
-      if (n) items.push({name:n, qty:q||'-', src});
+      const s = row.querySelector('.src-select')?.value||'สาขาใหญ่';
+      if (n) items.push({name:n, qty:q||'-', src:s});
     });
-    customers.push({name, tel, location, note: note_c, items, done:false, doneAt:null, photos:[]});
+    customers.push({name, tel, location, note, items, done:false, doneAt:null, photos:[]});
   });
+
   try {
-    await addDoc(collection(db,'plans'), {date, truckName, driver, pickups, customers, createdAt: Date.now()});
+    if (editPlanId) {
+      // แก้ไข — คง done/photos ของ step เดิมไว้
+      const existing = plans.find(x=>x.id===editPlanId);
+      if (existing) {
+        pickups.forEach((pk,i) => {
+          const old = (existing.pickups||[])[i];
+          if (old) { pk.done=old.done; pk.doneAt=old.doneAt; pk.photos=old.photos||[]; pk.problem=old.problem||null; pk.problemNote=old.problemNote||null; }
+        });
+        customers.forEach((c,i) => {
+          const old = (existing.customers||[])[i];
+          if (old) { c.done=old.done; c.doneAt=old.doneAt; c.photos=old.photos||[]; c.problem=old.problem||null; c.problemNote=old.problemNote||null; }
+        });
+      }
+      await setDoc(doc(db,'plans',editPlanId), {date, truckName, driver, pickups, customers, createdAt: existing?.createdAt||Date.now()});
+      showToast('✅ แก้ไขแผนงานแล้ว');
+    } else {
+      await addDoc(collection(db,'plans'), {date, truckName, driver, pickups, customers, createdAt: Date.now()});
+      showToast('✅ บันทึกแผนงานแล้ว');
+    }
     closeModal();
-    showToast('✅ บันทึกแผนงานแล้ว');
-  } catch(e) {
-    showToast('❌ บันทึกไม่สำเร็จ: '+e.message);
-  }
+  } catch(e) { showToast('❌ บันทึกไม่สำเร็จ: '+e.message); }
+};
+
+// ---- EXPORT PDF ----
+window.exportPDF = () => {
+  if (!plans.length) { showToast('⚠️ ยังไม่มีแผนงาน'); return; }
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const now = new Date();
+  const pDate = now.getDate()+' '+months[now.getMonth()+1]+' '+(now.getFullYear()+543)+' เวลา '+now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  const totalAll = plans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s,0);
+  const doneAll = plans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s,0);
+
+  let html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;font-size:13px;padding:20px;color:#222}.plan{border:1px solid #ccc;border-radius:8px;margin-bottom:16px;page-break-inside:avoid}.ph{background:#1a3a6a;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;border-radius:8px 8px 0 0}.pb{padding:12px 14px}.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.done{color:#1e90ff;font-weight:600}.prob{color:#e74c3c;font-weight:600}.wait{color:#999}.sum{background:#f0f8ff;border-radius:6px;padding:10px;margin-bottom:16px;display:flex;gap:20px}.si{text-align:center}.sn{font-size:22px;font-weight:700}</style></head><body>';
+  html += '<h1>🔩 STK Metal — รายงานแผนงาน</h1><div style="font-size:12px;color:#666;margin-bottom:20px">พิมพ์เมื่อ '+pDate+' • ทั้งหมด '+plans.length+' แผนงาน</div>';
+  html += '<div class="sum"><div class="si"><div class="sn">'+plans.length+'</div><div>แผนงาน</div></div><div class="si"><div class="sn" style="color:#1e90ff">'+doneAll+'</div><div>เสร็จ</div></div><div class="si"><div class="sn" style="color:#ffd166">'+(totalAll-doneAll)+'</div><div>รอ</div></div></div>';
+
+  plans.forEach((p,i) => {
+    const pks=p.pickups||[], cus=p.customers||[];
+    const tot=pks.length+cus.length;
+    const dn=pks.filter(pk=>pk.done).length+cus.filter(c=>c.done).length;
+    html += '<div class="plan"><div class="ph"><span>'+(i+1)+'. '+(p.truckName||'รถ')+' — '+(p.driver||'-')+' | '+formatDate(p.date)+'</span><span>'+(dn===tot&&tot>0?'✅ เสร็จ':dn>0?'🔄 กำลังทำ':'⏳ รอ')+' '+dn+'/'+tot+'</span></div><div class="pb">';
+    if (pks.length) {
+      html += '<div style="font-size:11px;font-weight:600;color:#666;margin:8px 0 4px">📦 จุดรับของ</div>';
+      pks.forEach((pk,pi) => {
+        const cls=pk.done?'done':pk.problem?'prob':'wait';
+        const txt=pk.done?'✅ รับแล้ว':pk.problem?'⚠️ '+pk.problem:'⏳ รอรับ';
+        html += '<div class="row"><span>จุดที่ '+(pi+1)+'</span><span class="'+cls+'">'+txt+'</span></div>';
+        pk.items&&pk.items.forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
+        if(pk.problem&&pk.problemNote)html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+pk.problemNote+'</div>';
+        const phs=(pk.photos||[]).slice(0,4);
+        if(phs.length){html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 6px 12px">';phs.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display=\'none\'">';});html+='</div>';}
+      });
+    }
+    if (cus.length) {
+      html += '<div style="font-size:11px;font-weight:600;color:#666;margin:8px 0 4px">🚚 ส่งลูกค้า</div>';
+      cus.forEach((c,ci) => {
+        const cls=c.done?'done':c.problem?'prob':'wait';
+        const txt=c.done?'✅ ส่งแล้ว':c.problem?'⚠️ '+c.problem:'⏳ รอส่ง';
+        html += '<div class="row"><span>'+(ci+1)+'. '+c.name+(c.tel?' 📞'+c.tel:'')+'</span><span class="'+cls+'">'+txt+'</span></div>';
+        c.items&&c.items.forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
+        if(c.problem&&c.problemNote)html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+c.problemNote+'</div>';
+        const phs=(c.photos||[]).slice(0,4);
+        if(phs.length){html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 6px 12px">';phs.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display=\'none\'">';});html+='</div>';}
+      });
+    }
+    html += '</div></div>';
+  });
+  html += '</body></html>';
+
+  const w = window.open('','_blank');
+  w.document.write(html); w.document.close();
+  const imgs = w.document.querySelectorAll('img');
+  if (!imgs.length) { w.focus(); w.print(); return; }
+  let loaded = 0;
+  imgs.forEach(img => { if(img.complete){loaded++;if(loaded>=imgs.length){w.focus();w.print();}}else{img.onload=img.onerror=()=>{loaded++;if(loaded>=imgs.length){w.focus();w.print();}};} });
 };
 
 // ---- UTILS ----
@@ -655,207 +884,15 @@ function formatDate(d) {
   if (!d) return '-';
   const [y,m,day] = d.split('-');
   const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  return `${parseInt(day)} ${months[parseInt(m)]} ${parseInt(y)+543}`;
+  return parseInt(day)+' '+months[parseInt(m)]+' '+(parseInt(y)+543);
 }
 
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2500);
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
-
 window.showToast = showToast;
-
-
-// ---- EDIT PLAN ----
-window.showEditPlanModal = function(id) {
-  const p = plans.find(x=>x.id===id);
-  if (!p) return;
-  document.getElementById('plan-date').value = p.date || '';
-  document.getElementById('plan-truck').value = p.truckName || '';
-  document.getElementById('plan-driver').value = p.driver || '';
-  document.getElementById('pickups-container').innerHTML = '';
-  document.getElementById('customers-container').innerHTML = '';
-  document.getElementById('plan-modal').dataset.editId = id;
-  document.querySelector('.modal-title') && (document.querySelector('#plan-modal .modal-title').innerHTML = '✏️ แก้ไขแผนงาน <button class="modal-close" onclick="closeModal()">✕ ปิด</button>');
-  pickupCount = 0; customerCount = 0;
-  (p.pickups||[]).forEach(pk => {
-    pickupCount++;
-    const div = document.createElement('div');
-    div.className = 'pickup-card'; div.id = 'pickup-'+pickupCount;
-    div.innerHTML = '<div class="pickup-header"><span class="pickup-num">จุดรับที่ '+pickupCount+'</span><button class="remove-btn" onclick="document.getElementById(this.closest('.pickup-card').id).remove()">ลบ</button></div><div class="input-group"><div class="input-label">โลเคชั่น</div><input class="input-field pickup-location" type="url" value="'+(pk.location||'')+'"></div><div class="input-group"><div class="input-label">📝 Note</div><textarea class="input-field pickup-note" rows="2" style="resize:none">'+(pk.note||'')+'</textarea></div><div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div><button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
-    document.getElementById('pickups-container').appendChild(div);
-    (pk.items||[]).forEach(it => {
-      const row = document.createElement('div'); row.className = 'product-row';
-      row.innerHTML = '<input class="input-field item-name" type="text" value="'+(it.name||'')+'"><input class="input-field qty-input item-qty" type="text" value="'+(it.qty||'')+'"><select class="src-select item-src"><option value="สาขาใหญ่"'+(it.src==='สาขาใหญ่'?' selected':'')+'>สาขาใหญ่</option><option value="ในสต้อค"'+(it.src==='ในสต้อค'?' selected':'')+'>ในสต้อค</option><option value="ระบุเอง"'+(it.src&&it.src!=='สาขาใหญ่'&&it.src!=='ในสต้อค'?' selected':'')+'>ระบุเอง</option></select><button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
-      div.querySelector('.items-list').appendChild(row);
-    });
-    if (!(pk.items||[]).length) addItemRow(div.querySelector('.add-row-btn'));
-  });
-  (p.customers||[]).forEach(cu => {
-    customerCount++;
-    const div = document.createElement('div');
-    div.className = 'customer-card'; div.id = 'cust-'+customerCount;
-    div.innerHTML = '<div class="pickup-header"><span class="pickup-num">ลูกค้าที่ '+customerCount+'</span><button class="remove-btn" onclick="document.getElementById(this.closest('.customer-card').id).remove()">ลบ</button></div><div class="input-row"><div><div class="input-label">ชื่อลูกค้า</div><input class="input-field cust-name" type="text" value="'+(cu.name||'')+'"></div><div><div class="input-label">เบอร์โทร</div><input class="input-field cust-tel" type="tel" value="'+(cu.tel||'')+'"></div></div><div class="input-group"><div class="input-label">โลเคชั่น</div><input class="input-field cust-location" type="url" value="'+(cu.location||'')+'"></div><div class="input-group"><div class="input-label">📝 Note</div><textarea class="input-field cust-note" rows="2" style="resize:none">'+(cu.note||'')+'</textarea></div><div class="input-label" style="margin-bottom:6px">รายการสินค้า</div><div class="items-list"></div><button class="add-row-btn" onclick="addItemRow(this)">+ เพิ่มรายการสินค้า</button>';
-    document.getElementById('customers-container').appendChild(div);
-    (cu.items||[]).forEach(it => {
-      const row = document.createElement('div'); row.className = 'product-row';
-      row.innerHTML = '<input class="input-field item-name" type="text" value="'+(it.name||'')+'"><input class="input-field qty-input item-qty" type="text" value="'+(it.qty||'')+'"><select class="src-select item-src"><option value="สาขาใหญ่"'+(it.src==='สาขาใหญ่'?' selected':'')+'>สาขาใหญ่</option><option value="ในสต้อค"'+(it.src==='ในสต้อค'?' selected':'')+'>ในสต้อค</option><option value="ระบุเอง"'+(it.src&&it.src!=='สาขาใหญ่'&&it.src!=='ในสต้อค'?' selected':'')+'>ระบุเอง</option></select><button class="remove-btn" onclick="this.parentElement.remove()">✕</button>';
-      div.querySelector('.items-list').appendChild(row);
-    });
-    if (!(cu.items||[]).length) addItemRow(div.querySelector('.add-row-btn'));
-  });
-  document.getElementById('plan-modal').classList.remove('hidden');
-};
-
-// ---- CLEANUP ----
-let _plansToDelete = [];
-window.showCleanupModal = function() {
-  _plansToDelete = [];
-  document.getElementById('cleanup-preview').innerHTML = '<span style="color:var(--text3)">กด "ดูตัวอย่างก่อนลบ" เพื่อดูรายการ</span>';
-  document.getElementById('cleanup-confirm-btn').style.display = 'none';
-  document.getElementById('cleanup-modal').classList.remove('hidden');
-};
-window.previewCleanup = function() {
-  const days = parseInt(document.getElementById('cleanup-days').value);
-  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - days);
-  const cutoffStr = cutoff.toISOString().split('T')[0];
-  _plansToDelete = plans.filter(p => p.date && p.date < cutoffStr);
-  const btn = document.getElementById('cleanup-confirm-btn');
-  if (!_plansToDelete.length) {
-    document.getElementById('cleanup-preview').innerHTML = '<span style="color:var(--green2)">✅ ไม่มีแผนงานที่เก่ากว่า '+days+' วัน</span>';
-    btn.style.display = 'none'; return;
-  }
-  let html = '<div style="color:var(--red);font-weight:600;margin-bottom:8px">⚠️ จะลบ '+_plansToDelete.length+' แผนงาน</div>';
-  _plansToDelete.forEach(p => { html += '<div style="padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">📅 '+formatDate(p.date)+' — '+(p.truckName||'รถ')+'</div>'; });
-  document.getElementById('cleanup-preview').innerHTML = html;
-  btn.style.display = 'block';
-  btn.textContent = '🗑 ยืนยันลบ '+_plansToDelete.length+' แผนงาน';
-};
-window.confirmCleanup = async function() {
-  if (!_plansToDelete.length || !confirm('ยืนยันลบ '+_plansToDelete.length+' แผนงาน?')) return;
-  for (const p of _plansToDelete) { await deleteDoc(doc(db,'plans',p.id)); }
-  document.getElementById('cleanup-modal').classList.add('hidden');
-  showToast('🗑 ลบแผนงานแล้ว');
-};
-
-// ---- IMAGE VIEWER ----
-let _viewerPhotos=[], _viewerIdx=0, _viewerTitle='';
-window.openImgViewer = function(photos, idx, title) {
-  _viewerPhotos=photos; _viewerIdx=idx; _viewerTitle=title||'รูปภาพ';
-  updateViewer();
-  const v=document.getElementById('img-viewer'); v.style.display='flex';
-};
-function updateViewer() {
-  document.getElementById('img-viewer-img').src=_viewerPhotos[_viewerIdx];
-  document.getElementById('img-viewer-title').textContent=_viewerTitle+' ('+(_viewerIdx+1)+'/'+_viewerPhotos.length+')';
-  document.getElementById('img-viewer-dots').innerHTML=_viewerPhotos.map((_,i)=>'<div class="img-viewer-dot'+(i===_viewerIdx?' active':'')+'"></div>').join('');
-}
-window.navPhoto=function(dir){_viewerIdx=(_viewerIdx+dir+_viewerPhotos.length)%_viewerPhotos.length;updateViewer();};
-window.closeImgViewer=function(){document.getElementById('img-viewer').style.display='none';};
-window.saveCurrentPhoto=function(){const a=document.createElement('a');a.href=_viewerPhotos[_viewerIdx];a.download='stkmetal-photo-'+Date.now()+'.jpg';a.click();showToast('💾 บันทึกรูปแล้ว');};
-
-window.openImgViewerFromPlan = function(planId, type, itemIdx, photoIdx) {
-  const p=plans.find(x=>x.id===planId); if(!p) return;
-  const item=type==='customer'?p.customers[itemIdx]:p.pickups[itemIdx]; if(!item) return;
-  const photos=item.photos||[]; if(!photos.length) return;
-  const title=type==='customer'?'รูปส่ง '+item.name:'รูปรับของจุดที่ '+(itemIdx+1);
-  document.getElementById('detail-modal').classList.add('hidden');
-  setTimeout(()=>openImgViewer(photos,photoIdx,title),50);
-};
-window._openDetailPhoto=function(pi){
-  document.getElementById('detail-modal').classList.add('hidden');
-  setTimeout(()=>openImgViewer(window._detailPhotos,pi,window._detailTitle),50);
-};
-
-// ---- MONITOR viewStepDetail ----
-window.viewStepDetail=function(planId,type,idx){
-  const p=plans.find(x=>x.id===planId); if(!p) return;
-  const item=type==='pickup'?p.pickups[idx]:p.customers[idx]; if(!item) return;
-  const label=type==='pickup'?'📦 รับของจุดที่ '+(idx+1):'🚚 ส่ง '+(item.name||'');
-  let statusBg,statusColor,statusText;
-  if(item.done){statusBg='var(--green-pale)';statusColor='var(--green2)';statusText='✅ เสร็จสิ้น '+(item.doneAt?new Date(item.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'');}
-  else if(item.problem){statusBg='var(--red-pale)';statusColor='var(--red)';statusText='⚠️ มีปัญหา '+(item.problemAt?new Date(item.problemAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'')}
-  else{statusBg='var(--bg3)';statusColor='var(--text3)';statusText='⏳ ยังไม่เสร็จ';}
-  let content='<div style="margin-bottom:12px"><span style="font-size:13px;padding:4px 10px;border-radius:20px;background:'+statusBg+';color:'+statusColor+'">'+statusText+'</span></div>';
-  if(item.problem) content+='<div style="padding:8px 12px;background:var(--red-pale);border-left:3px solid var(--red);border-radius:6px;font-size:13px;color:var(--red);margin-bottom:12px">⚠️ '+item.problem+(item.problemNote?' — '+item.problemNote:'')+'</div>';
-  if(item.location) content+='<a href="'+item.location+'" target="_blank" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--green2);font-size:13px;text-decoration:none;margin-bottom:12px">📍 เปิด Google Maps</a>';
-  if(item.tel) content+='<a href="tel:'+item.tel+'" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);font-size:13px;text-decoration:none;margin-bottom:12px">📞 '+item.tel+'</a>';
-  if(item.note) content+='<div style="font-size:13px;color:var(--amber);background:var(--amber-pale);padding:8px 12px;border-radius:8px;margin-bottom:12px">📝 '+item.note+'</div>';
-  if((item.items||[]).length){
-    content+='<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:6px">รายการสินค้า</div>';
-    item.items.forEach(it=>{content+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--text2)">'+it.name+'</span><span><span style="color:var(--amber);font-weight:600">'+it.qty+'</span>'+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+it.src+'</span>':'')+'</span></div>';});
-  }
-  const photos=item.photos||[];
-  if(photos.length){
-    window._detailPhotos=photos; window._detailTitle=label;
-    const bc=item.problem?'#ef5350':'#2a5080';
-    content+='<div style="font-size:11px;font-weight:600;color:'+(item.problem?'#ef5350':'#4a7fa8')+';margin:14px 0 8px">'+(item.problem?'📷 รูปหลักฐาน':'📷 รูปภาพ')+' ('+photos.length+' รูป)</div>';
-    content+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">';
-    photos.forEach((ph,pi)=>{content+='<img src="'+ph+'" data-pi="'+pi+'" style="width:100%;border-radius:8px;object-fit:cover;aspect-ratio:1;cursor:pointer;border:2px solid '+bc+'" onclick="window._openDetailPhoto('+pi+')">';});
-    content+='</div>';
-  }else{content+='<div style="text-align:center;padding:20px;color:var(--text3)">📷 ยังไม่มีรูปภาพ</div>';}
-  document.getElementById('detail-modal-title').textContent=label;
-  document.getElementById('detail-modal-content').innerHTML=content;
-  document.getElementById('detail-modal').classList.remove('hidden');
-};
-
-// ---- EXPORT PDF ----
-window.exportPDF=function(){
-  if(!plans.length){showToast('⚠️ ยังไม่มีแผนงาน');return;}
-  const months=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const now=new Date();
-  const printDate=now.getDate()+' '+months[now.getMonth()+1]+' '+(now.getFullYear()+543)+' เวลา '+now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-  let html='<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;font-size:13px;padding:20px}.plan{border:1px solid #ccc;border-radius:8px;margin-bottom:16px;overflow:hidden;page-break-inside:avoid}.plan-head{background:#1e311e;color:white;padding:10px 14px;display:flex;justify-content:space-between}.plan-body{padding:12px 14px}.item{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.tag-done{color:#4caf50;font-weight:600}.tag-wait{color:#999}.tag-problem{color:#e74c3c;font-weight:600}.summary{background:#f9f9f9;border-radius:6px;padding:10px;margin-bottom:16px;display:flex;gap:20px}.sum-item{text-align:center}.sum-num{font-size:22px;font-weight:700}</style></head><body>';
-  html+='<h1>🔩 STK Metal — รายงานแผนงาน</h1><div style="font-size:12px;color:#666;margin-bottom:20px">พิมพ์เมื่อ '+printDate+' • ทั้งหมด '+plans.length+' แผนงาน</div>';
-  const totalAll=plans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s,0);
-  const doneAll=plans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s,0);
-  html+='<div class="summary"><div class="sum-item"><div class="sum-num">'+plans.length+'</div><div>แผนงาน</div></div><div class="sum-item"><div class="sum-num" style="color:#4caf50">'+doneAll+'</div><div>เสร็จ</div></div><div class="sum-item"><div class="sum-num" style="color:#ffb300">'+(totalAll-doneAll)+'</div><div>รอ</div></div></div>';
-  plans.forEach((p,i)=>{
-    const pickups=p.pickups||[]; const customers=p.customers||[];
-    const total=pickups.length+customers.length;
-    const done=pickups.filter(pk=>pk.done).length+customers.filter(c=>c.done).length;
-    html+='<div class="plan"><div class="plan-head"><span>'+(i+1)+'. '+(p.truckName||'รถ')+' — '+(p.driver||'-')+' | '+formatDate(p.date)+'</span><span>'+(done===total&&total>0?'✅ เสร็จ':done>0?'🔄 กำลังทำ':'⏳ รอ')+' '+done+'/'+total+'</span></div><div class="plan-body">';
-    if(pickups.length){
-      html+='<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;margin:8px 0 4px">📦 จุดรับของ</div>';
-      pickups.forEach((pk,pi)=>{
-        const st=pk.done?'tag-done':pk.problem?'tag-problem':'tag-wait';
-        const stTxt=pk.done?'✅ รับแล้ว':pk.problem?'⚠️ '+pk.problem:'⏳ รอรับ';
-        html+='<div class="item"><span>จุดที่ '+(pi+1)+'</span><span class="'+st+'">'+stTxt+'</span></div>';
-        (pk.items||[]).forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
-        if(pk.problem&&pk.problemNote) html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+pk.problemNote+'</div>';
-        const pkPhotos=(pk.photos||[]).slice(0,6);
-        if(pkPhotos.length){html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px 0 8px 12px">';pkPhotos.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">';});html+='</div>';}
-      });
-    }
-    if(customers.length){
-      html+='<div style="font-size:11px;font-weight:600;color:#666;text-transform:uppercase;margin:8px 0 4px">🚚 ส่งลูกค้า</div>';
-      customers.forEach((cu,ci)=>{
-        const st=cu.done?'tag-done':cu.problem?'tag-problem':'tag-wait';
-        const stTxt=cu.done?'✅ ส่งแล้ว':cu.problem?'⚠️ '+cu.problem:'⏳ รอส่ง';
-        html+='<div class="item"><span>'+(ci+1)+'. '+cu.name+(cu.tel?' 📞'+cu.tel:'')+'</span><span class="'+st+'">'+stTxt+'</span></div>';
-        (cu.items||[]).forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
-        if(cu.problem&&cu.problemNote) html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+cu.problemNote+'</div>';
-        const cuPhotos=(cu.photos||[]).slice(0,6);
-        if(cuPhotos.length){html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:6px 0 8px 12px">';cuPhotos.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">';});html+='</div>';}
-      });
-    }
-    html+='</div></div>';
-  });
-  html+='</body></html>';
-  const w=window.open('','_blank'); w.document.write(html); w.document.close();
-  const imgs=w.document.querySelectorAll('img');
-  if(!imgs.length){w.focus();w.print();return;}
-  let loaded=0; const tryPrint=()=>{loaded++;if(loaded>=imgs.length){w.focus();w.print();}};
-  imgs.forEach(img=>{if(img.complete)tryPrint();else{img.onload=tryPrint;img.onerror=tryPrint;}});
-};
-
-// ---- DATE SELECTORS ----
-window.selectPlansDate=function(d){window._plansDate=d;render();};
-window.changePlansDate=function(dir){const cur=window._plansDate||new Date().toISOString().split('T')[0];const d=new Date(cur);d.setDate(d.getDate()+dir);window._plansDate=d.toISOString().split('T')[0];render();};
-window.selectMonitorDate=function(d){window._monitorDate=d;render();};
-window.changeMonitorDate=function(dir){const cur=window._monitorDate||new Date().toISOString().split('T')[0];const d=new Date(cur);d.setDate(d.getDate()+dir);window._monitorDate=d.toISOString().split('T')[0];render();};
-
 
 // Start
 document.getElementById('main').innerHTML = '<div class="loading"><div class="spinner"></div>กำลังโหลดข้อมูล...</div>';

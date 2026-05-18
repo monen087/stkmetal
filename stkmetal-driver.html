@@ -251,6 +251,20 @@ function translateItem(name) {
   return result;
 }
 
+function translateSrc(src) {
+  if (!src) return '';
+  if (driverLang === 'mm') {
+    if (src === 'สาขาใหญ่') return 'ဌာနချုပ်';
+    if (src === 'ในสต้อค') return 'လှောင်ကုန်';
+  }
+  // ถ้าเป็นไทย ให้แสดงค่าไทยเสมอ
+  if (driverLang === 'th') {
+    if (src === 'ဌာနချုပ်') return 'สาขาใหญ่';
+    if (src === 'လှောင်ကုန်') return 'ในสต้อค';
+  }
+  return src;
+}
+
 // ---- Init ----
 if (!planId) {
   startAllListener();
@@ -384,7 +398,7 @@ function render() {
         if (pk.note) html += '<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:10px">📝 '+pk.note+'</div>';
         html += '<div class="sec-title">รายการสินค้า</div>';
         (pk.items||[]).forEach(it => {
-          html += '<div class="item-row"><span class="item-name">'+translateItem(it.name)+(driverLang==="mm"&&translateItem(it.name)!==it.name?'<br><span style="font-size:10px;opacity:0.6">'+it.name+'</span>':'')+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+(it.src==="สาขาใหญ่"?"ဌာနချုပ်":it.src==="ในสต้อค"?"လှောင်ကုန်":it.src)+'</span>':'')+'</span></div>';
+          html += '<div class="item-row"><span class="item-name">'+translateItem(it.name)+(driverLang==="mm"&&translateItem(it.name)!==it.name?'<br><span style="font-size:10px;opacity:0.6">'+it.name+'</span>':'')+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+translateSrc(it.src)+'</span>':'')+'</span></div>';
         });
         html += '<div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>';
         getPickupChecks().forEach((ch,ci) => {
@@ -439,7 +453,7 @@ function render() {
         if (cu.note) html += '<div style="font-size:12px;color:var(--amber);background:var(--amber-pale);padding:6px 10px;border-radius:6px;margin-bottom:10px">📝 '+cu.note+'</div>';
         html += '<div class="sec-title">รายการสินค้า</div>';
         (cu.items||[]).forEach(it => {
-          html += '<div class="item-row"><span class="item-name">'+translateItem(it.name)+(driverLang==="mm"&&translateItem(it.name)!==it.name?'<br><span style="font-size:10px;opacity:0.6">'+it.name+'</span>':'')+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+(it.src==="สาขาใหญ่"?"ဌာနချုပ်":it.src==="ในสต้อค"?"လှောင်ကုန်":it.src)+'</span>':'')+'</span></div>';
+          html += '<div class="item-row"><span class="item-name">'+translateItem(it.name)+(driverLang==="mm"&&translateItem(it.name)!==it.name?'<br><span style="font-size:10px;opacity:0.6">'+it.name+'</span>':'')+'</span><span class="item-qty">= '+it.qty+(it.src?' <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 5px;border-radius:8px">'+translateSrc(it.src)+'</span>':'')+'</span></div>';
         });
         html += '<div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>';
         getDeliverChecks().forEach((ch,ci) => {

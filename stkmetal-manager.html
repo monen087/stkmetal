@@ -367,8 +367,8 @@ function renderPlans() {
   const todayBtn = '<button onclick="selectPlansDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(today===_plansDate?'var(--green2)':'var(--bg3)')+';color:'+(today===_plansDate?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button>';
 
   let html = '<div class="overview-card">';
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div>'+todayBtn+'</div>';
-  html += '<div class="date-nav"><button class="date-nav-btn" onclick="changePlansDate(-1)">‹</button><div class="date-nav-label">'+formatDate(_plansDate)+'</div><button class="date-nav-btn" onclick="changePlansDate(1)">›</button><input type="date" value="'+_plansDate+'" onchange="selectPlansDate(this.value)"></div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><label for="plans-date-input" style="font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px">📅 เลือกวันที่ <span style="font-size:11px;color:var(--text3)">(กดเพื่อเปิดปฏิทิน)</span><input type="date" id="plans-date-input" value="'+_plansDate+'" onchange="selectPlansDate(this.value)" style="position:absolute;opacity:0;width:1px;height:1px"></label>'+todayBtn+'</div>';
+  html += '<div class="date-nav"><button class="date-nav-btn" onclick="changePlansDate(-1)">‹</button><div class="date-nav-label" onclick="document.getElementById(\'plans-date-input\').showPicker&&document.getElementById(\'plans-date-input\').showPicker()" style="cursor:pointer">'+formatDate(_plansDate)+'</div><button class="date-nav-btn" onclick="changePlansDate(1)">›</button></div>';
   html += '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div>';
   html += '<div class="date-chips">'+chips+'</div>';
   html += '</div>';
@@ -462,8 +462,8 @@ function renderMonitor() {
   const todayBtn = '<button onclick="selectMonitorDate(\''+today+'\')" style="font-size:11px;padding:4px 10px;border-radius:8px;border:1px solid var(--border2);background:'+(today===_monitorDate?'var(--green2)':'var(--bg3)')+';color:'+(today===_monitorDate?'#fff':'var(--text3)')+';cursor:pointer;font-family:inherit">วันนี้</button>';
 
   let html = '<div class="overview-card">';
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:13px;font-weight:600;color:var(--text2)">📅 เลือกวันที่</div>'+todayBtn+'</div>';
-  html += '<div class="date-nav"><button class="date-nav-btn" onclick="changeMonitorDate(-1)">‹</button><div class="date-nav-label">'+formatDate(_monitorDate)+'</div><button class="date-nav-btn" onclick="changeMonitorDate(1)">›</button><input type="date" value="'+_monitorDate+'" onchange="selectMonitorDate(this.value)"></div>';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><label for="monitor-date-input" style="font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:6px">📅 เลือกวันที่ <span style="font-size:11px;color:var(--text3)">(กดเพื่อเปิดปฏิทิน)</span><input type="date" id="monitor-date-input" value="'+_monitorDate+'" onchange="selectMonitorDate(this.value)" style="position:absolute;opacity:0;width:1px;height:1px"></label>'+todayBtn+'</div>';
+  html += '<div class="date-nav"><button class="date-nav-btn" onclick="changeMonitorDate(-1)">‹</button><div class="date-nav-label" onclick="document.getElementById(\'monitor-date-input\').showPicker&&document.getElementById(\'monitor-date-input\').showPicker()" style="cursor:pointer">'+formatDate(_monitorDate)+'</div><button class="date-nav-btn" onclick="changeMonitorDate(1)">›</button></div>';
   html += '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">📌 วันที่มีแผนงาน</div>';
   html += '<div class="date-chips">'+chips+'</div>';
   html += '</div>';

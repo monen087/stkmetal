@@ -124,6 +124,17 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 
 .prog-mini { height: 4px; background: var(--bg3); border-radius: 2px; margin: 8px 0; overflow: hidden; }
 .prog-mini-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.25s; }
+
+/* Sub-option */
+.sub-option { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); margin: 4px 0 4px 20px; cursor: pointer; }
+.sub-option.checked { background: var(--green-pale); border-color: var(--green-soft); }
+.sub-option-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border2); background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; }
+.sub-option.checked .sub-option-dot { background: var(--green); border-color: var(--green); color: white; }
+
+/* Signature Modal */
+.sig-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
+.sig-modal { background: var(--bg2); border-radius: 14px 14px 0 0; width: 100%; max-width: 480px; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+.sig-canvas { width: 100%; height: 200px; background: #fff; border-radius: 8px; cursor: crosshair; touch-action: none; display: block; }
 </style>
 </head>
 <body>
@@ -160,7 +171,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, updateDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
@@ -178,13 +189,14 @@ const planId = new URLSearchParams(location.search).get('plan');
 let plan = null;
 // local check state
 let localChecks = {};
+let localSubChecks = {};
 // open state
 let openSteps = {};
 
 const CHECKS_TH = ['นับจำนวนสินค้าครบตามรายการ','ตรวจสภาพผิว ไม่มีรอยขีดข่วน/บุบ','ห่อกันรอยครบทุกชิ้น','ถ่ายรูปสินค้าก่อนขึ้นรถ'];
-const CHECKS_DELIVER_TH = ['ตรวจนับสินค้าก่อนยกลง','ผิวสินค้าไม่มีรอยใหม่','ถ่ายรูปสินค้าขณะส่ง','ลูกค้าตรวจรับและเซ็นยืนยัน'];
+const CHECKS_DELIVER_TH = ['สินค้าครบตามจำนวน','สินค้าสมบูรณ์ไม่มีรอย/คดงอ','ถ่ายรูปตอนลงสินค้า','ลงสินค้า','เอกสารให้ลูกค้าเซ็นเรียบร้อย'];
 const CHECKS_MM = ['ကုန်ပစ္စည်​အရေအတွက်​စစ္ဆေးပြီး','မျက်နႂပᄃင်​စစ္ဆေးပြီး မမြင်ကြောင်း','ထုပ်ပိုးမြုပြီးစီး','ကားပေါ်​တင်​မတင်မြီ​ဓာတ်ပုံရိုက်ပြီး'];
-const CHECKS_DELIVER_MM = ['ချပေးမတင်မြီ​ကုန်စစ္ဆေးပြီး','မျက်နႂပᄃင်​သစ်ကြောင်းမရှိ','ပိ့ဆောင်စေဓာတ်ပုံရိုက်ပြီး','ဖောက်သည်​စစ္ဆေး​လက်မှတ်ထိုးပြီး'];
+const CHECKS_DELIVER_MM = ['ကုန်ပစ္စည်​အရေအတွက်​ပြည့ပြီး','ကုန်ပစ္စည်​ကောင်းမွန်​မမြင်ကြောင်း','ပိ့ဆောင်​ကုန်ပစ္စည်​ချပေးမတင်​ဓာတ်ပုံ','ကုန်ပစ္စည်​ချပေးဆောင်','စာရင်း​ဖောက်သည်​လက်မှတ်ထိုး​ပြီးပြီး'];
 
 // Dictionary แปลชื่อสินค้าเหล็ก ไทย → พม่า
 const ITEM_DICT = [
@@ -237,9 +249,96 @@ function getSrc(s) { return s==='สาขาใหญ่'?getL('srcMain'):s==='
 
 
 if (!planId) {
-  document.getElementById('main').innerHTML = `<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">ไม่พบแผนงาน</div><div class="empty-sub">กรุณาเปิดลิงก์จาก Line ที่ได้รับ</div></div>`;
+  // ไม่มี planId → แสดงงานทั้งหมดที่ยังไม่เสร็จวันนี้
+  startAllPlansListener();
 } else {
   startListener();
+}
+
+// ---- โหมดแสดงงานทั้งหมด (ไม่มี planId) ----
+let allPlans = [];
+let allUnsubscribe = null;
+
+function startAllPlansListener() {
+  document.getElementById('header-title').textContent = '🔩 STK Metal — งานของฉัน';
+  document.getElementById('header-sub').textContent = 'แสดงงานที่ยังไม่เสร็จทั้งหมด';
+  document.getElementById('main').innerHTML = '<div class="loading"><div class="spinner"></div>กำลังโหลด...</div>';
+
+  const today = new Date().toISOString().split('T')[0];
+  const q = query(collection(db, 'plans'), orderBy('date', 'desc'));
+  allUnsubscribe = onSnapshot(q, snap => {
+    allPlans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAllPlans();
+  }, err => {
+    document.getElementById('main').innerHTML = '<div class="loading">❌ โหลดไม่ได้: ' + err.message + '</div>';
+  });
+}
+
+function renderAllPlans() {
+  const today = new Date().toISOString().split('T')[0];
+  // กรองเฉพาะแผนงานที่ยังไม่เสร็จ (วันนี้และอดีตที่ยังค้าง)
+  const pendingPlans = allPlans.filter(p => {
+    if (!p.date) return false;
+    const totalSteps = (p.pickups||[]).length + (p.customers||[]).length;
+    const doneSteps = (p.pickups||[]).filter(pk=>pk.done).length + (p.customers||[]).filter(c=>c.done).length;
+    return doneSteps < totalSteps && p.date <= today;
+  });
+
+  if (!pendingPlans.length) {
+    document.getElementById('main').innerHTML = '<div class="empty"><div class="empty-icon">🎉</div><div class="empty-text">ไม่มีงานค้างแล้ว!</div><div class="empty-sub">ทุกแผนงานเสร็จสิ้นแล้ว</div></div>';
+    return;
+  }
+
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  function fmtDate(d) {
+    if (!d) return '-';
+    const [y,m,day] = d.split('-');
+    return parseInt(day)+' '+months[parseInt(m)]+' '+(parseInt(y)+543);
+  }
+
+  let html = '<div style="font-size:12px;color:var(--text3);padding:10px 0 6px;font-weight:600">📋 งานที่ยังไม่เสร็จ ('+pendingPlans.length+' แผนงาน)</div>';
+
+  pendingPlans.forEach(p => {
+    const totalSteps = (p.pickups||[]).length + (p.customers||[]).length;
+    const doneSteps = (p.pickups||[]).filter(pk=>pk.done).length + (p.customers||[]).filter(c=>c.done).length;
+    const pct = totalSteps ? Math.round(doneSteps/totalSteps*100) : 0;
+    const isToday = p.date === today;
+
+    html += '<div style="background:var(--bg2);border:1px solid '+(isToday?'var(--green2)':'var(--border)')+';border-radius:14px;margin-bottom:10px;overflow:hidden">';
+    html += '<div style="padding:12px 14px;border-bottom:1px solid var(--border)">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+    html += '<div style="font-size:14px;font-weight:700">🚛 '+(p.truckName||'รถ')+' — '+(p.driver||'-')+'</div>';
+    html += '<span style="font-size:11px;padding:3px 8px;border-radius:20px;background:'+(isToday?'var(--green-pale)':'var(--amber-pale)')+';color:'+(isToday?'var(--green2)':'var(--amber)')+'">'+( isToday?'📅 วันนี้':fmtDate(p.date))+'</span>';
+    html += '</div>';
+    html += '<div style="font-size:12px;color:var(--text3);margin-bottom:8px">'+fmtDate(p.date)+' • '+doneSteps+'/'+totalSteps+' เสร็จ</div>';
+    html += '<div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--green2);border-radius:3px;width:'+pct+'%"></div></div>';
+    html += '</div>';
+
+    // แสดง steps ที่ยังไม่เสร็จ
+    const pendingPickups = (p.pickups||[]).map((pk,i)=>({...pk,type:'pickup',idx:i,label:'รับของจุดที่ '+(i+1)})).filter(s=>!s.done);
+    const pendingCustomers = (p.customers||[]).map((c,i)=>({...c,type:'customer',idx:i,label:'ส่ง '+c.name})).filter(s=>!s.done);
+    const pendingSteps = [...pendingPickups, ...pendingCustomers];
+
+    html += '<div style="padding:10px 14px">';
+    pendingSteps.slice(0, 5).forEach(s => {
+      const isProblem = !!s.problem;
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">';
+      html += '<div style="width:8px;height:8px;border-radius:50%;background:'+(isProblem?'var(--red)':'var(--text3)')+';flex-shrink:0"></div>';
+      html += '<div style="flex:1;font-size:13px;color:var(--text2)">'+s.label+'</div>';
+      if (isProblem) html += '<span style="font-size:11px;color:var(--red)">⚠️ ปัญหา</span>';
+      html += '</div>';
+    });
+    if (pendingSteps.length > 5) {
+      html += '<div style="font-size:12px;color:var(--text3);padding:6px 0;text-align:center">และอีก '+(pendingSteps.length-5)+' รายการ...</div>';
+    }
+
+    // ปุ่มเปิด checklist
+    const driverUrl = 'https://monen087.github.io/stkmetal/stkmetal-driver.html?plan='+p.id;
+    html += '<a href="'+driverUrl+'" style="display:block;margin-top:10px;padding:12px;background:var(--green2);color:#fff;border-radius:var(--radius-sm);text-align:center;text-decoration:none;font-size:14px;font-weight:700">✅ เปิด Checklist เพื่อทำงาน</a>';
+    html += '</div></div>';
+  });
+
+  document.getElementById('main').innerHTML = html;
 }
 
 function startListener() {
@@ -357,9 +456,9 @@ function render() {
           <div class="step-icon ${c.done?'icon-done':'icon-deliver'}">${c.done?'✅':'🚚'}</div>
           <div class="step-info">
             <div class="step-title">${c.name}</div>
-            <div class="step-sub">${(c.items||[]).length} รายการ • ${checkedCount}/${getDeliverChecks().length} เช็ค${c.doneAt?' • ✅ '+new Date(c.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}</div>
+            <div class="step-sub">${(c.items||[]).length} รายการ • ${c.problem?'⚠️ รอแก้ไข':checkedCount+'/'+getDeliverChecks().length+' เช็ค'}${c.doneAt?' • ✅ '+new Date(c.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''}</div>
           </div>
-          <span class="step-badge ${c.done?'badge-done':checkedCount>0?'badge-active':'badge-wait'}">${c.done?'ส่งแล้ว':checkedCount>0?'กำลังส่ง':'รอ'}</span>
+          <span class="step-badge ${c.done?'badge-done':c.problem?'badge-wait':checkedCount>0?'badge-active':'badge-wait'}" style="${c.problem?'background:var(--red-pale);color:var(--red);':''}">${c.done?'ส่งแล้ว':c.problem?'รอแก้ไข':checkedCount>0?'กำลังส่ง':'รอ'}</span>
           <span style="color:var(--text3);margin-left:6px;font-size:14px">${isOpen?'▴':'▾'}</span>
         </div>
         <div class="step-body${isOpen?' open':''}">
@@ -369,11 +468,26 @@ function render() {
             <div class="sec-title">รายการสินค้าที่ต้องส่ง</div>
             ${(c.items||[]).map(it=>`<div class="item-row"><span class="item-name">${getItemName(it.name)}</span><span class="item-qty">= ${it.qty}${it.src?` <span style="font-size:11px;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:10px">${getSrc(it.src)}</span>`:""}</span></div>`).join('')}
             <div class="sec-title" style="margin-top:12px">รายการตรวจสอบ</div>
-            ${getDeliverChecks().map((ch,ci)=>`
-              <div class="check-item${checks[ci]?' checked':''}" onclick="toggleCheck('${key}',${ci},${getDeliverChecks().length})">
-                <div class="checkbox">${checks[ci]?'✓':''}</div>
-                <div class="check-text">${ch}</div>
-              </div>`).join('')}
+            ${getDeliverChecks().map((ch,ci)=>{
+              const subKey = key+'-sub';
+              const subChecks = localSubChecks[subKey]||{person:false,equipment:false};
+              let html = '<div class="check-item'+(checks[ci]?' checked':'')+'" onclick="toggleDeliverCheck(\''+key+'\','+ci+')">'
+                +'<div class="checkbox">'+(checks[ci]?'✓':'')+'</div>'
+                +'<div class="check-text">'+ch+'</div>'
+                +'</div>';
+              // ข้อ 3 (idx 3) = "ลงสินค้า" มี sub-option
+              if (ci===3 && checks[ci]) {
+                html += '<div class="sub-option'+(subChecks.person?' checked':'')+'" onclick="toggleSubCheck(\''+key+'\',\'person\')">'
+                  +'<div class="sub-option-dot">'+(subChecks.person?'✓':'')+'</div>'
+                  +'<div style="font-size:13px">👷 ใช้คนยกลง</div>'
+                  +'</div>';
+                html += '<div class="sub-option'+(subChecks.equipment?' checked':'')+'" onclick="toggleSubCheck(\''+key+'\',\'equipment\')">'
+                  +'<div class="sub-option-dot">'+(subChecks.equipment?'✓':'')+'</div>'
+                  +'<div style="font-size:13px">🏗️ ใช้อุปกรณ์ในการลง</div>'
+                  +'</div>';
+              }
+              return html;
+            }).join('')}
             <div class="prog-mini"><div class="prog-mini-fill" style="width:${Math.round(checkedCount/getDeliverChecks().length*100)}%"></div></div>
 
             <div class="photo-section">
@@ -386,8 +500,8 @@ function render() {
             </div>
 
             <button class="confirm-btn ${c.done?'btn-done':c.problem?'btn-has-problem':allChecked?'btn-ready':'btn-inactive'}"
-              onclick="${c.done||c.problem||!allChecked?'':(`confirmDelivery(${i})`)}">
-              ${c.done?'✅ ส่งสำเร็จแล้ว':c.problem?'⚠️ แจ้งปัญหาแล้ว':allChecked?'✅ ยืนยันส่งสินค้าเสร็จสิ้น':'ยังไม่ครบทุกรายการ'}
+              onclick="${c.done||c.problem||!allChecked?'':(`showSignatureModal(${i})`)}">
+              ${c.done?'✅ ส่งสำเร็จแล้ว':c.problem?'⚠️ แจ้งปัญหาแล้ว':allChecked?'✅ ลายเซ็นลูกค้า + ยืนยันส่ง':'ยังไม่ครบทุกรายการ'}
             </button>
             ${c.done?`<button class="btn-problem" style="margin-top:6px;background:transparent;color:var(--text3);border-color:var(--border2)" onclick="undoConfirm('customer',${i})">↩️ ยกเลิกการยืนยัน</button>`:''}
             ${!c.done&&!c.problem?`<button class="btn-problem" onclick="showProblemModal('customer',${i})">⚠️ แจ้งปัญหา / ส่งไม่สำเร็จ</button>`:''}
@@ -569,6 +683,123 @@ window.undoConfirm = async function(type, idx) {
   } catch(e) { showToast('❌ ยกเลิกไม่สำเร็จ'); }
 };
 
+
+// ---- DELIVER CHECK พร้อม sub-option ----
+window.toggleDeliverCheck = function(key, ci) {
+  const total = getDeliverChecks().length;
+  if (!localChecks[key]) localChecks[key] = Array(total).fill(false);
+  localChecks[key][ci] = !localChecks[key][ci];
+  // ถ้าข้อ 3 (ลงสินค้า) ถูก uncheck → reset sub-option
+  if (ci === 3 && !localChecks[key][ci]) {
+    const subKey = key + '-sub';
+    localSubChecks[subKey] = { person: false, equipment: false };
+  }
+  render();
+};
+
+window.toggleSubCheck = function(key, type) {
+  const subKey = key + '-sub';
+  if (!localSubChecks[subKey]) localSubChecks[subKey] = { person: false, equipment: false };
+  // radio-like: เลือกได้แค่อันเดียว
+  localSubChecks[subKey].person = type === 'person';
+  localSubChecks[subKey].equipment = type === 'equipment';
+  render();
+};
+
+// ---- SIGNATURE MODAL ----
+let _sigCustomerIdx = -1;
+let _sigCanvas = null;
+let _sigCtx = null;
+let _sigDrawing = false;
+let _sigLastX = 0;
+let _sigLastY = 0;
+let _sigHasDrawn = false;
+
+window.showSignatureModal = function(idx) {
+  _sigCustomerIdx = idx;
+  _sigHasDrawn = false;
+  document.getElementById('sig-modal').style.display = 'flex';
+  setTimeout(initSignatureCanvas, 100);
+};
+
+function initSignatureCanvas() {
+  _sigCanvas = document.getElementById('sig-canvas');
+  if (!_sigCanvas) return;
+  // ตั้งขนาด canvas ให้ตรงกับ display size
+  const rect = _sigCanvas.getBoundingClientRect();
+  _sigCanvas.width = rect.width * window.devicePixelRatio || rect.width;
+  _sigCanvas.height = rect.height * window.devicePixelRatio || rect.height;
+  _sigCtx = _sigCanvas.getContext('2d');
+  _sigCtx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  _sigCtx.fillStyle = '#fff';
+  _sigCtx.fillRect(0, 0, rect.width, rect.height);
+  _sigCtx.strokeStyle = '#1a1a1a';
+  _sigCtx.lineWidth = 2.5;
+  _sigCtx.lineCap = 'round';
+  _sigCtx.lineJoin = 'round';
+
+  // Events สำหรับ mouse
+  _sigCanvas.onmousedown = e => { _sigDrawing = true; const pos = getCanvasPos(e); _sigLastX = pos.x; _sigLastY = pos.y; };
+  _sigCanvas.onmousemove = e => { if (!_sigDrawing) return; draw(getCanvasPos(e)); };
+  _sigCanvas.onmouseup = () => { _sigDrawing = false; };
+  _sigCanvas.onmouseleave = () => { _sigDrawing = false; };
+
+  // Events สำหรับ touch (มือถือ)
+  _sigCanvas.ontouchstart = e => { e.preventDefault(); _sigDrawing = true; const pos = getCanvasPos(e.touches[0]); _sigLastX = pos.x; _sigLastY = pos.y; };
+  _sigCanvas.ontouchmove = e => { e.preventDefault(); if (!_sigDrawing) return; draw(getCanvasPos(e.touches[0])); };
+  _sigCanvas.ontouchend = () => { _sigDrawing = false; };
+}
+
+function getCanvasPos(e) {
+  const rect = _sigCanvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+
+function draw(pos) {
+  _sigHasDrawn = true;
+  _sigCtx.beginPath();
+  _sigCtx.moveTo(_sigLastX, _sigLastY);
+  _sigCtx.lineTo(pos.x, pos.y);
+  _sigCtx.stroke();
+  _sigLastX = pos.x;
+  _sigLastY = pos.y;
+}
+
+window.clearSignature = function() {
+  if (!_sigCtx || !_sigCanvas) return;
+  const rect = _sigCanvas.getBoundingClientRect();
+  _sigCtx.fillStyle = '#fff';
+  _sigCtx.fillRect(0, 0, rect.width, rect.height);
+  _sigHasDrawn = false;
+};
+
+window.cancelSignature = function() {
+  document.getElementById('sig-modal').style.display = 'none';
+  _sigCustomerIdx = -1;
+};
+
+window.confirmSignature = async function() {
+  if (!_sigHasDrawn) {
+    showToast('⚠️ กรุณาให้ลูกค้าเซ็นชื่อก่อน');
+    return;
+  }
+  // บันทึก signature เป็น base64
+  const sigData = _sigCanvas.toDataURL('image/png');
+  document.getElementById('sig-modal').style.display = 'none';
+
+  // บันทึก signature รูปเข้า photos ของ customer และ confirm delivery
+  showToast('⏳ กำลังบันทึกลายเซ็น...');
+  try {
+    const idx = _sigCustomerIdx;
+    // เพิ่ม signature เป็นรูปแรก
+    await savePhoto(idx, 'customer', sigData);
+    // จากนั้น confirm delivery
+    await confirmDelivery(idx);
+  } catch(e) {
+    showToast('❌ บันทึกไม่สำเร็จ: ' + e.message);
+  }
+};
+
 window.confirmPickup = async function(idx) {
   const pickups = [...plan.pickups];
   pickups[idx] = {...pickups[idx], done:true, doneAt: Date.now()};
@@ -600,5 +831,20 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+
+<!-- Signature Modal -->
+<div id="sig-modal" class="sig-overlay" style="display:none">
+  <div class="sig-modal">
+    <div style="font-size:16px;font-weight:700;margin-bottom:4px">✍️ ลายเซ็นลูกค้า</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:12px">กรุณาให้ลูกค้าเซ็นชื่อในกล่องด้านล่าง</div>
+    <canvas id="sig-canvas" class="sig-canvas" width="800" height="200"></canvas>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="clearSignature()" style="flex:1;padding:11px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer">🗑 ล้างใหม่</button>
+      <button onclick="cancelSignature()" style="flex:1;padding:11px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer">✕ ยกเลิก</button>
+      <button onclick="confirmSignature()" style="flex:2;padding:11px;background:var(--green2);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">✅ ยืนยันส่งสินค้า</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

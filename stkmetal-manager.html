@@ -184,7 +184,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
       </div>
     </div>
     <div class="header-actions">
-      <button class="hbtn" onclick="exportPDF()">📄 PDF</button>
+      <button class="hbtn" onclick="showPDFModal()">📄 PDF</button>
       <button class="hbtn" style="color:var(--red)" onclick="showCleanupModal()">🗑 ลบเก่า</button>
       <button class="hbtn" onclick="window.open('stkmetal-driver.html','_blank')">👤 คนขับ</button>
     </div>
@@ -271,7 +271,17 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
   </div>
 </div>
 
-<!-- Photo Modal -->
+<!-- PDF Date Modal -->
+<div class="modal-overlay hidden" id="pdf-modal">
+  <div class="modal">
+    <div class="modal-title">📄 เลือกวันที่สำหรับ PDF <button class="modal-close" onclick="document.getElementById('pdf-modal').classList.add('hidden')">✕ ปิด</button></div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">เลือกวันที่ที่ต้องการพิมพ์รายงาน</div>
+    <div id="pdf-date-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <button onclick="exportPDFSelected()" style="width:100%;padding:13px;background:var(--green2);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer">📄 พิมพ์ PDF</button>
+  </div>
+</div>
+
+
 <div class="modal-overlay hidden" id="photo-modal">
   <div class="modal">
     <div class="modal-title" id="photo-modal-title">รูปภาพ <button class="modal-close" onclick="document.getElementById('photo-modal').classList.add('hidden')">✕ ปิด</button></div>
@@ -826,19 +836,42 @@ window.savePlan = async () => {
 };
 
 // ---- EXPORT PDF ----
-window.exportPDF = () => {
+window.showPDFModal = () => {
+  const allDates = [...new Set(plans.map(p => p.date).filter(Boolean))].sort().reverse();
+  if (!allDates.length) { showToast('⚠️ ยังไม่มีแผนงาน'); return; }
+  const list = document.getElementById('pdf-date-list');
+  list.innerHTML = allDates.map(d => `
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);cursor:pointer">
+      <input type="radio" name="pdf-date" value="${d}" style="width:18px;height:18px;accent-color:var(--green2)" ${d === allDates[0] ? 'checked' : ''}>
+      <span style="font-size:14px">${formatDate(d)}</span>
+      <span style="font-size:12px;color:var(--text3);margin-left:auto">${plans.filter(p=>p.date===d).length} แผนงาน</span>
+    </label>`).join('');
+  document.getElementById('pdf-modal').classList.remove('hidden');
+};
+
+window.exportPDFSelected = () => {
+  const selected = document.querySelector('input[name="pdf-date"]:checked');
+  if (!selected) { showToast('⚠️ กรุณาเลือกวันที่'); return; }
+  document.getElementById('pdf-modal').classList.add('hidden');
+  exportPDF(selected.value);
+};
+
+window.exportPDF = (filterDate) => {
   if (!plans.length) { showToast('⚠️ ยังไม่มีแผนงาน'); return; }
+  const printPlans = filterDate ? plans.filter(p => p.date === filterDate) : plans;
+  if (!printPlans.length) { showToast('⚠️ ไม่มีแผนงานวันนี้'); return; }
   const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const now = new Date();
   const pDate = now.getDate()+' '+months[now.getMonth()+1]+' '+(now.getFullYear()+543)+' เวลา '+now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-  const totalAll = plans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s,0);
-  const doneAll = plans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s,0);
+  const totalAll = printPlans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s,0);
+  const doneAll = printPlans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s,0);
+  const dateLabel = filterDate ? ' — '+formatDate(filterDate) : '';
 
   let html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;font-size:13px;padding:20px;color:#222}.plan{border:1px solid #ccc;border-radius:8px;margin-bottom:16px;page-break-inside:avoid}.ph{background:#1a3a6a;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;border-radius:8px 8px 0 0}.pb{padding:12px 14px}.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.done{color:#1e90ff;font-weight:600}.prob{color:#e74c3c;font-weight:600}.wait{color:#999}.sum{background:#f0f8ff;border-radius:6px;padding:10px;margin-bottom:16px;display:flex;gap:20px}.si{text-align:center}.sn{font-size:22px;font-weight:700}</style></head><body>';
-  html += '<h1>🔩 STK Metal — รายงานแผนงาน</h1><div style="font-size:12px;color:#666;margin-bottom:20px">พิมพ์เมื่อ '+pDate+' • ทั้งหมด '+plans.length+' แผนงาน</div>';
-  html += '<div class="sum"><div class="si"><div class="sn">'+plans.length+'</div><div>แผนงาน</div></div><div class="si"><div class="sn" style="color:#1e90ff">'+doneAll+'</div><div>เสร็จ</div></div><div class="si"><div class="sn" style="color:#ffd166">'+(totalAll-doneAll)+'</div><div>รอ</div></div></div>';
+  html += '<h1>🔩 STK Metal — รายงานแผนงาน'+dateLabel+'</h1><div style="font-size:12px;color:#666;margin-bottom:20px">พิมพ์เมื่อ '+pDate+' • ทั้งหมด '+printPlans.length+' แผนงาน</div>';
+  html += '<div class="sum"><div class="si"><div class="sn">'+printPlans.length+'</div><div>แผนงาน</div></div><div class="si"><div class="sn" style="color:#1e90ff">'+doneAll+'</div><div>เสร็จ</div></div><div class="si"><div class="sn" style="color:#ffd166">'+(totalAll-doneAll)+'</div><div>รอ</div></div></div>';
 
-  plans.forEach((p,i) => {
+  printPlans.forEach((p,i) => {
     const pks=p.pickups||[], cus=p.customers||[];
     const tot=pks.length+cus.length;
     const dn=pks.filter(pk=>pk.done).length+cus.filter(c=>c.done).length;

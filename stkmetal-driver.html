@@ -588,16 +588,21 @@ window.removePhoto = async (type, idx, pi) => {
 
 // Confirm
 window.confirmPickup = async idx => {
+  const key = 'pk-'+idx;
+  const checks = localChecks[key] || getPickupChecks().map(()=>false);
   const pickups = [...plan.pickups];
-  pickups[idx] = {...pickups[idx], done:true, doneAt:Date.now()};
+  pickups[idx] = {...pickups[idx], done:true, doneAt:Date.now(), checkedItems:checks};
   await updateDoc(doc(db,'plans',planId), {pickups});
   openSteps['pk-'+idx] = false;
   showToast('✅ บันทึกการรับของแล้ว');
 };
 
 window.confirmDelivery = async idx => {
+  const key = 'cu-'+idx;
+  const checks = localChecks[key] || getDeliverChecks().map(()=>false);
+  const subChoice = localSubChecks[key] || null;
   const customers = [...plan.customers];
-  customers[idx] = {...customers[idx], done:true, doneAt:Date.now()};
+  customers[idx] = {...customers[idx], done:true, doneAt:Date.now(), checkedItems:checks, subChoice};
   await updateDoc(doc(db,'plans',planId), {customers});
   openSteps['cu-'+idx] = false;
   showToast('✅ บันทึกการส่งสินค้าแล้ว');

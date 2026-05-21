@@ -306,7 +306,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, addDoc, setDoc, getDocs, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
@@ -329,6 +329,27 @@ let unsubscribe = null;
 let _plansDate = new Date().toISOString().split('T')[0];
 let _monitorDate = new Date().toISOString().split('T')[0];
 let _shareMsg = '';
+let _planPhotos = {}; // cache รูปของแต่ละแผนงาน {planId: {type-idx: [urls]}}
+
+async function loadPlanPhotos(planId) {
+  if (_planPhotos[planId]) return; // โหลดแล้ว
+  const snap = await getDocs(collection(db,'plans',planId,'photos'));
+  const cache = {};
+  snap.docs.forEach(d => {
+    const p = d.data();
+    const key = p.type+'-'+p.idx;
+    if (!cache[key]) cache[key] = [];
+    cache[key].push({data: p.data, createdAt: p.createdAt});
+  });
+  Object.keys(cache).forEach(k => { cache[k].sort((a,b)=>a.createdAt-b.createdAt); });
+  _planPhotos[planId] = cache;
+}
+
+function getPlanPhotos(planId, type, idx) {
+  const cache = _planPhotos[planId];
+  if (!cache) return [];
+  return (cache[type+'-'+idx] || []).map(p => p.data);
+}
 let _cleanupList = [];
 let _viewerPhotos = [];
 let _viewerIdx = 0;
@@ -510,7 +531,9 @@ function renderMonitor() {
       html += '<div style="flex:1"><div class="step-text">'+s.label+'</div>';
       if (s.time) html += '<div class="step-time">✅ '+new Date(s.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+'</div>';
       if (s.problem && !s.done) html += '<div style="font-size:11px;color:var(--red);margin-top:2px">⚠️ '+s.problem+'</div>';
-      if (s.photos.length) html += '<div style="font-size:11px;color:var(--green2);margin-top:2px">📷 '+s.photos.length+' รูป</div>';
+      const subCount = getPlanPhotos(p.id,s.type,s.idx).length;
+      const photoCount = subCount > 0 ? subCount : s.photos.length;
+      if (photoCount) html += '<div style="font-size:11px;color:var(--green2);margin-top:2px">📷 '+photoCount+' รูป</div>';
       html += '</div><span style="color:var(--text3);font-size:12px">›</span>';
       html += '</div>';
     });
@@ -599,7 +622,7 @@ window.confirmCleanup = async () => {
 };
 
 // ---- DETAIL MODAL ----
-window.viewDetail = (planId, type, idx) => {
+window.viewDetail = async (planId, type, idx) => {
   const p = plans.find(x=>x.id===planId); if(!p) return;
   const item = type==='pickup' ? p.pickups[idx] : p.customers[idx]; if(!item) return;
   const label = type==='pickup' ? '📦 รับของจุดที่ '+(idx+1) : '🚚 ส่ง '+item.name;
@@ -630,25 +653,39 @@ window.viewDetail = (planId, type, idx) => {
 
   // ===== Checklist section =====
   html += '<div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">✅ รายการตรวจสอบของคนขับ</div>';
-  const checkedCount = item.done ? checks.length : checkedList.length;
+  // ถ้ามี checkedItems จาก Firestore ใช้ค่านั้น ถ้าไม่มีแต่งานเสร็จแล้ว = เช็คครบทุกข้อ ถ้ายังไม่เสร็จ = ยังไม่ได้เช็ค
+  const hasRealChecks = checkedList && checkedList.length > 0;
+  const getCheckState = (ci) => {
+    if (hasRealChecks) return !!checkedList[ci];
+    return item.done; // ถ้าไม่มีข้อมูล แต่งานเสร็จ = ผ่านทุกข้อ
+  };
+  const checkedCount = checks.filter((_,ci) => getCheckState(ci)).length;
   const pct = Math.round(checkedCount/checks.length*100);
-  html += '<div style="height:4px;background:var(--bg3);border-radius:2px;margin-bottom:10px;overflow:hidden"><div style="height:100%;background:var(--green2);width:'+pct+'%;border-radius:2px"></div></div>';
+  if (!hasRealChecks && item.done) {
+    html += '<div style="font-size:11px;color:var(--text3);margin-bottom:8px">* งานนี้บันทึกก่อนระบบ checklist จะแสดงว่าผ่านทุกข้อโดยอัตโนมัติ</div>';
+  }
+  html += '<div style="height:6px;background:var(--bg3);border-radius:3px;margin-bottom:10px;overflow:hidden"><div style="height:100%;background:var(--green2);width:'+pct+'%;border-radius:3px;transition:width 0.3s"></div></div>';
+  html += '<div style="font-size:12px;color:var(--text3);margin-bottom:8px">เช็คแล้ว '+checkedCount+'/'+checks.length+' ข้อ</div>';
   checks.forEach((ch, ci) => {
-    const isDone = item.done || (checkedList.length > ci && checkedList[ci]);
-    html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;background:'+(isDone?'var(--green-pale)':'var(--bg3)')+';margin-bottom:4px">';
-    html += '<div style="width:18px;height:18px;border-radius:50%;background:'+(isDone?'var(--green2)':'var(--border2)')+';display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex-shrink:0">'+(isDone?'✓':'')+'</div>';
-    html += '<div style="font-size:13px;color:'+(isDone?'var(--text2)':'var(--text3)')+'">'+ch+'</div>';
+    const isDone = getCheckState(ci);
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:'+(isDone?'var(--green-pale)':'var(--bg3)')+';margin-bottom:5px;border:1px solid '+(isDone?'var(--green-soft)':'var(--border)')+'">';
+    html += '<div style="width:20px;height:20px;border-radius:50%;background:'+(isDone?'var(--green2)':'var(--border2)')+';display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;font-weight:700">'+(isDone?'✓':'')+'</div>';
+    html += '<div style="font-size:13px;color:'+(isDone?'var(--text)':'var(--text3)')+'">'+ch+'</div>';
     html += '</div>';
-    // sub-option ข้อ 4 (ลงสินค้า)
+    // sub-option ข้อ 3 (idx 3 = ลงสินค้า)
     if (type==='customer' && ci===3 && isDone && subChoice) {
       const subLabel = subChoice==='person' ? '👷 ใช้คนยกลง' : '🏗️ ใช้อุปกรณ์';
-      html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 10px 5px 30px;border-radius:6px;background:var(--green-pale);margin-bottom:4px">';
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px 6px 36px;border-radius:8px;background:var(--green-pale);margin-bottom:5px">';
       html += '<div style="width:14px;height:14px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;flex-shrink:0">✓</div>';
-      html += '<div style="font-size:12px;color:var(--text3)">'+subLabel+'</div></div>';
+      html += '<div style="font-size:12px;color:var(--text2)">'+subLabel+'</div></div>';
     }
   });
 
-  const photos = item.photos||[];
+  // โหลดรูปจาก subcollection
+  await loadPlanPhotos(planId);
+  const photos = getPlanPhotos(planId, type, idx).length > 0
+    ? getPlanPhotos(planId, type, idx)
+    : (item.photos||[]); // fallback งานเก่าที่ยังเก็บใน document
   if (photos.length) {
     const bc = item.problem ? '#ef5350' : '#2a5080';
     html += '<div style="font-size:11px;font-weight:600;color:'+(item.problem?'#ef5350':'#4a7fa8')+';margin:14px 0 8px">'+(item.problem?'📷 รูปหลักฐาน':'📷 รูปภาพ')+' ('+photos.length+' รูป)</div>';
@@ -670,7 +707,11 @@ window.viewDetail = (planId, type, idx) => {
 window.openViewer = (planId, type, idx, pi) => {
   const p = plans.find(x=>x.id===planId); if(!p) return;
   const item = type==='pickup' ? p.pickups[idx] : p.customers[idx]; if(!item) return;
-  const photos = item.photos||[]; if(!photos.length) return;
+  // โหลดรูปจาก subcollection
+  await loadPlanPhotos(planId);
+  const photos = getPlanPhotos(planId, type, idx).length > 0
+    ? getPlanPhotos(planId, type, idx)
+    : (item.photos||[]); // fallback งานเก่าที่ยังเก็บใน document if(!photos.length) return;
   _viewerPhotos = photos; _viewerIdx = pi;
   _viewerTitle = type==='pickup' ? 'รูปรับของจุดที่ '+(idx+1) : 'รูปส่ง '+item.name;
   showViewer();
@@ -922,6 +963,16 @@ window.exportPDF = (filterDate) => {
         html += '<div class="row"><span>'+(ci+1)+'. '+c.name+(c.tel?' 📞'+c.tel:'')+'</span><span class="'+cls+'">'+txt+'</span></div>';
         c.items&&c.items.forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
         if(c.problem&&c.problemNote)html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+c.problemNote+'</div>';
+        if(c.done){
+          const dChecks=['สินค้าครบตามจำนวน','สินค้าสมบูรณ์ไม่มีรอย/คดงอ','ถ่ายรูปตอนลงสินค้า','ลงสินค้า','เอกสารให้ลูกค้าเซ็นเรียบร้อย'];
+          const cItems=c.checkedItems||dChecks.map(()=>true);
+          html+='<div style="margin:6px 0 2px 12px;font-size:11px;font-weight:600;color:#666">รายการตรวจสอบ:</div>';
+          dChecks.forEach((ch,ci)=>{
+            const ok=cItems[ci]!==undefined?cItems[ci]:c.done;
+            html+='<div style="padding:2px 0 2px 20px;font-size:11px;color:'+(ok?'#1e90ff':'#999')+'"><span style="margin-right:4px">'+(ok?'✓':'○')+'</span>'+ch+'</div>';
+          });
+          if(c.subChoice)html+='<div style="padding:2px 0 2px 28px;font-size:11px;color:#1e90ff">↳ '+(c.subChoice==='person'?'ใช้คนยกลง':'ใช้อุปกรณ์')+'</div>';
+        }
         const phs=(c.photos||[]).slice(0,4);
         if(phs.length){html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 6px 12px">';phs.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display=\'none\'">';});html+='</div>';}
       });

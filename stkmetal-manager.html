@@ -687,7 +687,8 @@ window.viewDetail = async (planId, type, idx) => {
     }
   });
 
-  // โหลดรูปจาก subcollection
+  // Force reload รูปจาก subcollection ทุกครั้งที่เปิด modal
+  delete _planPhotos[planId];
   await loadPlanPhotos(planId);
   const photos = getPlanPhotos(planId, type, idx).length > 0
     ? getPlanPhotos(planId, type, idx)

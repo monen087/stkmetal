@@ -332,17 +332,21 @@ let _shareMsg = '';
 let _planPhotos = {}; // cache รูปของแต่ละแผนงาน {planId: {type-idx: [urls]}}
 
 async function loadPlanPhotos(planId) {
-  if (_planPhotos[planId]) return; // โหลดแล้ว
-  const snap = await getDocs(collection(db,'plans',planId,'photos'));
-  const cache = {};
-  snap.docs.forEach(d => {
-    const p = d.data();
-    const key = p.type+'-'+p.idx;
-    if (!cache[key]) cache[key] = [];
-    cache[key].push({data: p.data, createdAt: p.createdAt});
-  });
-  Object.keys(cache).forEach(k => { cache[k].sort((a,b)=>a.createdAt-b.createdAt); });
-  _planPhotos[planId] = cache;
+  if (_planPhotos[planId]) return;
+  try {
+    const snap = await getDocs(collection(db,'plans',planId,'photos'));
+    const cache = {};
+    snap.docs.forEach(d => {
+      const p = d.data();
+      const key = p.type+'-'+p.idx;
+      if (!cache[key]) cache[key] = [];
+      cache[key].push({data: p.data, createdAt: p.createdAt});
+    });
+    Object.keys(cache).forEach(k => { cache[k].sort((a,b)=>a.createdAt-b.createdAt); });
+    _planPhotos[planId] = cache;
+  } catch(e) {
+    _planPhotos[planId] = {}; // mark as loaded even if error
+  }
 }
 
 function getPlanPhotos(planId, type, idx) {
@@ -359,8 +363,10 @@ let _viewerTitle = '';
 function startListener() {
   if (unsubscribe) unsubscribe();
   const q = query(collection(db, 'plans'), orderBy('date', 'desc'));
-  unsubscribe = onSnapshot(q, snap => {
+  unsubscribe = onSnapshot(q, async snap => {
     plans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // โหลดรูปจาก subcollection ของทุกแผนงาน (เฉพาะที่ยังไม่มีใน cache)
+    await Promise.all(plans.map(p => loadPlanPhotos(p.id)));
     render();
   }, err => {
     document.getElementById('main').innerHTML = '<div class="loading"><div>❌ เชื่อมต่อ Firebase ไม่ได้<br><small style="color:var(--text3)">'+err.message+'</small></div></div>';
@@ -531,7 +537,7 @@ function renderMonitor() {
       html += '<div style="flex:1"><div class="step-text">'+s.label+'</div>';
       if (s.time) html += '<div class="step-time">✅ '+new Date(s.time).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+'</div>';
       if (s.problem && !s.done) html += '<div style="font-size:11px;color:var(--red);margin-top:2px">⚠️ '+s.problem+'</div>';
-      const subCount = getPlanPhotos(p.id,s.type,s.idx).length;
+      const subCount = _planPhotos[p.id] ? getPlanPhotos(p.id,s.type,s.idx).length : 0;
       const photoCount = subCount > 0 ? subCount : s.photos.length;
       if (photoCount) html += '<div style="font-size:11px;color:var(--green2);margin-top:2px">📷 '+photoCount+' รูป</div>';
       html += '</div><span style="color:var(--text3);font-size:12px">›</span>';
@@ -707,11 +713,9 @@ window.viewDetail = async (planId, type, idx) => {
 window.openViewer = (planId, type, idx, pi) => {
   const p = plans.find(x=>x.id===planId); if(!p) return;
   const item = type==='pickup' ? p.pickups[idx] : p.customers[idx]; if(!item) return;
-  // โหลดรูปจาก subcollection
-  await loadPlanPhotos(planId);
-  const photos = getPlanPhotos(planId, type, idx).length > 0
-    ? getPlanPhotos(planId, type, idx)
-    : (item.photos||[]); // fallback งานเก่าที่ยังเก็บใน document if(!photos.length) return;
+  const subPhotos = getPlanPhotos(planId, type, idx);
+  const photos = subPhotos.length > 0 ? subPhotos : (item.photos||[]);
+  if(!photos.length) return;
   _viewerPhotos = photos; _viewerIdx = pi;
   _viewerTitle = type==='pickup' ? 'รูปรับของจุดที่ '+(idx+1) : 'รูปส่ง '+item.name;
   showViewer();

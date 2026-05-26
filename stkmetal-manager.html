@@ -921,65 +921,183 @@ window.showPDFModal = () => {
   document.getElementById('pdf-modal').classList.remove('hidden');
 };
 
-window.exportPDFSelected = () => {
+window.exportPDFSelected = async () => {
   const selected = document.querySelector('input[name="pdf-date"]:checked');
   if (!selected) { showToast('⚠️ กรุณาเลือกวันที่'); return; }
   document.getElementById('pdf-modal').classList.add('hidden');
-  exportPDF(selected.value);
+  showToast('⏳ กำลังโหลดรูปภาพ...');
+  await exportPDF(selected.value);
 };
 
-window.exportPDF = (filterDate) => {
+window.exportPDF = async (filterDate) => {
   if (!plans.length) { showToast('⚠️ ยังไม่มีแผนงาน'); return; }
   const printPlans = filterDate ? plans.filter(p => p.date === filterDate) : plans;
   if (!printPlans.length) { showToast('⚠️ ไม่มีแผนงานวันนี้'); return; }
+  await Promise.all(printPlans.map(p => loadPlanPhotos(p.id)));
+
   const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const now = new Date();
   const pDate = now.getDate()+' '+months[now.getMonth()+1]+' '+(now.getFullYear()+543)+' เวลา '+now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
   const totalAll = printPlans.reduce((s,p)=>(p.pickups||[]).length+(p.customers||[]).length+s,0);
   const doneAll = printPlans.reduce((s,p)=>(p.pickups||[]).filter(pk=>pk.done).length+(p.customers||[]).filter(c=>c.done).length+s,0);
-  const dateLabel = filterDate ? ' — '+formatDate(filterDate) : '';
 
-  let html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><style>body{font-family:sans-serif;font-size:13px;padding:20px;color:#222}.plan{border:1px solid #ccc;border-radius:8px;margin-bottom:16px;page-break-inside:avoid}.ph{background:#1a3a6a;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;border-radius:8px 8px 0 0}.pb{padding:12px 14px}.row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee}.done{color:#1e90ff;font-weight:600}.prob{color:#e74c3c;font-weight:600}.wait{color:#999}.sum{background:#f0f8ff;border-radius:6px;padding:10px;margin-bottom:16px;display:flex;gap:20px}.si{text-align:center}.sn{font-size:22px;font-weight:700}</style></head><body>';
-  html += '<h1>🔩 STK Metal — รายงานแผนงาน'+dateLabel+'</h1><div style="font-size:12px;color:#666;margin-bottom:20px">พิมพ์เมื่อ '+pDate+' • ทั้งหมด '+printPlans.length+' แผนงาน</div>';
-  html += '<div class="sum"><div class="si"><div class="sn">'+printPlans.length+'</div><div>แผนงาน</div></div><div class="si"><div class="sn" style="color:#1e90ff">'+doneAll+'</div><div>เสร็จ</div></div><div class="si"><div class="sn" style="color:#ffd166">'+(totalAll-doneAll)+'</div><div>รอ</div></div></div>';
+  const CHECKS_PK = ['นับจำนวนสินค้าครบตามรายการ','ตรวจสภาพผิว ไม่มีรอยขีดข่วน/บุบ','ห่อกันรอยครบทุกชิ้น','ถ่ายรูปสินค้าก่อนขึ้นรถ'];
+  const CHECKS_DL = ['สินค้าครบตามจำนวน','สินค้าสมบูรณ์ไม่มีรอย/คดงอ','ถ่ายรูปตอนลงสินค้า','ลงสินค้า','เอกสารให้ลูกค้าเซ็นเรียบร้อย'];
 
-  printPlans.forEach((p,i) => {
-    const pks=p.pickups||[], cus=p.customers||[];
-    const tot=pks.length+cus.length;
-    const dn=pks.filter(pk=>pk.done).length+cus.filter(c=>c.done).length;
-    html += '<div class="plan"><div class="ph"><span>'+(i+1)+'. '+(p.truckName||'รถ')+' — '+(p.driver||'-')+' | '+formatDate(p.date)+'</span><span>'+(dn===tot&&tot>0?'✅ เสร็จ':dn>0?'🔄 กำลังทำ':'⏳ รอ')+' '+dn+'/'+tot+'</span></div><div class="pb">';
+  function fmtDate(d) { if(!d) return '-'; const [y,m,day]=d.split('-'); return parseInt(day)+' '+months[parseInt(m)]+' '+(parseInt(y)+543); }
+  function renderItems(items) {
+    if(!items||!items.length) return '';
+    let t='<table class="items-table"><tr><th>รายการสินค้า</th><th style="text-align:center;width:60px">จำนวน</th><th style="width:80px">แหล่ง</th></tr>';
+    items.forEach(it=>{ t+='<tr><td>'+it.name+'</td><td class="qty">'+it.qty+'</td><td><span class="src-tag">'+( it.src||'-')+'</span></td></tr>'; });
+    return t+'</table>';
+  }
+  function renderChecklist(checks, checkedItems, isDone) {
+    if(!isDone && (!checkedItems||!checkedItems.length)) return '';
+    let h='<div class="checks">';
+    checks.forEach((ch,ci)=>{
+      const ok = isDone || (checkedItems&&checkedItems[ci]);
+      h+='<div class="check-row"><span class="'+(ok?'check-ok':'check-no')+'">'+(ok?'✓':'○')+'</span><span style="color:'+(ok?'#333':'#bbb')+'">'+ch+'</span></div>';
+    });
+    return h+'</div>';
+  }
+  function renderPhotos(photos, sig) {
+    if((!photos||!photos.length)&&!sig) return '';
+    let h='<div class="photos-grid">';
+    if(photos&&photos.length) {
+      photos.slice(0,sig?3:4).forEach(ph=>{ h+='<img src="'+ph+'" onerror="this.style.display=\'none\'">'; });
+    }
+    if(sig) h+='<img class="sig-img" src="'+sig+'" onerror="this.style.display=\'none\'">';
+    return h+'</div>';
+  }
+
+  let html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">'
+    +'<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">'
+    +'<style>'
+    +'@page{margin:14mm 12mm}'
+    +'body{font-family:"Sarabun","Tahoma",sans-serif;font-size:13px;color:#1a1a2e;margin:0;padding:0}'
+    +'h1{font-size:20px;font-weight:700;color:#1a3a6a;margin:0 0 2px}'
+    +'.subtitle{font-size:12px;color:#666;margin-bottom:16px}'
+    +'.summary{display:flex;gap:0;margin-bottom:20px;border:1px solid #c8d8f0;border-radius:8px;overflow:hidden}'
+    +'.sum-item{flex:1;text-align:center;padding:12px;background:#f0f7ff;border-right:1px solid #d0e0f0}'
+    +'.sum-item:last-child{border-right:none}'
+    +'.sum-num{font-size:26px;font-weight:700}'
+    +'.sum-label{font-size:11px;color:#666;margin-top:2px}'
+    +'.plan{border:1px solid #c8d8f0;border-radius:10px;margin-bottom:18px;page-break-inside:avoid;overflow:hidden}'
+    +'.plan-head{background:linear-gradient(135deg,#0d2a5a,#1e5096);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}'
+    +'.plan-title{font-size:14px;font-weight:700}'
+    +'.plan-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px}'
+    +'.plan-badge{font-size:11px;padding:3px 10px;border-radius:12px;background:rgba(255,255,255,0.2);font-weight:600}'
+    +'.plan-body{padding:12px 16px}'
+    +'.sec-hd{font-size:10px;font-weight:700;color:#1a3a6a;text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px;padding-bottom:3px;border-bottom:2px solid #ddeeff}'
+    +'.sec-hd:first-child{margin-top:0}'
+    +'.step{margin-bottom:8px;padding:10px 12px;border-radius:7px;border:1px solid #e0eaf8;background:#f8fbff}'
+    +'.step.step-done{border-color:#b8d8ff;background:#eef8ff}'
+    +'.step.step-prob{border-color:#ffc8c8;background:#fff5f5}'
+    +'.step-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}'
+    +'.step-name{font-size:13px;font-weight:600;color:#0d2040}'
+    +'.step-status{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}'
+    +'.st-d{background:#d0eaff;color:#004eaa}'
+    +'.st-p{background:#ffe0e0;color:#cc0000}'
+    +'.st-w{background:#f0f0f0;color:#888}'
+    +'.step-meta{font-size:11px;color:#555;margin-bottom:4px}'
+    +'.step-note{font-size:11px;color:#8b5e00;background:#fff8e0;border-left:3px solid #ffc107;padding:4px 8px;margin:4px 0;border-radius:0 4px 4px 0}'
+    +'.prob-note{font-size:11px;color:#cc0000;background:#fff0f0;border-left:3px solid #ff4444;padding:4px 8px;margin:4px 0;border-radius:0 4px 4px 0}'
+    +'.items-table{width:100%;border-collapse:collapse;margin:5px 0}'
+    +'.items-table th{font-size:10px;color:#555;text-align:left;padding:3px 6px;background:#eef4ff;border-bottom:1px solid #d0dff0}'
+    +'.items-table td{font-size:12px;padding:4px 6px;border-bottom:1px solid #eef0f8}'
+    +'.items-table tr:last-child td{border-bottom:none}'
+    +'.qty{font-weight:700;color:#0d3a8a;text-align:center}'
+    +'.src-tag{font-size:10px;background:#e8eef8;color:#446;padding:1px 6px;border-radius:8px}'
+    +'.checks{margin:5px 0;padding:5px 8px;background:rgba(0,80,200,0.04);border-radius:5px}'
+    +'.chk{display:flex;align-items:center;gap:5px;font-size:11px;padding:1px 0}'
+    +'.chk-ok{color:#0055cc;font-weight:700}'
+    +'.chk-no{color:#ccc}'
+    +'.photos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}'
+    +'.photos-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px;border:1px solid #d0dff0}'
+    +'@media print{.plan{page-break-inside:avoid}.step{page-break-inside:avoid}}'
+    +'</style></head><body>';
+
+  html += '<h1>🔩 STK Metal — รายงานแผนงาน'+(filterDate?' '+fmtDate(filterDate):'')+'</h1>';
+  html += '<div class="subtitle">พิมพ์เมื่อ '+pDate+' • '+printPlans.length+' แผนงาน</div>';
+  html += '<div class="summary">'
+    +'<div class="sum-item"><div class="sum-num">'+totalAll+'</div><div class="sum-label">จุดทั้งหมด</div></div>'
+    +'<div class="sum-item"><div class="sum-num" style="color:#0055cc">'+doneAll+'</div><div class="sum-label">เสร็จแล้ว</div></div>'
+    +'<div class="sum-item"><div class="sum-num" style="color:#ff8800">'+(totalAll-doneAll)+'</div><div class="sum-label">รอดำเนินการ</div></div>'
+    +'</div>';
+
+  printPlans.forEach((p,pi) => {
+    const pks = p.pickups||[], cus = p.customers||[];
+    const tot = pks.length+cus.length;
+    const dn = pks.filter(pk=>pk.done).length+cus.filter(c=>c.done).length;
+    const pct = tot?Math.round(dn/tot*100):0;
+    const allDone = dn===tot&&tot>0;
+
+    html += '<div class="plan"><div class="plan-head">'
+      +'<div><div class="plan-title">🚛 '+(p.truckName||'รถ')+' — '+(p.driver||'ไม่ระบุคนขับ')+'</div>'
+      +'<div class="plan-sub">'+fmtDate(p.date)+' • รับ '+pks.length+' จุด • ส่ง '+cus.length+' ราย</div></div>'
+      +'<div class="plan-badge">'+(allDone?'✅ เสร็จสิ้น':dn>0?'🔄 '+pct+'%':'⏳ รอ')+' '+dn+'/'+tot+'</div>'
+      +'</div><div class="plan-body">';
+
     if (pks.length) {
-      html += '<div style="font-size:11px;font-weight:600;color:#666;margin:8px 0 4px">📦 จุดรับของ</div>';
-      pks.forEach((pk,pi) => {
-        const cls=pk.done?'done':pk.problem?'prob':'wait';
-        const txt=pk.done?'✅ รับแล้ว':pk.problem?'⚠️ '+pk.problem:'⏳ รอรับ';
-        html += '<div class="row"><span>จุดที่ '+(pi+1)+'</span><span class="'+cls+'">'+txt+'</span></div>';
-        pk.items&&pk.items.forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
-        if(pk.problem&&pk.problemNote)html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+pk.problemNote+'</div>';
-        const phs=(pk.photos||[]).slice(0,4);
-        if(phs.length){html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 6px 12px">';phs.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display=\'none\'">';});html+='</div>';}
+      html += '<div class="sec-hd">📦 จุดรับของ</div>';
+      pks.forEach((pk,pki)=>{
+        const pkPhotos = getPlanPhotos(p.id,'pickup',pki).length>0 ? getPlanPhotos(p.id,'pickup',pki) : (pk.photos||[]);
+        const cls = pk.done?'step-done':pk.problem?'step-prob':'';
+        const stCls = pk.done?'st-d':pk.problem?'st-p':'st-w';
+        const stTxt = pk.done?'✅ รับแล้ว '+(pk.doneAt?new Date(pk.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''): pk.problem?'⚠️ '+pk.problem:'⏳ รอรับ';
+        html += '<div class="step '+cls+'">';
+        html += '<div class="step-hd"><div class="step-name">จุดที่ '+(pki+1)+'</div><div class="step-status '+stCls+'">'+stTxt+'</div></div>';
+        if(pk.problem&&pk.problemNote) html += '<div class="prob-note">📝 '+pk.problemNote+'</div>';
+        if(pk.note) html += '<div class="step-note">📝 '+pk.note+'</div>';
+        html += renderItems(pk.items);
+        if(pk.done) {
+          const cks = pk.checkedItems||CHECKS_PK.map(()=>true);
+          html += '<div class="checks">';
+          CHECKS_PK.forEach((ch,ci)=>{ const ok=cks[ci]!==false; html+='<div class="chk"><span class="'+(ok?'chk-ok':'chk-no')+'">'+(ok?'✓':'○')+'</span><span style="color:'+(ok?'#333':'#bbb')+'">'+ch+'</span></div>'; });
+          html += '</div>';
+        }
+        if(pkPhotos.length) html += '<div class="photos-grid">'+pkPhotos.slice(0,4).map(ph=>'<img src="'+ph+'" onerror="this.style.display=\'none\'">').join('')+'</div>';
+        html += '</div>';
       });
     }
+
     if (cus.length) {
-      html += '<div style="font-size:11px;font-weight:600;color:#666;margin:8px 0 4px">🚚 ส่งลูกค้า</div>';
-      cus.forEach((c,ci) => {
-        const cls=c.done?'done':c.problem?'prob':'wait';
-        const txt=c.done?'✅ ส่งแล้ว':c.problem?'⚠️ '+c.problem:'⏳ รอส่ง';
-        html += '<div class="row"><span>'+(ci+1)+'. '+c.name+(c.tel?' 📞'+c.tel:'')+'</span><span class="'+cls+'">'+txt+'</span></div>';
-        c.items&&c.items.forEach(it=>{html+='<div style="padding:2px 0 2px 12px;font-size:12px;color:#555">• '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'</div>';});
-        if(c.problem&&c.problemNote)html+='<div style="padding:4px 12px;color:#c0392b;font-size:12px">📝 '+c.problemNote+'</div>';
-        if(c.done){
-          const dChecks=['สินค้าครบตามจำนวน','สินค้าสมบูรณ์ไม่มีรอย/คดงอ','ถ่ายรูปตอนลงสินค้า','ลงสินค้า','เอกสารให้ลูกค้าเซ็นเรียบร้อย'];
-          const cItems=c.checkedItems||dChecks.map(()=>true);
-          html+='<div style="margin:6px 0 2px 12px;font-size:11px;font-weight:600;color:#666">รายการตรวจสอบ:</div>';
-          dChecks.forEach((ch,ci)=>{
-            const ok=cItems[ci]!==undefined?cItems[ci]:c.done;
-            html+='<div style="padding:2px 0 2px 20px;font-size:11px;color:'+(ok?'#1e90ff':'#999')+'"><span style="margin-right:4px">'+(ok?'✓':'○')+'</span>'+ch+'</div>';
-          });
-          if(c.subChoice)html+='<div style="padding:2px 0 2px 28px;font-size:11px;color:#1e90ff">↳ '+(c.subChoice==='person'?'ใช้คนยกลง':'ใช้อุปกรณ์')+'</div>';
+      html += '<div class="sec-hd">🚚 ส่งลูกค้า</div>';
+      cus.forEach((cu,cui)=>{
+        const cuPhotosAll = getPlanPhotos(p.id,'customer',cui).length>0 ? getPlanPhotos(p.id,'customer',cui) : (cu.photos||[]);
+        // แยกรูปปกติและลายเซ็น (ลายเซ็นเป็น PNG ขนาดใหญ่ มักเป็นรูปสุดท้าย)
+        let sigPhoto = null, regPhotos = cuPhotosAll;
+        if(cuPhotosAll.length>0 && cuPhotosAll[cuPhotosAll.length-1].startsWith('data:image/png')) {
+          sigPhoto = cuPhotosAll[cuPhotosAll.length-1];
+          regPhotos = cuPhotosAll.slice(0,-1);
         }
-        const phs=(c.photos||[]).slice(0,4);
-        if(phs.length){html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:6px 0 6px 12px">';phs.forEach(ph=>{html+='<img src="'+ph+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px" onerror="this.style.display=\'none\'">';});html+='</div>';}
+        const cls = cu.done?'step-done':cu.problem?'step-prob':'';
+        const stCls = cu.done?'st-d':cu.problem?'st-p':'st-w';
+        const stTxt = cu.done?'✅ ส่งแล้ว '+(cu.doneAt?new Date(cu.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):''): cu.problem?'⚠️ '+cu.problem:'⏳ รอส่ง';
+        html += '<div class="step '+cls+'">';
+        html += '<div class="step-hd"><div class="step-name">'+(cui+1)+'. '+cu.name+'</div><div class="step-status '+stCls+'">'+stTxt+'</div></div>';
+        if(cu.tel) html += '<div class="step-meta">📞 '+cu.tel+'</div>';
+        if(cu.problem&&cu.problemNote) html += '<div class="prob-note">📝 '+cu.problemNote+'</div>';
+        if(cu.note) html += '<div class="step-note">📝 '+cu.note+'</div>';
+        html += renderItems(cu.items);
+        if(cu.done) {
+          const cks = cu.checkedItems||CHECKS_DL.map(()=>true);
+          html += '<div class="checks">';
+          CHECKS_DL.forEach((ch,ci)=>{
+            const ok=cks[ci]!==false;
+            html+='<div class="chk"><span class="'+(ok?'chk-ok':'chk-no')+'">'+(ok?'✓':'○')+'</span><span style="color:'+(ok?'#333':'#bbb')+'">'+ch+'</span></div>';
+            if(ci===3&&ok&&cu.subChoice) html+='<div class="chk" style="padding-left:16px"><span class="chk-ok">↳</span><span style="color:#555">'+(cu.subChoice==='person'?'👷 ใช้คนยกลง':'🏗️ ใช้อุปกรณ์')+'</span></div>';
+          });
+          html += '</div>';
+        }
+        // รูปภาพและลายเซ็นในแถวเดียวกัน
+        if(regPhotos.length||sigPhoto) {
+          html += '<div class="photos-grid">';
+          regPhotos.slice(0,sigPhoto?3:4).forEach(ph=>{ html+='<img src="'+ph+'" onerror="this.style.display=\'none\'">'; });
+          if(sigPhoto) html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border:1px solid #d0dff0;border-radius:5px;padding:4px"><div style="font-size:9px;color:#888;margin-bottom:2px">ลายเซ็น</div><img style="height:50px;object-fit:contain;width:100%" src="'+sigPhoto+'" onerror="this.style.display=\'none\'"></div>';
+          html += '</div>';
+        }
+        html += '</div>';
       });
     }
     html += '</div></div>';
@@ -989,9 +1107,12 @@ window.exportPDF = (filterDate) => {
   const w = window.open('','_blank');
   w.document.write(html); w.document.close();
   const imgs = w.document.querySelectorAll('img');
-  if (!imgs.length) { w.focus(); w.print(); return; }
-  let loaded = 0;
-  imgs.forEach(img => { if(img.complete){loaded++;if(loaded>=imgs.length){w.focus();w.print();}}else{img.onload=img.onerror=()=>{loaded++;if(loaded>=imgs.length){w.focus();w.print();}};} });
+  if(!imgs.length){w.focus();w.print();return;}
+  let loaded=0;
+  imgs.forEach(img=>{
+    if(img.complete){loaded++;if(loaded>=imgs.length){w.focus();w.print();}}
+    else{img.onload=img.onerror=()=>{loaded++;if(loaded>=imgs.length){w.focus();w.print();}};}
+  });
 };
 
 // ---- UTILS ----

@@ -213,8 +213,8 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 <script>
 // ===== STATE =====
 // พิกัดสำคัญ
-var STK_ORIGIN = { lat: 13.7052, lng: 100.0236, name: 'STK Metal (สำนักงาน)', url: 'https://share.google/G2JSOzzzXm8OE5DE4' };
-var BRANCH_COORDS = { lat: 13.6878, lng: 100.0156, name: 'สาขาใหญ่ (รับสินค้า)', url: 'https://share.google/PsXOyJMknK7rzlI0g' };
+var STK_ORIGIN = { lat: 13.5478, lng: 100.2743, name: 'STK Metal สมุทรสาคร', url: 'https://share.google/G2JSOzzzXm8OE5DE4' };
+var BRANCH_COORDS = { lat: 13.5490, lng: 100.2730, name: 'สาขาใหญ่ STK (รับสินค้า)', url: 'https://share.google/PsXOyJMknK7rzlI0g' };
 
 var bank = JSON.parse(localStorage.getItem('stk-bank2') || '[]');
 var trucks = [];
@@ -547,15 +547,33 @@ function extractCoords(url) {
   return null;
 }
 
-// geocode ด้วย Nominatim (fallback)
+// geocode ด้วย Nominatim + fallback ที่ดีขึ้น
 async function geocode(name) {
-  try {
-    var r = await fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(name + ' ประเทศไทย') + '&format=json&limit=1', {
-      headers: { 'Accept-Language': 'th' }
-    });
-    var data = await r.json();
-    if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), name: data[0].display_name };
-  } catch(e) {}
+  // ตัดวงเล็บและคำพิเศษออกก่อน geocode
+  var cleanName = name
+    .replace(/\([^)]*\)/g, '') // ลบ (...)
+    .replace(/จำกัด|บริษัท|ห้างหุ้นส่วน|จำกัด\(มหาชน\)|มหาชน/g, '')
+    .replace(/\s+/g, ' ').trim();
+  
+  // ลอง query หลายแบบ
+  var queries = [
+    cleanName + ' สมุทรสาคร',
+    cleanName + ' กรุงเทพ',
+    cleanName + ' ไทย',
+    name.substring(0, 30) + ' Thailand'
+  ];
+  
+  for (var q of queries) {
+    try {
+      var r = await fetch(
+        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=th',
+        { headers: { 'Accept-Language': 'th,en' } }
+      );
+      var data = await r.json();
+      if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+      await new Promise(function(r){ setTimeout(r, 300); }); // rate limit
+    } catch(e) {}
+  }
   return null;
 }
 
@@ -614,6 +632,7 @@ async function showMap(truckId) {
   var colors = ['#1e90ff','#ff6b35','#4caf50','#ffd166','#e040fb','#00bcd4','#ff5252','#69f0ae'];
 
   var bounds = [];
+  var markerIndex = 0;
   validPoints.forEach(function(p, i) {
     var color = i === 0 ? '#4caf50' : colors[i % colors.length];
     var icon = L.divIcon({
@@ -639,22 +658,26 @@ async function showMap(truckId) {
   for (var i = 0; i < points.length; i++) {
     var p = points[i];
     var distStr = '';
-    if (i > 0 && validPoints.length >= 2) {
-      var prev = points[i-1];
-      if (p.lat && p.lng && prev.lat && prev.lng) {
-        var d = dist(prev, p);
+    if (i > 0) {
+      // หาจุดก่อนหน้าที่มีพิกัด
+      var prevWithCoords = null;
+      for (var j = i-1; j >= 0; j--) {
+        if (points[j].lat && points[j].lng) { prevWithCoords = points[j]; break; }
+      }
+      if (p.lat && p.lng && prevWithCoords) {
+        var d = dist(prevWithCoords, p);
         totalDist += d;
-        distStr = '<div class="map-stop-dist">📏 จากจุดก่อนหน้า: ~' + d.toFixed(1) + ' กม. (เส้นตรง)</div>';
+        distStr = '<div class="map-stop-dist">📏 ~' + d.toFixed(1) + ' กม. จากจุดก่อน</div>';
       }
     }
     var isOrigin = i === 0;
-    sideHtml += '<div class="map-stop">'
-      + '<div style="display:flex;align-items:center">'
-      + '<span class="map-stop-num" style="background:' + (isOrigin?'#4caf50':'#1e90ff') + '">' + (isOrigin?'🏠':i) + '</span>'
+    sideHtml += '<div class="map-stop" style="' + (!p.lat?'opacity:0.6':'') + '">'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+      + '<span class="map-stop-num" style="background:' + (isOrigin?'#4caf50':'#1e90ff') + ';flex-shrink:0">' + (isOrigin?'🏠':i) + '</span>'
       + '<span class="map-stop-name">' + esc(p.name) + '</span>'
       + '</div>'
-      + (p.tel ? '<div style="font-size:11px;color:var(--text3);margin-top:2px">📞 ' + esc(p.tel) + '</div>' : '')
-      + (!p.lat ? '<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ ไม่พบพิกัด</div>' : '')
+      + (p.tel ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;padding-left:26px">📞 ' + esc(p.tel) + '</div>' : '')
+      + (!p.lat ? '<div style="font-size:10px;color:var(--red);margin-top:2px;padding-left:26px">⚠️ ไม่พบพิกัด (geocode ไม่ได้)</div>' : '')
       + distStr
       + '</div>';
   }

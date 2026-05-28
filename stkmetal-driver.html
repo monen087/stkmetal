@@ -294,9 +294,11 @@ function renderAll() {
 
   const pending = allPlans.filter(p => {
     if (!p.date || p.date > today) return false;
-    const total = (p.pickups||[]).length + (p.customers||[]).length;
-    const done = (p.pickups||[]).filter(pk=>pk.done).length + (p.customers||[]).filter(c=>c.done).length;
-    return done < total;
+    const steps = [...(p.pickups||[]), ...(p.customers||[])];
+    const total = steps.length;
+    // นับงานที่ "เสร็จ" = done หรือ มีปัญหา (problem)
+    const doneOrProblem = steps.filter(s => s.done || s.problem).length;
+    return doneOrProblem < total;
   });
 
   if (!pending.length) {
@@ -325,8 +327,8 @@ function renderAll() {
     html += '<div style="padding:10px 14px">';
 
     const pendingSteps = [
-      ...(p.pickups||[]).map((pk,i)=>({...pk,label:'รับของจุดที่ '+(i+1)})).filter(s=>!s.done),
-      ...(p.customers||[]).map((c,i)=>({...c,label:'ส่ง '+c.name})).filter(s=>!s.done)
+      ...(p.pickups||[]).map((pk,i)=>({...pk,label:'รับของจุดที่ '+(i+1)})).filter(s=>!s.done && !s.problem),
+      ...(p.customers||[]).map((c,i)=>({...c,label:'ส่ง '+c.name})).filter(s=>!s.done && !s.problem)
     ];
     pendingSteps.slice(0,4).forEach(s => {
       html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">';
@@ -753,9 +755,44 @@ window.clearSig = () => {
 window.cancelSig = () => { document.getElementById('sig-modal').style.display = 'none'; };
 window.confirmSig = async () => {
   if (!_sigHasDrawn) { showToast('⚠️ กรุณาให้ลูกค้าเซ็นชื่อก่อน'); return; }
-  // บีบ signature ให้เล็ก
+
+  // ครอปเฉพาะพื้นที่ที่มีลายเซ็น (ตัดพื้นที่ว่างออก)
   const sigCanvas = document.getElementById('sig-canvas');
-  const sigData = sigCanvas.toDataURL('image/jpeg', 0.5);
+  const ctx = sigCanvas.getContext('2d');
+  const w = sigCanvas.width, h = sigCanvas.height;
+  const imgData = ctx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  let minX=w, minY=h, maxX=0, maxY=0;
+  for (let y=0; y<h; y++) {
+    for (let x=0; x<w; x++) {
+      const idx = (y*w+x)*4;
+      // หาพิกเซลที่ไม่ใช่ขาว (มีลายเซ็น)
+      if (data[idx]<240 || data[idx+1]<240 || data[idx+2]<240) {
+        if (x<minX) minX=x; if (x>maxX) maxX=x;
+        if (y<minY) minY=y; if (y>maxY) maxY=y;
+      }
+    }
+  }
+
+  let sigData;
+  if (maxX > minX && maxY > minY) {
+    // ครอปและเพิ่ม padding
+    const pad = 20;
+    const cx = Math.max(0, minX-pad), cy = Math.max(0, minY-pad);
+    const cw = Math.min(w-cx, maxX-minX+pad*2+1);
+    const ch = Math.min(h-cy, maxY-minY+pad*2+1);
+    const cropCanvas = document.createElement('canvas');
+    cropCanvas.width = cw; cropCanvas.height = ch;
+    const cropCtx = cropCanvas.getContext('2d');
+    cropCtx.fillStyle = '#fff';
+    cropCtx.fillRect(0, 0, cw, ch);
+    cropCtx.drawImage(sigCanvas, cx, cy, cw, ch, 0, 0, cw, ch);
+    sigData = cropCanvas.toDataURL('image/jpeg', 0.7);
+  } else {
+    sigData = sigCanvas.toDataURL('image/jpeg', 0.5);
+  }
+
   document.getElementById('sig-modal').style.display = 'none';
   showToast('⏳ กำลังบันทึก...');
   try {

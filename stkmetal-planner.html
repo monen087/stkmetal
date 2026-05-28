@@ -4,155 +4,171 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STK Metal — จัดแผนงาน</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root {
+:root{
   --bg:#0a1628;--bg2:#0f2040;--bg3:#162a52;--bg4:#1e3464;
   --blue:#1e90ff;--text:#fff;--text2:#e0f0ff;--text3:#7ab0d4;
-  --border:#1a3a5c;--border2:#2a5080;--green-pale:#0d2a4a;
-  --amber:#ffd166;--red:#ef5350;--red-pale:#2a0f0f;--r:10px;--rs:7px;
+  --border:#1a3a5c;--border2:#2a5080;--green:#2e7d32;--green-pale:#0d2a4a;
+  --amber:#ffd166;--red:#ef5350;--red-pale:#2a0f0f;
+  --r:10px;--rs:7px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
 /* HEADER */
-.hd{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.logo{font-size:16px;font-weight:700;color:var(--text2);}
+.hd{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10;}
+.logo{font-size:15px;font-weight:700;color:var(--text2);}
 .logo span{color:var(--blue);}
-.hd-btns{display:flex;gap:8px;}
-.btn{padding:7px 13px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;}
+.hd-right{display:flex;align-items:center;gap:8px;}
+.btn{padding:7px 12px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;}
 .btn:hover{background:var(--bg4);}
 .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600;}
 .btn.danger{color:var(--red);}
-/* LAYOUT */
-.layout{flex:1;display:grid;grid-template-columns:300px 1fr;overflow:hidden;}
-/* LEFT */
+.date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
+
+/* 3-COLUMN LAYOUT */
+.layout{flex:1;display:grid;grid-template-columns:260px 1fr 420px;overflow:hidden;}
+
+/* ===== LEFT: คลังงาน ===== */
 .left{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.panel-hd{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.panel-hd{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .panel-title{font-size:13px;font-weight:700;color:var(--text2);}
 .badge{font-size:11px;background:var(--bg3);color:var(--text3);padding:1px 8px;border-radius:20px;}
-.search{padding:8px;border-bottom:1px solid var(--border);}
-.search input{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
+.search{padding:7px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.search input{width:100%;padding:6px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit;}
 .search input:focus{outline:none;border-color:var(--blue);}
-.bank-list{flex:1;overflow-y:auto;padding:8px;}
-.bitem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px;margin-bottom:5px;cursor:grab;position:relative;user-select:none;}
+.bank-list{flex:1;overflow-y:auto;padding:6px;}
+.bitem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-bottom:4px;cursor:grab;position:relative;user-select:none;transition:border-color .15s;}
 .bitem:hover{border-color:var(--border2);background:var(--bg4);}
-.bitem.used{opacity:0.4;cursor:not-allowed;border-style:dashed;}
+.bitem.used{opacity:0.45;cursor:not-allowed;border-style:dashed;}
 .bitem.dragging{opacity:0.3;}
-.bitem-name{font-size:13px;font-weight:600;color:var(--text);}
+.bitem-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:700;margin-right:5px;flex-shrink:0;vertical-align:middle;}
+.bitem-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;}
 .bitem-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-.bitem-badge{position:absolute;top:7px;right:8px;font-size:10px;background:var(--green-pale);color:var(--blue);padding:1px 6px;border-radius:8px;}
-.add-btn{margin:8px;padding:9px;border:1px dashed var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;width:calc(100% - 16px);font-family:inherit;}
+.bitem-badge{position:absolute;top:6px;right:7px;font-size:9px;background:var(--green-pale);color:var(--blue);padding:1px 5px;border-radius:8px;}
+.add-btn{margin:6px 8px;padding:8px;border:1px dashed var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);font-size:12px;cursor:pointer;width:calc(100% - 16px);font-family:inherit;}
 .add-btn:hover{background:var(--bg3);color:var(--text2);}
-/* RIGHT */
-.right{display:flex;flex-direction:column;overflow:hidden;}
-.toolbar{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;}
-.toolbar label{font-size:13px;color:var(--text3);}
-.date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
-.trucks{flex:1;display:flex;gap:10px;padding:10px;overflow-x:auto;overflow-y:hidden;align-items:flex-start;}
-.truck{width:270px;flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;max-height:100%;}
-.truck-hd{padding:9px 11px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+
+/* ===== MIDDLE: แผนงาน ===== */
+.mid{display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
+.mid-tb{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg2);flex-shrink:0;}
+.trucks{flex:1;display:flex;gap:8px;padding:8px;overflow-x:auto;overflow-y:hidden;align-items:flex-start;}
+.truck{width:250px;flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;max-height:calc(100vh - 100px);}
+.truck-hd{padding:8px 10px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px;flex-shrink:0;}
 .truck-hd input{flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-weight:700;font-family:inherit;}
 .truck-hd input:focus{outline:none;}
 .truck-hd input::placeholder{color:var(--text3);}
-.truck-del{padding:2px 6px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:13px;}
-.truck-driver{padding:5px 11px;border-bottom:1px solid var(--border);background:transparent;}
-.truck-driver input{width:100%;background:transparent;border:none;color:var(--text3);font-size:12px;font-family:inherit;}
-.truck-driver input:focus{outline:none;color:var(--text2);}
-.drop{flex:1;overflow-y:auto;padding:7px;min-height:150px;transition:background .15s;}
+.truck-del{padding:2px 5px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:12px;}
+.truck-sub{display:flex;gap:4px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.truck-sub input{flex:1;background:transparent;border:none;color:var(--text3);font-size:11px;font-family:inherit;}
+.truck-sub input:focus{outline:none;color:var(--text2);}
+.branch-btn{padding:3px 7px;border:1px solid var(--border2);border-radius:5px;font-size:10px;cursor:pointer;font-family:inherit;white-space:nowrap;background:var(--bg4);color:var(--amber);}
+.branch-btn.on{background:var(--green-pale);color:var(--blue);}
+.drop{flex:1;overflow-y:auto;padding:6px;min-height:120px;transition:background .15s;}
 .drop.over{background:var(--green-pale);}
-.drop-empty{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text3);font-size:12px;}
-.citem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-bottom:4px;position:relative;}
-.citem-name{font-size:12px;font-weight:600;color:var(--text2);padding-right:18px;}
-.citem-sub{font-size:11px;color:var(--text3);margin-top:2px;}
-.citem-del{position:absolute;top:7px;right:7px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:var(--text3);cursor:pointer;font-size:11px;line-height:1;padding:0;}
+.drop-empty{display:flex;align-items:center;justify-content:center;height:70px;color:var(--text3);font-size:12px;}
+.branch-card{background:var(--green-pale);border:1px solid var(--border2);border-radius:var(--rs);padding:7px 9px;margin-bottom:4px;}
+.branch-title{font-size:11px;font-weight:700;color:var(--amber);margin-bottom:3px;}
+.branch-item{font-size:10px;color:var(--text2);padding:1px 0;}
+.citem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:7px 9px;margin-bottom:4px;position:relative;}
+.citem-name{font-size:12px;font-weight:600;color:var(--text2);padding-right:18px;line-height:1.3;}
+.citem-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+.citem-del{position:absolute;top:6px;right:6px;width:15px;height:15px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:var(--text3);cursor:pointer;font-size:10px;line-height:1;padding:0;}
 .citem-del:hover{background:var(--red-pale);color:var(--red);}
-.truck-ft{padding:6px 11px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center;flex-shrink:0;}
-.add-truck{width:270px;flex-shrink:0;height:56px;border:2px dashed var(--border2);border-radius:var(--r);background:transparent;color:var(--text3);font-size:22px;cursor:pointer;}
+.truck-ft{padding:5px 10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.truck-ft span{font-size:11px;color:var(--text3);}
+.map-btn-sm{padding:3px 9px;border:1px solid var(--border2);border-radius:5px;background:var(--bg3);color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit;}
+.map-btn-sm:hover{color:var(--blue);border-color:var(--blue);}
+.add-truck{width:250px;flex-shrink:0;height:50px;border:2px dashed var(--border2);border-radius:var(--r);background:transparent;color:var(--text3);font-size:20px;cursor:pointer;}
 .add-truck:hover{background:var(--bg2);color:var(--text2);}
-/* MODAL */
+
+/* ===== RIGHT: แผนที่ ===== */
+.right{display:flex;flex-direction:column;overflow:hidden;}
+.map-hd{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0;}
+.map-hd-title{font-size:13px;font-weight:700;color:var(--text2);}
+.map-legend{display:flex;gap:10px;font-size:11px;color:var(--text3);}
+.map-legend span{display:flex;align-items:center;gap:4px;}
+#main-map{flex:1;}
+.map-dist-bar{padding:7px 12px;border-top:1px solid var(--border);background:var(--bg2);font-size:12px;color:var(--text3);flex-shrink:0;min-height:32px;}
+
+/* ===== MODALS ===== */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
 .overlay.show{display:flex;}
-.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:18px;}
-.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.modal-title{font-size:15px;font-weight:700;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:16px;}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.modal-title{font-size:14px;font-weight:700;}
 .modal-x{background:var(--bg3);border:none;color:var(--text3);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;}
-.fg{margin-bottom:9px;}
-.fg label{display:block;font-size:12px;color:var(--text3);margin-bottom:3px;}
-.fg input,.fg textarea,.fg select{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
+.fg{margin-bottom:8px;}
+.fg label{display:block;font-size:11px;color:var(--text3);margin-bottom:3px;}
+.fg input,.fg textarea,.fg select{width:100%;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit;}
 .fg textarea{resize:none;}
 .fg input:focus,.fg textarea:focus{outline:none;border-color:var(--blue);}
-.irow{display:flex;gap:5px;margin-bottom:5px;align-items:center;}
-.irow .inp-name{flex:1;}
-.irow .inp-qty{width:65px;flex:none;}
-.irow select{width:90px;flex:none;padding:8px 4px;}
-.irow .btn-x{padding:4px 8px;border:1px solid var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;font-size:12px;flex:none;}
-.add-row{width:100%;padding:7px;border:1px dashed var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);font-size:12px;cursor:pointer;margin-bottom:10px;font-family:inherit;}
-.save-btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
-/* CONFIRM */
-.summary{background:var(--bg3);border-radius:var(--rs);padding:12px;font-size:13px;line-height:1.8;white-space:pre-wrap;margin:10px 0;max-height:300px;overflow-y:auto;}
-.cfm-btns{display:flex;gap:8px;margin-top:12px;}
-.cfm-cancel{flex:1;padding:10px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:var(--rs);font-size:13px;cursor:pointer;font-family:inherit;}
-/* TOAST */
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);padding:9px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;z-index:400;pointer-events:none;white-space:nowrap;}
+.irow{display:flex;gap:4px;margin-bottom:4px;align-items:center;}
+.irow .inp-n{flex:1;}
+.irow .inp-q{width:60px;flex:none;}
+.irow select{width:85px;flex:none;padding:7px 4px;}
+.irow .btn-x{padding:3px 7px;border:1px solid var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;font-size:11px;flex:none;}
+.add-row{width:100%;padding:6px;border:1px dashed var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);font-size:11px;cursor:pointer;margin-bottom:8px;font-family:inherit;}
+.save-btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+.summary{background:var(--bg3);border-radius:var(--rs);padding:10px;font-size:12px;line-height:1.8;white-space:pre-wrap;margin:8px 0;max-height:280px;overflow-y:auto;}
+.cfm-btns{display:flex;gap:8px;margin-top:10px;}
+.cfm-cancel{flex:1;padding:9px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:inherit;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);padding:8px 18px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;z-index:400;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
-</style>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Map popup styles -->
-<style>
-.map-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;display:none;align-items:center;justify-content:center;padding:16px;}
-.map-overlay.show{display:flex;}
-.map-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:860px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
-.map-hd{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.map-title{font-size:14px;font-weight:700;color:var(--text2);}
-.map-x{background:var(--bg3);border:none;color:var(--text3);padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;}
-.map-body{display:grid;grid-template-columns:1fr 260px;flex:1;overflow:hidden;min-height:0;}
-#leaflet-map{flex:1;min-height:400px;}
-.map-sidebar{border-left:1px solid var(--border);overflow-y:auto;padding:10px;}
-.map-stop{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-bottom:6px;}
-.map-stop-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;margin-right:6px;flex-shrink:0;}
-.map-stop-name{font-size:12px;font-weight:600;color:var(--text2);}
-.map-stop-dist{font-size:11px;color:var(--amber);margin-top:3px;}
-.map-total{background:var(--green-pale);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;text-align:center;font-size:13px;font-weight:700;color:var(--blue);margin-top:8px;}
-.map-btn{width:100%;padding:8px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;margin-top:6px;}
-.map-btn:hover{background:var(--bg4);}
-.map-loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:8px;}
-.map-geocode-note{font-size:10px;color:var(--text3);margin-top:6px;line-height:1.5;}
 </style>
 </head>
 <body>
 
 <div class="hd">
   <div class="logo">🔩 STK Metal — <span>จัดแผนงาน</span></div>
-  <div class="hd-btns">
+  <div class="hd-right">
+    <label style="font-size:12px;color:var(--text3)">📅</label>
+    <input class="date-inp" type="date" id="plan-date">
     <button class="btn" onclick="window.open('stkmetal-manager.html','_blank')">📋 ผู้จัดการ</button>
-    <button class="btn primary" onclick="confirmSave()">💾 บันทึกทั้งหมด</button>
+    <button class="btn danger" onclick="clearAll()">🗑 ล้างแผน</button>
+    <button class="btn primary" onclick="confirmSave()">💾 บันทึก</button>
   </div>
 </div>
 
 <div class="layout">
-  <!-- คลังงาน -->
+  <!-- LEFT: คลังงาน -->
   <div class="left">
     <div class="panel-hd">
       <span class="panel-title">📦 คลังงาน</span>
       <span class="badge" id="bank-count">0</span>
     </div>
     <div class="search">
-      <input type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="renderBank(this.value)" id="search-inp">
+      <input type="text" placeholder="🔍 ค้นหา..." oninput="renderBank(this.value)" id="search-inp">
     </div>
     <div class="bank-list" id="bank-list"></div>
     <button class="add-btn" onclick="openAdd()">+ เพิ่มลูกค้าใหม่ในคลัง</button>
   </div>
 
-  <!-- แผนงาน -->
-  <div class="right">
-    <div class="toolbar">
-      <label>📅 วันที่ส่ง:</label>
-      <input class="date-inp" type="date" id="plan-date">
-      <button class="btn danger" style="margin-left:auto" onclick="clearAll()">🗑 ล้างแผน</button>
+  <!-- MIDDLE: แผนงาน -->
+  <div class="mid">
+    <div class="mid-tb">
+      <span style="font-size:12px;color:var(--text3)">🚛 แผนงาน</span>
+      <span style="font-size:11px;color:var(--text3);margin-left:4px" id="plan-info"></span>
     </div>
     <div class="trucks" id="trucks">
       <button class="add-truck" id="add-truck-btn" onclick="addTruck()">+</button>
     </div>
+  </div>
+
+  <!-- RIGHT: แผนที่ -->
+  <div class="right">
+    <div class="map-hd">
+      <span class="map-hd-title">🗺️ แผนที่</span>
+      <div class="map-legend">
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#2e7d32;display:inline-block"></span>STK</span>
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#1565c0;display:inline-block"></span>คลัง</span>
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#e65100;display:inline-block"></span>แผน</span>
+      </div>
+    </div>
+    <div id="main-map"></div>
+    <div class="map-dist-bar" id="map-dist-bar">กด "🗺️ ดูเส้นทาง" ในแต่ละคันเพื่อดูระยะทางครับ</div>
   </div>
 </div>
 
@@ -161,11 +177,11 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
   <div class="modal">
     <div class="modal-hd">
       <span class="modal-title" id="modal-ttl">➕ เพิ่มลูกค้า</span>
-      <button class="modal-x" onclick="closeAdd()">✕ ปิด</button>
+      <button class="modal-x" onclick="closeAdd()">✕</button>
     </div>
     <div class="fg"><label>ชื่อลูกค้า / บริษัท *</label><input id="m-name" placeholder="ชื่อบริษัท..."></div>
     <div class="fg"><label>เบอร์โทร</label><input id="m-tel" type="tel" placeholder="08xxxxxxxx"></div>
-    <div class="fg"><label>📍 โลเคชั่น</label><input id="m-loc" placeholder="https://maps.app.goo.gl/..."></div>
+    <div class="fg"><label>📍 โลเคชั่น Google Maps</label><input id="m-loc" placeholder="https://maps.app.goo.gl/..."></div>
     <div class="fg"><label>📝 Note</label><textarea id="m-note" rows="2" placeholder="หมายเหตุ..."></textarea></div>
     <div class="fg"><label>รายการสินค้า</label></div>
     <div id="m-items"></div>
@@ -189,43 +205,131 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
   </div>
 </div>
 
-<!-- Map Popup -->
-<div class="map-overlay" id="map-overlay">
-  <div class="map-box">
-    <div class="map-hd">
-      <span class="map-title" id="map-title">🗺️ แผนที่เส้นทาง</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="map-status" style="font-size:11px;color:var(--text3)"></span>
-        <button class="map-x" onclick="closeMap()">✕ ปิด</button>
-      </div>
-    </div>
-    <div class="map-body">
-      <div id="leaflet-map"></div>
-      <div class="map-sidebar" id="map-sidebar">
-        <div class="map-loading">⏳ กำลังโหลด...</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== STATE =====
-// พิกัดสำคัญ
-var STK_ORIGIN = { lat: 13.5478, lng: 100.2743, name: 'STK Metal สมุทรสาคร', url: 'https://share.google/G2JSOzzzXm8OE5DE4' };
-var BRANCH_COORDS = { lat: 13.5490, lng: 100.2730, name: 'สาขาใหญ่ STK (รับสินค้า)', url: 'https://share.google/PsXOyJMknK7rzlI0g' };
+// ===== CONFIG =====
+var STK = { lat: 13.5478, lng: 100.2743, name: 'STK Metal สมุทรสาคร' };
+var BRANCH = { lat: 13.5490, lng: 100.2730, name: 'สาขาใหญ่ (รับสินค้า)' };
 
+// ===== STATE =====
 var bank = JSON.parse(localStorage.getItem('stk-bank2') || '[]');
 var trucks = [];
 var truckN = 0;
 var editId = null;
 var dragId = null;
+var mainMap = null;
+var mapMarkers = [];
+var mapLines = [];
+var geocodeCache = {};
 
 // ===== INIT =====
 document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
+initMap();
 addTruck();
 renderBank('');
+
+// ===== MAP INIT =====
+function initMap() {
+  mainMap = L.map('main-map', { zoomControl: true }).setView([13.55, 100.5], 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 18
+  }).addTo(mainMap);
+  // หมุด STK
+  var stkIcon = makeIcon('🏠', '#2e7d32', 32);
+  L.marker([STK.lat, STK.lng], { icon: stkIcon }).addTo(mainMap).bindPopup('<b>🏠 ' + STK.name + '</b>');
+}
+
+function makeIcon(label, color, size) {
+  var fs = label.length > 2 ? '10px' : (size > 28 ? '13px' : '11px');
+  return L.divIcon({
+    className: '',
+    html: '<div style="width:' + size + 'px;height:' + size + 'px;border-radius:50%;background:' + color + ';border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:' + fs + ';font-weight:800;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.5);font-family:Tahoma">' + label + '</div>',
+    iconSize: [size, size], iconAnchor: [size/2, size/2]
+  });
+}
+
+// อัพเดตแผนที่เมื่อมีการเปลี่ยนแปลง
+function refreshMap() {
+  // ลบ markers และ lines เดิม
+  mapMarkers.forEach(function(m){ mainMap.removeLayer(m); });
+  mapLines.forEach(function(l){ mainMap.removeLayer(l); });
+  mapMarkers = []; mapLines = [];
+
+  // แสดงลูกค้าในคลังที่ยังไม่ได้ใช้ (สีน้ำเงิน)
+  bank.forEach(function(item, i) {
+    var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
+    if (inPlan) return; // ข้ามถ้าอยู่ในแผนแล้ว
+    var coords = getCachedCoords(item);
+    if (!coords) return;
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), '#1565c0', 26) })
+      .addTo(mainMap)
+      .bindTooltip('<b>' + item.name + '</b>', { permanent: false, direction: 'top' });
+    mapMarkers.push(m);
+  });
+
+  // แสดงลูกค้าในแผน (สีส้ม พร้อมหมายเลขคัน)
+  trucks.forEach(function(t, ti) {
+    var colors = ['#e65100','#6a1b9a','#00695c','#c62828','#1565c0'];
+    var color = colors[ti % colors.length];
+    t.custs.forEach(function(c, ci) {
+      var coords = getCachedCoords(c);
+      if (!coords) return;
+      var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(ci+1), color, 28) })
+        .addTo(mainMap)
+        .bindTooltip('<b>' + (ti+1) + '-' + (ci+1) + '. ' + c.name + '</b><br>' + t.name, { permanent: false, direction: 'top' });
+      mapMarkers.push(m);
+    });
+  });
+}
+
+function getCachedCoords(item) {
+  if (!item) return null;
+  var key = item.id || item.bid || item.name;
+  if (geocodeCache[key]) return geocodeCache[key];
+  // ดึงพิกัดจาก URL ถ้ามี
+  var url = item.location || '';
+  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) {
+    geocodeCache[key] = { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+    return geocodeCache[key];
+  }
+  return null;
+}
+
+async function geocodeItem(item) {
+  var key = item.id || item.bid || item.name;
+  if (geocodeCache[key]) return geocodeCache[key];
+  var coords = getCachedCoords(item);
+  if (coords) return coords;
+
+  var cleanName = (item.name || '').replace(/\([^)]*\)/g,'').replace(/จำกัด|บริษัท|ห้างหุ้นส่วน/g,'').trim();
+  var queries = [cleanName + ' สมุทรสาคร', cleanName + ' กรุงเทพ', cleanName + ' ไทย'];
+  for (var q of queries) {
+    try {
+      var r = await fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=th');
+      var data = await r.json();
+      if (data.length > 0) {
+        var c = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        geocodeCache[key] = c;
+        return c;
+      }
+      await new Promise(function(r){ setTimeout(r, 250); });
+    } catch(e) {}
+  }
+  return null;
+}
+
+// geocode ทุกรายการในคลัง (background)
+async function geocodeAll() {
+  for (var item of bank) {
+    var c = getCachedCoords(item);
+    if (!c) {
+      c = await geocodeItem(item);
+      if (c) refreshMap();
+    }
+  }
+}
 
 // ===== TOAST =====
 function toast(msg) {
@@ -243,17 +347,24 @@ function renderBank(filter) {
   var shown = bank.filter(function(b){ return !fl || b.name.toLowerCase().indexOf(fl) >= 0; });
   document.getElementById('bank-count').textContent = bank.length + ' รายการ';
   if (!shown.length) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">' + (fl ? 'ไม่พบ' : 'ยังไม่มีลูกค้า') + '</div>';
+    list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">' + (fl?'ไม่พบ':'ยังไม่มีลูกค้า<br><span style="font-size:10px">กด "+ เพิ่มลูกค้า" ด้านล่าง</span>') + '</div>';
     return;
   }
   var html = '';
-  shown.forEach(function(item) {
-    var used = trucks.filter(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); }).map(function(t){ return t.name; });
+  shown.forEach(function(item, i) {
+    var used = trucks.filter(function(t){ return t.custs.some(function(c){ return c.bid===item.id; }); }).map(function(t){ return t.name; });
     var isUsed = used.length > 0;
-    html += '<div class="bitem' + (isUsed?' used':'') + '" id="bi-' + item.id + '" draggable="' + (!isUsed) + '" ondragstart="dStart(event,\'' + item.id + '\')" ondragend="dEnd()" onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
-      + '<div class="bitem-name">' + esc(item.name) + '</div>'
-      + '<div class="bitem-sub">' + (item.tel ? '📞' + item.tel + ' • ' : '') + item.items.length + ' สินค้า</div>'
-      + (isUsed ? '<div class="bitem-badge">✓ ' + used.join(',') + '</div>' : '')
+    var hasCoords = !!getCachedCoords(item);
+    html += '<div class="bitem' + (isUsed?' used':'') + '" id="bi-'+item.id+'" draggable="'+ (!isUsed) +'"'
+      + ' ondragstart="dStart(event,\''+item.id+'\')" ondragend="dEnd()"'
+      + ' onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
+      + '<div class="bitem-name">'
+      + '<span class="bitem-num">' + (i+1) + '</span>'
+      + esc(item.name)
+      + (!hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '')
+      + '</div>'
+      + '<div class="bitem-sub">' + (item.tel?'📞'+item.tel+' • ':'') + item.items.length + ' สินค้า</div>'
+      + (isUsed ? '<div class="bitem-badge">✓ '+used.join(',')+'</div>' : '')
       + '</div>';
   });
   list.innerHTML = html;
@@ -273,14 +384,14 @@ function openAdd() {
 }
 
 function openEdit(id) {
-  var item = bank.find(function(b){ return b.id === id; });
+  var item = bank.find(function(b){ return b.id===id; });
   if (!item) return;
   editId = id;
   document.getElementById('modal-ttl').textContent = '✏️ แก้ไขลูกค้า';
   document.getElementById('m-name').value = item.name;
-  document.getElementById('m-tel').value = item.tel || '';
-  document.getElementById('m-loc').value = item.location || '';
-  document.getElementById('m-note').value = item.note || '';
+  document.getElementById('m-tel').value = item.tel||'';
+  document.getElementById('m-loc').value = item.location||'';
+  document.getElementById('m-note').value = item.note||'';
   document.getElementById('m-items').innerHTML = '';
   item.items.forEach(function(it){ addRow(it); });
   document.getElementById('add-overlay').classList.add('show');
@@ -292,16 +403,16 @@ function addRow(prefill) {
   var c = document.getElementById('m-items');
   var div = document.createElement('div');
   div.className = 'irow';
-  var src = (prefill && prefill.src) ? prefill.src : 'สาขาใหญ่';
-  var srcVal = (src === 'สาขาใหญ่' || src === 'ในสต้อค') ? src : 'อื่นๆ';
-  div.innerHTML = '<input class="inp-name" placeholder="ชื่อสินค้า" value="' + esc(prefill ? prefill.name : '') + '">'
-    + '<input class="inp-qty" placeholder="จำนวน" value="' + esc(prefill ? prefill.qty : '') + '">'
+  var src = (prefill&&prefill.src)||'สาขาใหญ่';
+  var srcVal = (src==='สาขาใหญ่'||src==='ในสต้อค')?src:'อื่นๆ';
+  div.innerHTML = '<input class="inp-n" placeholder="ชื่อสินค้า" value="'+esc(prefill?prefill.name:'') + '">'
+    + '<input class="inp-q" placeholder="จำนวน" value="'+esc(prefill?prefill.qty:'')+'">'
     + '<select onchange="chkSrc(this)">'
-    + '<option value="สาขาใหญ่"' + (srcVal==='สาขาใหญ่'?' selected':'') + '>สาขาใหญ่</option>'
-    + '<option value="ในสต้อค"' + (srcVal==='ในสต้อค'?' selected':'') + '>ในสต้อค</option>'
-    + '<option value="อื่นๆ"' + (srcVal==='อื่นๆ'?' selected':'') + '>อื่นๆ</option>'
+    + '<option value="สาขาใหญ่"'+(srcVal==='สาขาใหญ่'?' selected':'')+'>สาขาใหญ่</option>'
+    + '<option value="ในสต้อค"'+(srcVal==='ในสต้อค'?' selected':'')+'>ในสต้อค</option>'
+    + '<option value="อื่นๆ"'+(srcVal==='อื่นๆ'?' selected':'')+'>อื่นๆ</option>'
     + '</select>'
-    + (srcVal==='อื่นๆ' ? '<input style="width:80px;flex:none;padding:8px 6px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit" value="' + esc(src) + '">' : '')
+    + (srcVal==='อื่นๆ'?'<input style="width:70px;flex:none;padding:7px 5px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:11px;font-family:inherit" value="'+esc(src)+'">':'')
     + '<button class="btn-x" onclick="this.parentElement.remove()">✕</button>';
   c.appendChild(div);
 }
@@ -309,16 +420,14 @@ function addRow(prefill) {
 function chkSrc(sel) {
   var row = sel.parentElement;
   var existing = row.querySelectorAll('input')[2];
-  if (sel.value === 'อื่นๆ') {
+  if (sel.value==='อื่นๆ') {
     if (!existing) {
       var inp = document.createElement('input');
-      inp.style.cssText = 'width:80px;flex:none;padding:8px 6px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit';
+      inp.style.cssText = 'width:70px;flex:none;padding:7px 5px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:11px;font-family:inherit';
       inp.placeholder = 'ระบุ...';
       sel.after(inp);
     }
-  } else {
-    if (existing) existing.remove();
-  }
+  } else { if (existing) existing.remove(); }
 }
 
 function saveItem() {
@@ -327,15 +436,15 @@ function saveItem() {
   var items = [];
   document.querySelectorAll('#m-items .irow').forEach(function(row) {
     var inps = row.querySelectorAll('input');
-    var n = inps[0] ? inps[0].value.trim() : '';
-    var q = inps[1] ? inps[1].value.trim() : '';
+    var n = inps[0]?inps[0].value.trim():'';
+    var q = inps[1]?inps[1].value.trim():'';
     var sel = row.querySelector('select');
     var srcInp = inps[2];
-    var src = sel ? (sel.value === 'อื่นๆ' ? (srcInp ? srcInp.value.trim() : 'อื่นๆ') : sel.value) : 'สาขาใหญ่';
-    if (n) items.push({ name: n, qty: q || '-', src: src });
+    var src = sel?(sel.value==='อื่นๆ'?(srcInp?srcInp.value.trim():'อื่นๆ'):sel.value):'สาขาใหญ่';
+    if (n) items.push({name:n, qty:q||'-', src:src});
   });
   var data = {
-    id: editId || 'b' + Date.now(),
+    id: editId||('b'+Date.now()),
     name: name,
     tel: document.getElementById('m-tel').value.trim(),
     location: document.getElementById('m-loc').value.trim(),
@@ -343,27 +452,33 @@ function saveItem() {
     items: items
   };
   if (editId) {
-    var idx = bank.findIndex(function(b){ return b.id === editId; });
-    if (idx >= 0) bank[idx] = data;
+    var idx = bank.findIndex(function(b){ return b.id===editId; });
+    if (idx>=0) bank[idx]=data;
+    delete geocodeCache[editId];
   } else {
     bank.push(data);
   }
-  saveBank(); renderBank(document.getElementById('search-inp').value); closeAdd();
-  toast(editId ? '✅ แก้ไขแล้ว' : '✅ เพิ่มในคลังแล้ว');
+  saveBank();
+  renderBank(document.getElementById('search-inp').value);
+  closeAdd();
+  toast(editId?'✅ แก้ไขแล้ว':'✅ เพิ่มในคลังแล้ว');
+  // geocode ในพื้นหลัง
+  geocodeItem(data).then(function(c){ if(c) refreshMap(); });
 }
 
 // ===== TRUCKS =====
 function addTruck() {
   truckN++;
-  var t = { id: 't' + Date.now(), name: 'คันที่ ' + truckN, driver: '', custs: [] };
-  trucks.push(t);
+  trucks.push({ id:'t'+Date.now(), name:'คันที่ '+truckN, driver:'', hasBranch:false, custs:[] });
   renderTrucks();
+  updatePlanInfo();
 }
 
 function delTruck(id) {
   if (!confirm('ลบคันนี้?')) return;
-  trucks = trucks.filter(function(t){ return t.id !== id; });
+  trucks = trucks.filter(function(t){ return t.id!==id; });
   renderTrucks(); renderBank(document.getElementById('search-inp').value);
+  refreshMap(); updatePlanInfo();
 }
 
 function renderTrucks() {
@@ -371,330 +486,187 @@ function renderTrucks() {
   var addBtn = document.getElementById('add-truck-btn');
   container.querySelectorAll('.truck').forEach(function(el){ el.remove(); });
   trucks.forEach(function(t) {
-    var div = document.createElement('div');
-    div.className = 'truck';
-    // สร้าง branch pickup HTML
+    // branch items
     var branchItems = [];
     if (t.hasBranch) {
-      t.custs.forEach(function(c) {
-        c.items.forEach(function(it) {
-          if (it.src === 'สาขาใหญ่') branchItems.push({ name: it.name, qty: it.qty, from: c.name });
-        });
-      });
+      t.custs.forEach(function(c){ c.items.forEach(function(it){ if(it.src==='สาขาใหญ่') branchItems.push({name:it.name, qty:it.qty}); }); });
     }
     var branchHtml = '';
     if (t.hasBranch) {
-      branchHtml = '<div style="background:var(--green-pale);border:1px solid var(--border2);border-radius:var(--rs);padding:8px 10px;margin-bottom:5px">'
-        + '<div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:4px">📦 จุดรับ: สาขาใหญ่</div>';
-      if (branchItems.length > 0) {
-        branchItems.forEach(function(it) {
-          branchHtml += '<div style="font-size:11px;color:var(--text2);padding:1px 0">• ' + esc(it.name) + ' = ' + esc(it.qty) + '</div>';
-        });
-      } else {
-        branchHtml += '<div style="font-size:11px;color:var(--text3)">ยังไม่มีสินค้าจากสาขาใหญ่</div>';
-      }
-      branchHtml += '</div>';
+      branchHtml = '<div class="branch-card"><div class="branch-title">📦 รับสาขาใหญ่</div>'
+        + (branchItems.length ? branchItems.map(function(it){ return '<div class="branch-item">• '+esc(it.name)+' = '+esc(it.qty)+'</div>'; }).join('') : '<div class="branch-item" style="color:var(--text3)">ยังไม่มีสินค้าสาขาใหญ่</div>')
+        + '</div>';
     }
-
-    var custs = t.custs.map(function(c, i) {
+    var custsHtml = t.custs.map(function(c,ci){
       return '<div class="citem">'
-        + '<div class="citem-name">' + (i+1) + '. ' + esc(c.name) + '</div>'
-        + '<div class="citem-sub">' + c.items.length + ' สินค้า' + (c.tel ? ' • 📞' + esc(c.tel) : '') + '</div>'
-        + '<button class="citem-del" onclick="removeFromTruck(\'' + t.id + '\',\'' + c.bid + '\')">✕</button>'
+        + '<div class="citem-name"><span style="color:var(--text3);font-size:10px;margin-right:3px">'+(ci+1)+'.</span>'+esc(c.name)+'</div>'
+        + '<div class="citem-sub">' + c.items.length + ' สินค้า'+(c.tel?'  📞'+esc(c.tel):'')+'</div>'
+        + '<button class="citem-del" onclick="removeC(\''+t.id+'\',\''+c.bid+'\')">✕</button>'
         + '</div>';
     }).join('');
+
+    var div = document.createElement('div');
+    div.className = 'truck';
     div.innerHTML = '<div class="truck-hd">'
-      + '<input value="' + esc(t.name) + '" placeholder="ชื่อรถ" onchange="updName(\'' + t.id + '\',this.value)">'
-      + '<button class="truck-del" onclick="delTruck(\'' + t.id + '\')">✕</button>'
+      + '<input value="'+esc(t.name)+'" placeholder="ชื่อรถ" onchange="updName(\''+t.id+'\',this.value)">'
+      + '<button class="truck-del" onclick="delTruck(\''+t.id+'\')">✕</button>'
       + '</div>'
-      + '<div class="truck-driver"><input value="' + esc(t.driver) + '" placeholder="ชื่อคนขับ..." onchange="updDriver(\'' + t.id + '\',this.value)"></div>'
-      + '<div class="drop" id="drop-' + t.id + '" ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event,\'' + t.id + '\')">'
-      + (t.custs.length ? custs : '<div class="drop-empty">ลากลูกค้ามาวางที่นี่</div>')
+      + '<div class="truck-sub">'
+      + '<input value="'+esc(t.driver)+'" placeholder="คนขับ..." onchange="updDriver(\''+t.id+'\',this.value)">'
+      + '<button class="branch-btn'+(t.hasBranch?' on':'')+'" onclick="toggleBranch(\''+t.id+'\')">📦'+(t.hasBranch?' ✓':'')+' สาขา</button>'
       + '</div>'
-      + '<div class="truck-ft" style="display:flex;justify-content:space-between;align-items:center">'
-      + '<span>' + t.custs.length + ' ลูกค้า</span>'
-      + (t.custs.length >= 2 ? '<button class="map-btn" style="width:auto;padding:4px 10px;margin:0" onclick="showMap(\''+t.id+'\')">🗺️ ดูแผนที่</button>' : '')
+      + '<div class="drop" id="drop-'+t.id+'" ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event,\''+t.id+'\')">'
+      + branchHtml
+      + (t.custs.length ? custsHtml : '<div class="drop-empty">ลากลูกค้ามาวางที่นี่</div>')
+      + '</div>'
+      + '<div class="truck-ft">'
+      + '<span>'+t.custs.length+' ลูกค้า</span>'
+      + (t.custs.length>=1?'<button class="map-btn-sm" onclick="showRoute(\''+t.id+'\')">🗺️ เส้นทาง</button>':'')
       + '</div>';
     container.insertBefore(div, addBtn);
   });
 }
 
-function updName(id, v) { var t = trucks.find(function(t){ return t.id===id; }); if(t) t.name=v; }
-function updDriver(id, v) { var t = trucks.find(function(t){ return t.id===id; }); if(t) t.driver=v; }
-
-function removeFromTruck(tid, bid) {
-  var t = trucks.find(function(t){ return t.id===tid; });
-  if (t) t.custs = t.custs.filter(function(c){ return c.bid!==bid; });
+function updName(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t) t.name=v; updatePlanInfo(); }
+function updDriver(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t) t.driver=v; }
+function toggleBranch(id){ var t=trucks.find(function(t){return t.id===id;}); if(t){ t.hasBranch=!t.hasBranch; renderTrucks(); } }
+function removeC(tid,bid){
+  var t=trucks.find(function(t){return t.id===tid;});
+  if(t) t.custs=t.custs.filter(function(c){return c.bid!==bid;});
   renderTrucks(); renderBank(document.getElementById('search-inp').value);
+  refreshMap(); updatePlanInfo();
 }
-
-function toggleBranch(tid) {
-  var t = trucks.find(function(t){ return t.id === tid; });
-  if (!t) return;
-  // ตรวจว่ามี branch แล้วหรือยัง
-  if (t.hasBranch) {
-    if (!confirm('ลบจุดรับสาขาใหญ่ออก?')) return;
-    t.hasBranch = false;
-  } else {
-    t.hasBranch = true;
-    toast('✅ เพิ่มจุดรับสาขาใหญ่แล้ว');
-  }
-  renderTrucks();
-}
-
-function clearAll() {
-  if (!confirm('ล้างแผนงานทั้งหมด?')) return;
-  trucks.forEach(function(t){ t.custs=[]; });
-  renderTrucks(); renderBank(document.getElementById('search-inp').value);
+function clearAll(){ if(!confirm('ล้างแผนทั้งหมด?')) return; trucks.forEach(function(t){t.custs=[];t.hasBranch=false;}); renderTrucks(); renderBank(document.getElementById('search-inp').value); refreshMap(); updatePlanInfo(); }
+function updatePlanInfo(){
+  var total = trucks.reduce(function(s,t){ return s+t.custs.length; }, 0);
+  document.getElementById('plan-info').textContent = trucks.length + ' คัน • ' + total + ' ลูกค้า';
 }
 
 // ===== DRAG & DROP =====
-function dStart(e, id) {
-  dragId = id;
-  e.dataTransfer.effectAllowed = 'copy';
-  setTimeout(function(){ var el=document.getElementById('bi-'+id); if(el) el.classList.add('dragging'); }, 0);
-}
-function dEnd() {
-  if (dragId) { var el=document.getElementById('bi-'+dragId); if(el) el.classList.remove('dragging'); }
-  dragId = null;
-}
-function dOver(e) { e.preventDefault(); e.currentTarget.classList.add('over'); }
-function dLeave(e) { e.currentTarget.classList.remove('over'); }
-function dDrop(e, tid) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('over');
-  if (!dragId) return;
-  var item = bank.find(function(b){ return b.id===dragId; });
-  if (!item) return;
-  var t = trucks.find(function(t){ return t.id===tid; });
-  if (!t) return;
-  if (t.custs.some(function(c){ return c.bid===dragId; })) { toast('⚠️ มีลูกค้านี้อยู่แล้ว'); return; }
-  t.custs.push({ bid: item.id, name: item.name, tel: item.tel, location: item.location, note: item.note, items: item.items });
+function dStart(e,id){ dragId=id; e.dataTransfer.effectAllowed='copy'; setTimeout(function(){ var el=document.getElementById('bi-'+id); if(el) el.classList.add('dragging'); },0); }
+function dEnd(){ if(dragId){ var el=document.getElementById('bi-'+dragId); if(el) el.classList.remove('dragging'); } dragId=null; }
+function dOver(e){ e.preventDefault(); e.currentTarget.classList.add('over'); }
+function dLeave(e){ e.currentTarget.classList.remove('over'); }
+function dDrop(e,tid){
+  e.preventDefault(); e.currentTarget.classList.remove('over');
+  if(!dragId) return;
+  var item=bank.find(function(b){ return b.id===dragId; });
+  if(!item) return;
+  var t=trucks.find(function(t){ return t.id===tid; });
+  if(!t) return;
+  if(t.custs.some(function(c){ return c.bid===dragId; })){ toast('⚠️ มีลูกค้านี้อยู่แล้ว'); return; }
+  t.custs.push({bid:item.id, name:item.name, tel:item.tel, location:item.location, note:item.note, items:item.items});
   renderTrucks(); renderBank(document.getElementById('search-inp').value);
+  refreshMap(); updatePlanInfo();
+  // เลื่อนแผนที่ไปยังจุดที่เพิ่ม
+  var coords = getCachedCoords(item);
+  if(coords) mainMap.setView([coords.lat, coords.lng], 11);
+}
+
+// ===== ROUTE (popup) =====
+async function showRoute(truckId) {
+  var t = trucks.find(function(t){ return t.id===truckId; });
+  if(!t) return;
+  toast('⏳ คำนวณเส้นทาง...');
+
+  // ล้าง layer เส้นทางเก่า
+  mapLines.forEach(function(l){ mainMap.removeLayer(l); }); mapLines=[];
+
+  var points = [STK];
+  if(t.hasBranch) points.push(BRANCH);
+  for(var c of t.custs) {
+    var coords = getCachedCoords(c) || await geocodeItem(c);
+    if(coords) points.push({lat:coords.lat, lng:coords.lng, name:c.name, tel:c.tel});
+    else points.push({lat:null, lng:null, name:c.name});
+  }
+
+  var validPts = points.filter(function(p){ return p.lat; });
+  if(validPts.length<2){ toast('⚠️ ไม่พบพิกัดเพียงพอ'); return; }
+
+  // วาดเส้น
+  var latlngs = validPts.map(function(p){ return [p.lat,p.lng]; });
+  var line = L.polyline(latlngs,{color:'#e65100',weight:3,opacity:0.85,dashArray:'8,4'}).addTo(mainMap);
+  mapLines.push(line);
+
+  // วาดป้ายระยะทางบนเส้น
+  var totalDist = 0;
+  var distInfo = '';
+  for(var i=1;i<validPts.length;i++){
+    var pa=validPts[i-1],pb=validPts[i];
+    var d = haversine(pa,pb);
+    totalDist+=d;
+    var mid = L.divIcon({className:'',html:'<div style="background:rgba(0,0,0,.7);color:#ffd166;font-size:9px;padding:1px 4px;border-radius:6px;white-space:nowrap">~'+d.toFixed(0)+' กม.</div>',iconSize:[55,16],iconAnchor:[27,8]});
+    var ml = L.marker([(pa.lat+pb.lat)/2,(pa.lng+pb.lng)/2],{icon:mid,interactive:false}).addTo(mainMap);
+    mapLines.push(ml);
+    distInfo += (i)+'. '+pb.name.substring(0,15)+' (~'+d.toFixed(0)+'กม.) ';
+  }
+
+  mainMap.fitBounds(latlngs,{padding:[30,30]});
+  var road = (totalDist*1.35).toFixed(1);
+  document.getElementById('map-dist-bar').innerHTML = '🚛 <b>'+t.name+'</b> — รวม ~'+totalDist.toFixed(1)+' กม. (ถนนประมาณ ~'+road+' กม.) | ' + distInfo;
+  refreshMap();
+  toast('✅ แสดงเส้นทาง '+t.name);
+}
+
+function haversine(a,b){
+  var R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLon=(b.lng-a.lng)*Math.PI/180;
+  var x=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
 }
 
 // ===== SAVE =====
-function confirmSave() {
+function confirmSave(){
   var date = document.getElementById('plan-date').value;
-  if (!date) { toast('⚠️ กรุณาเลือกวันที่'); return; }
-  var active = trucks.filter(function(t){ return t.custs.length > 0; });
-  if (!active.length) { toast('⚠️ ยังไม่มีลูกค้าในแผน'); return; }
-  var mo = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  var p = date.split('-'); var ds = parseInt(p[2])+' '+mo[parseInt(p[1])]+' '+(parseInt(p[0])+543);
-  var txt = '📅 '+ds+'\n\n';
+  if(!date){ toast('⚠️ กรุณาเลือกวันที่'); return; }
+  var active = trucks.filter(function(t){ return t.custs.length>0; });
+  if(!active.length){ toast('⚠️ ยังไม่มีลูกค้าในแผน'); return; }
+  var mo=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var p=date.split('-'); var ds=parseInt(p[2])+' '+mo[parseInt(p[1])]+' '+(parseInt(p[0])+543);
+  var txt='📅 '+ds+'\n\n';
   active.forEach(function(t){
-    txt += '🚛 '+t.name+(t.driver?' ('+t.driver+')':'')+'\n';
-    t.custs.forEach(function(c,i){ txt += '  '+(i+1)+'. '+c.name+'\n'; });
-    txt += '\n';
+    txt+='🚛 '+t.name+(t.driver?' ('+t.driver+')':'')+'\n';
+    if(t.hasBranch) txt+='  📦 รับสาขาใหญ่\n';
+    t.custs.forEach(function(c,i){ txt+='  '+(i+1)+'. '+c.name+'\n'; });
+    txt+='\n';
   });
-  document.getElementById('cfm-summary').textContent = txt;
+  document.getElementById('cfm-summary').textContent=txt;
   document.getElementById('cfm-overlay').classList.add('show');
 }
 
-function doSave() {
-  var btn = document.getElementById('cfm-btn');
-  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
-  var date = document.getElementById('plan-date').value;
-  var active = trucks.filter(function(t){ return t.custs.length > 0; });
-
-  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(function(appMod) {
-    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fsMod) {
-      var getApps = appMod.getApps, initializeApp = appMod.initializeApp;
-      var getFirestore = fsMod.getFirestore, collection = fsMod.collection, addDoc = fsMod.addDoc;
-      var ex = getApps().find(function(a){ return a.name==='planner2'; });
-      var app = ex || initializeApp({ apiKey:'AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM', authDomain:'delivery-stkmetal.firebaseapp.com', projectId:'delivery-stkmetal' }, 'planner2');
-      var db = getFirestore(app);
-
-      var saves = active.map(function(t) {
-        var pickupItems = [];
-        t.custs.forEach(function(c){ c.items.forEach(function(it){ if(it.src==='สาขาใหญ่') pickupItems.push(Object.assign({},it)); }); });
-        var pickups = [];
-        if (t.hasBranch || pickupItems.length > 0) {
-          pickups.push({ location:'https://share.google/PsXOyJMknK7rzlI0g', note:'รับสินค้าจากสาขาใหญ่', items:pickupItems, done:false, doneAt:null, photos:[], problem:null, problemNote:null, problemAt:null });
-        }
-        var customers = t.custs.map(function(c){ return { name:c.name, tel:c.tel||'', location:c.location||'', note:c.note||'', items:c.items, done:false, doneAt:null, photos:[], problem:null, problemNote:null, problemAt:null }; });
-        return addDoc(collection(db,'plans'), { date:date, truckName:t.name, driver:t.driver||'', createdAt:Date.now(), pickups:pickups, customers:customers });
+function doSave(){
+  var btn=document.getElementById('cfm-btn');
+  btn.disabled=true; btn.textContent='⏳ กำลังบันทึก...';
+  var date=document.getElementById('plan-date').value;
+  var active=trucks.filter(function(t){ return t.custs.length>0; });
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(function(am){
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fm){
+      var ex=am.getApps().find(function(a){ return a.name==='pl3'; });
+      var app=ex||am.initializeApp({apiKey:'AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM',authDomain:'delivery-stkmetal.firebaseapp.com',projectId:'delivery-stkmetal'},'pl3');
+      var db=fm.getFirestore(app);
+      var saves=active.map(function(t){
+        var pkItems=[];
+        t.custs.forEach(function(c){ c.items.forEach(function(it){ if(it.src==='สาขาใหญ่') pkItems.push(Object.assign({},it)); }); });
+        var pickups=[];
+        if(t.hasBranch||pkItems.length>0) pickups.push({location:'https://share.google/PsXOyJMknK7rzlI0g',note:'รับสินค้าจากสาขาใหญ่',items:pkItems,done:false,doneAt:null,photos:[],problem:null,problemNote:null,problemAt:null});
+        var customers=t.custs.map(function(c){ return {name:c.name,tel:c.tel||'',location:c.location||'',note:c.note||'',items:c.items,done:false,doneAt:null,photos:[],problem:null,problemNote:null,problemAt:null}; });
+        return fm.addDoc(fm.collection(db,'plans'),{date:date,truckName:t.name,driver:t.driver||'',createdAt:Date.now(),pickups:pickups,customers:customers});
       });
-
-      Promise.all(saves).then(function() {
+      Promise.all(saves).then(function(){
         document.getElementById('cfm-overlay').classList.remove('show');
-        toast('✅ บันทึกสำเร็จ ' + saves.length + ' คัน!');
-        trucks.forEach(function(t){ t.custs=[]; });
+        toast('✅ บันทึกสำเร็จ '+saves.length+' คัน!');
+        trucks.forEach(function(t){ t.custs=[]; t.hasBranch=false; });
         renderTrucks(); renderBank(document.getElementById('search-inp').value);
+        refreshMap(); updatePlanInfo();
         btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ';
       }).catch(function(e){ toast('❌ '+e.message); btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ'; });
     });
   });
 }
 
-// ===== MAP =====
-var leafletMap = null;
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function closeMap() {
-  document.getElementById('map-overlay').classList.remove('show');
-}
-
-// แปลง Google Maps URL → พิกัด (ดึงจาก URL ถ้าทำได้)
-function extractCoords(url) {
-  if (!url) return null;
-  // รูปแบบ: @lat,lng หรือ query=lat,lng
-  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  m = url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  m = url.match(/place\/[^/]+\/@(-?\d+\.\d+),(-?\d+\.\d+)/);
-  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
-  return null;
-}
-
-// geocode ด้วย Nominatim + fallback ที่ดีขึ้น
-async function geocode(name) {
-  // ตัดวงเล็บและคำพิเศษออกก่อน geocode
-  var cleanName = name
-    .replace(/\([^)]*\)/g, '') // ลบ (...)
-    .replace(/จำกัด|บริษัท|ห้างหุ้นส่วน|จำกัด\(มหาชน\)|มหาชน/g, '')
-    .replace(/\s+/g, ' ').trim();
-  
-  // ลอง query หลายแบบ
-  var queries = [
-    cleanName + ' สมุทรสาคร',
-    cleanName + ' กรุงเทพ',
-    cleanName + ' ไทย',
-    name.substring(0, 30) + ' Thailand'
-  ];
-  
-  for (var q of queries) {
-    try {
-      var r = await fetch(
-        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=1&countrycodes=th',
-        { headers: { 'Accept-Language': 'th,en' } }
-      );
-      var data = await r.json();
-      if (data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-      await new Promise(function(r){ setTimeout(r, 300); }); // rate limit
-    } catch(e) {}
-  }
-  return null;
-}
-
-// คำนวณระยะทางเส้นตรง (Haversine)
-function dist(a, b) {
-  var R = 6371, dLat = (b.lat-a.lat)*Math.PI/180, dLon = (b.lng-a.lng)*Math.PI/180;
-  var x = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
-  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
-}
-
-async function showMap(truckId) {
-  var t = trucks.find(function(t){ return t.id === truckId; });
-  if (!t || t.custs.length < 2) { toast('⚠️ ต้องมีลูกค้าอย่างน้อย 2 คน'); return; }
-
-  document.getElementById('map-title').textContent = '🗺️ เส้นทาง — ' + t.name;
-  document.getElementById('map-status').textContent = '⏳ กำลังโหลดแผนที่...';
-  document.getElementById('map-sidebar').innerHTML = '<div class="map-loading">⏳ กำลังค้นหาพิกัด...</div>';
-  document.getElementById('map-overlay').classList.add('show');
-
-  // init map
-  if (leafletMap) { leafletMap.remove(); leafletMap = null; }
-  await new Promise(function(r){ setTimeout(r, 100); });
-  leafletMap = L.map('leaflet-map').setView([13.7, 100.5], 10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap', maxZoom: 18
-  }).addTo(leafletMap);
-
-  // หาพิกัดแต่ละจุด
-  var points = [];
-  // จุดเริ่ม = STK Metal
-  var origin = STK_ORIGIN;
-  points.push(origin);
-
-  // ถ้ามีสาขาใหญ่ให้เพิ่มเป็นจุดที่ 2
-  if (t.hasBranch) {
-    points.push(BRANCH_COORDS);
-  }
-
-  for (var i = 0; i < t.custs.length; i++) {
-    var c = t.custs[i];
-    var coords = extractCoords(c.location || '');
-    if (!coords && c.name) {
-      document.getElementById('map-status').textContent = '⏳ ค้นหา: ' + c.name;
-      coords = await geocode(c.name);
-    }
-    points.push({
-      lat: coords ? coords.lat : null,
-      lng: coords ? coords.lng : null,
-      name: c.name,
-      tel: c.tel
-    });
-  }
-
-  // วาดจุดและเส้นทาง
-  var validPoints = points.filter(function(p){ return p.lat && p.lng; });
-  var colors = ['#1e90ff','#ff6b35','#4caf50','#ffd166','#e040fb','#00bcd4','#ff5252','#69f0ae'];
-
-  var bounds = [];
-  var markerIndex = 0;
-  validPoints.forEach(function(p, i) {
-    var color = i === 0 ? '#4caf50' : colors[i % colors.length];
-    var icon = L.divIcon({
-      className: '',
-      html: '<div style="width:28px;height:28px;border-radius:50%;background:' + color + ';border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;box-shadow:0 2px 4px rgba(0,0,0,.4)">' + (i === 0 ? '🏠' : i) + '</div>',
-      iconSize: [28, 28], iconAnchor: [14, 14]
-    });
-    L.marker([p.lat, p.lng], { icon: icon }).addTo(leafletMap)
-      .bindPopup('<b>' + (i===0?'จุดเริ่ม: ':i+'. ') + p.name + '</b>' + (p.tel ? '<br>📞 ' + p.tel : ''));
-    bounds.push([p.lat, p.lng]);
-  });
-
-  // วาดเส้น
-  if (validPoints.length >= 2) {
-    var latlngs = validPoints.map(function(p){ return [p.lat, p.lng]; });
-    L.polyline(latlngs, { color: '#1e90ff', weight: 3, opacity: 0.7, dashArray: '8,4' }).addTo(leafletMap);
-    leafletMap.fitBounds(bounds, { padding: [30, 30] });
-  }
-
-  // สร้าง sidebar
-  var totalDist = 0;
-  var sideHtml = '';
-  for (var i = 0; i < points.length; i++) {
-    var p = points[i];
-    var distStr = '';
-    if (i > 0) {
-      // หาจุดก่อนหน้าที่มีพิกัด
-      var prevWithCoords = null;
-      for (var j = i-1; j >= 0; j--) {
-        if (points[j].lat && points[j].lng) { prevWithCoords = points[j]; break; }
-      }
-      if (p.lat && p.lng && prevWithCoords) {
-        var d = dist(prevWithCoords, p);
-        totalDist += d;
-        distStr = '<div class="map-stop-dist">📏 ~' + d.toFixed(1) + ' กม. จากจุดก่อน</div>';
-      }
-    }
-    var isOrigin = i === 0;
-    sideHtml += '<div class="map-stop" style="' + (!p.lat?'opacity:0.6':'') + '">'
-      + '<div style="display:flex;align-items:center;gap:6px">'
-      + '<span class="map-stop-num" style="background:' + (isOrigin?'#4caf50':'#1e90ff') + ';flex-shrink:0">' + (isOrigin?'🏠':i) + '</span>'
-      + '<span class="map-stop-name">' + esc(p.name) + '</span>'
-      + '</div>'
-      + (p.tel ? '<div style="font-size:11px;color:var(--text3);margin-top:2px;padding-left:26px">📞 ' + esc(p.tel) + '</div>' : '')
-      + (!p.lat ? '<div style="font-size:10px;color:var(--red);margin-top:2px;padding-left:26px">⚠️ ไม่พบพิกัด (geocode ไม่ได้)</div>' : '')
-      + distStr
-      + '</div>';
-  }
-  if (totalDist > 0) {
-    sideHtml += '<div class="map-total">📍 ระยะทางรวม ~' + totalDist.toFixed(1) + ' กม.</div>';
-    sideHtml += '<div class="map-geocode-note">* ระยะทางเส้นตรง ระยะถนนจริงอาจมากกว่า 1.3-1.5 เท่า</div>';
-  }
-  // ปุ่มเปิดใน Google Maps
-  var gmUrl = 'https://www.google.com/maps/dir/' + validPoints.map(function(p){ return p.lat+','+p.lng; }).join('/');
-  sideHtml += '<a href="' + gmUrl + '" target="_blank"><button class="map-btn">🗺️ เปิดใน Google Maps</button></a>';
-
-  document.getElementById('map-sidebar').innerHTML = sideHtml;
-  document.getElementById('map-status').textContent = validPoints.length + '/' + points.length + ' จุดพบพิกัด';
-  setTimeout(function(){ if(leafletMap) leafletMap.invalidateSize(); }, 200);
-}
-
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// geocode ทุกรายการในพื้นหลัง
+setTimeout(geocodeAll, 1000);
 </script>
 </body>
 </html>

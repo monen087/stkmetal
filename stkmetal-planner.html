@@ -197,17 +197,22 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
+let db = null;
 
-const existing = getApps().find(a => a.name === "planner");
-const app = existing || initializeApp({
-  apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
-  authDomain: "delivery-stkmetal.firebaseapp.com",
-  projectId: "delivery-stkmetal"
-}, "planner");
-const db = getFirestore(app);
+async function initFirebase() {
+  if (db) return db;
+  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+  const { getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  const existing = getApps().find(a => a.name === "planner");
+  const app = existing || initializeApp({
+    apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
+    authDomain: "delivery-stkmetal.firebaseapp.com",
+    projectId: "delivery-stkmetal"
+  }, "planner");
+  db = getFirestore(app);
+  return db;
+}
 
 // ===== STATE =====
 let bank = JSON.parse(localStorage.getItem('stk-bank') || '[]');
@@ -465,6 +470,8 @@ window.doSaveAll = async function() {
   const activeTrucks = trucks.filter(t => t.customers.length > 0);
   let success = 0;
   try {
+    const db = await initFirebase();
+    const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
     for (const truck of activeTrucks) {
       // สร้าง pickups จากสินค้าที่มี src = สาขาใหญ่
       const pickupItems = [];

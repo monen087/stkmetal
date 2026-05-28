@@ -3,194 +3,165 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0a1628">
 <title>STK Metal — จัดแผนงาน</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a1628; --bg2: #0f2040; --bg3: #162a52; --bg4: #1e3464;
-  --green: #90caf9; --green2: #1e90ff; --green-pale: #0d2a4a;
-  --amber: #ffd166; --amber-pale: #2a2000;
-  --red: #ef5350; --red-pale: #2a0f0f;
-  --text: #fff; --text2: #e0f0ff; --text3: #7ab0d4;
-  --border: #1a3a5c; --border2: #2a5080;
-  --r: 10px; --rs: 7px;
+  --bg:#0a1628;--bg2:#0f2040;--bg3:#162a52;--bg4:#1e3464;
+  --blue:#1e90ff;--text:#fff;--text2:#e0f0ff;--text3:#7ab0d4;
+  --border:#1a3a5c;--border2:#2a5080;--green-pale:#0d2a4a;
+  --amber:#ffd166;--red:#ef5350;--red-pale:#2a0f0f;--r:10px;--rs:7px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-/* ===== HEADER ===== */
-.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-.logo { font-size: 17px; font-weight: 700; }
-.logo span { color: var(--green2); }
-.header-btns { display: flex; gap: 8px; }
-.hbtn { padding: 7px 12px; border-radius: var(--rs); border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 13px; font-family: inherit; cursor: pointer; }
-.hbtn.primary { background: var(--green2); color: #fff; border-color: var(--green2); font-weight: 600; }
-.hbtn:active { opacity: 0.8; }
-
-/* ===== LAYOUT ===== */
-.layout { display: grid; grid-template-columns: 340px 1fr; height: calc(100vh - 57px); }
-
-/* ===== LEFT: คลังงาน ===== */
-.left-panel { background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-.panel-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
-.panel-title { font-size: 14px; font-weight: 700; color: var(--text2); }
-.panel-count { font-size: 11px; color: var(--text3); background: var(--bg3); padding: 2px 8px; border-radius: 20px; }
-.search-box { padding: 8px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
-.search-input { width: 100%; padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 13px; font-family: inherit; }
-.search-input:focus { outline: none; border-color: var(--green2); }
-.bank-list { flex: 1; overflow-y: auto; padding: 8px; }
-.bank-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; margin-bottom: 6px; cursor: grab; user-select: none; transition: all 0.15s; position: relative; }
-.bank-item:active { cursor: grabbing; }
-.bank-item.dragging { opacity: 0.4; }
-.bank-item:hover { border-color: var(--border2); background: var(--bg4); }
-.bank-item.used { opacity: 0.4; border-style: dashed; cursor: not-allowed; }
-.bank-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-.bank-items-count { font-size: 11px; color: var(--text3); }
-.bank-used-badge { position: absolute; top: 8px; right: 8px; font-size: 10px; background: var(--green-pale); color: var(--green2); padding: 1px 6px; border-radius: 8px; }
-.add-bank-btn { margin: 8px; padding: 10px; border: 1px dashed var(--border2); border-radius: var(--rs); background: transparent; color: var(--text3); font-size: 13px; font-family: inherit; cursor: pointer; width: calc(100% - 16px); }
-.add-bank-btn:hover { background: var(--bg3); color: var(--text2); }
-
-/* ===== RIGHT: แผนงาน ===== */
-.right-panel { display: flex; flex-direction: column; overflow: hidden; }
-.plan-toolbar { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: var(--bg2); }
-.date-input { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 13px; font-family: inherit; }
-.date-input:focus { outline: none; border-color: var(--green2); }
-.trucks-container { flex: 1; display: flex; gap: 10px; padding: 10px; overflow-x: auto; align-items: flex-start; }
-.truck-col { width: 280px; flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100vh - 130px); }
-.truck-header { padding: 10px 12px; background: var(--bg3); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.truck-name-input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 13px; font-weight: 700; font-family: inherit; }
-.truck-name-input:focus { outline: none; }
-.truck-name-input::placeholder { color: var(--text3); }
-.truck-driver-input { width: 100%; background: transparent; border: none; border-top: 1px solid var(--border); color: var(--text3); font-size: 12px; font-family: inherit; padding: 5px 12px; }
-.truck-driver-input:focus { outline: none; color: var(--text2); }
-.remove-truck-btn { padding: 2px 6px; border: none; background: transparent; color: var(--text3); cursor: pointer; font-size: 14px; }
-.drop-zone { flex: 1; overflow-y: auto; padding: 8px; min-height: 200px; transition: background 0.15s; }
-.drop-zone.drag-over { background: var(--green-pale); border-radius: 6px; }
-.drop-zone.empty { display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 12px; }
-.truck-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rs); padding: 9px 11px; margin-bottom: 5px; position: relative; }
-.truck-item-name { font-size: 12px; font-weight: 600; color: var(--text2); padding-right: 20px; }
-.truck-item-detail { font-size: 11px; color: var(--text3); margin-top: 2px; }
-.remove-item-btn { position: absolute; top: 8px; right: 8px; width: 16px; height: 16px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: var(--text3); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; padding: 0; }
-.remove-item-btn:hover { background: var(--red-pale); color: var(--red); }
-.truck-footer { padding: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); text-align: center; flex-shrink: 0; }
-.add-truck-btn { width: 280px; flex-shrink: 0; height: 60px; border: 2px dashed var(--border2); border-radius: var(--r); background: transparent; color: var(--text3); font-size: 20px; cursor: pointer; }
-.add-truck-btn:hover { background: var(--bg2); color: var(--text2); }
-
-/* ===== MODALS ===== */
-.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto; padding: 20px; }
-.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-.modal-close { background: var(--bg3); border: none; color: var(--text3); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; }
-.input-group { margin-bottom: 10px; }
-.input-label { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
-.input-field { width: 100%; padding: 9px 11px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 13px; font-family: inherit; }
-.input-field:focus { outline: none; border-color: var(--green2); }
-.item-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
-.item-row .input-field { flex: 1; }
-.item-row .qty { width: 70px; flex: none; }
-.src-select { width: 85px; flex: none; padding: 9px 4px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 11px; font-family: inherit; }
-.remove-row-btn { padding: 4px 8px; border: 1px solid var(--border2); border-radius: var(--rs); background: transparent; color: var(--text3); cursor: pointer; font-family: inherit; font-size: 12px; }
-.add-row-btn { width: 100%; padding: 8px; border: 1px dashed var(--border2); border-radius: var(--rs); background: transparent; color: var(--text3); font-size: 12px; font-family: inherit; cursor: pointer; margin-bottom: 12px; }
-.save-btn { width: 100%; padding: 12px; background: var(--green2); color: #fff; border: none; border-radius: var(--rs); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
-
-/* ===== Toast ===== */
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.25s; z-index: 400; white-space: nowrap; pointer-events: none; }
-.toast.show { opacity: 1; }
-
-/* ===== Confirm Modal ===== */
-.confirm-modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); width: 100%; max-width: 460px; padding: 20px; }
-.plan-summary { background: var(--bg3); border-radius: var(--rs); padding: 12px; margin: 12px 0; font-size: 13px; line-height: 1.7; }
-.confirm-btns { display: flex; gap: 8px; margin-top: 14px; }
-.cancel-btn { flex: 1; padding: 11px; background: var(--bg3); color: var(--text3); border: 1px solid var(--border2); border-radius: var(--rs); font-size: 13px; font-family: inherit; cursor: pointer; }
-
-@media (max-width: 768px) {
-  .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  .left-panel { height: 220px; }
-  .bank-list { display: flex; gap: 6px; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-  .bank-item { min-width: 160px; margin-bottom: 0; }
-}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+/* HEADER */
+.hd{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{font-size:16px;font-weight:700;color:var(--text2);}
+.logo span{color:var(--blue);}
+.hd-btns{display:flex;gap:8px;}
+.btn{padding:7px 13px;border-radius:var(--rs);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;}
+.btn:hover{background:var(--bg4);}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600;}
+.btn.danger{color:var(--red);}
+/* LAYOUT */
+.layout{flex:1;display:grid;grid-template-columns:300px 1fr;overflow:hidden;}
+/* LEFT */
+.left{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.panel-hd{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.panel-title{font-size:13px;font-weight:700;color:var(--text2);}
+.badge{font-size:11px;background:var(--bg3);color:var(--text3);padding:1px 8px;border-radius:20px;}
+.search{padding:8px;border-bottom:1px solid var(--border);}
+.search input{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
+.search input:focus{outline:none;border-color:var(--blue);}
+.bank-list{flex:1;overflow-y:auto;padding:8px;}
+.bitem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:9px 11px;margin-bottom:5px;cursor:grab;position:relative;user-select:none;}
+.bitem:hover{border-color:var(--border2);background:var(--bg4);}
+.bitem.used{opacity:0.4;cursor:not-allowed;border-style:dashed;}
+.bitem.dragging{opacity:0.3;}
+.bitem-name{font-size:13px;font-weight:600;color:var(--text);}
+.bitem-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.bitem-badge{position:absolute;top:7px;right:8px;font-size:10px;background:var(--green-pale);color:var(--blue);padding:1px 6px;border-radius:8px;}
+.add-btn{margin:8px;padding:9px;border:1px dashed var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);font-size:13px;cursor:pointer;width:calc(100% - 16px);font-family:inherit;}
+.add-btn:hover{background:var(--bg3);color:var(--text2);}
+/* RIGHT */
+.right{display:flex;flex-direction:column;overflow:hidden;}
+.toolbar{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2);flex-shrink:0;}
+.toolbar label{font-size:13px;color:var(--text3);}
+.date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
+.trucks{flex:1;display:flex;gap:10px;padding:10px;overflow-x:auto;overflow-y:hidden;align-items:flex-start;}
+.truck{width:270px;flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;max-height:100%;}
+.truck-hd{padding:9px 11px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.truck-hd input{flex:1;background:transparent;border:none;color:var(--text);font-size:13px;font-weight:700;font-family:inherit;}
+.truck-hd input:focus{outline:none;}
+.truck-hd input::placeholder{color:var(--text3);}
+.truck-del{padding:2px 6px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:13px;}
+.truck-driver{padding:5px 11px;border-bottom:1px solid var(--border);background:transparent;}
+.truck-driver input{width:100%;background:transparent;border:none;color:var(--text3);font-size:12px;font-family:inherit;}
+.truck-driver input:focus{outline:none;color:var(--text2);}
+.drop{flex:1;overflow-y:auto;padding:7px;min-height:150px;transition:background .15s;}
+.drop.over{background:var(--green-pale);}
+.drop-empty{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text3);font-size:12px;}
+.citem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-bottom:4px;position:relative;}
+.citem-name{font-size:12px;font-weight:600;color:var(--text2);padding-right:18px;}
+.citem-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.citem-del{position:absolute;top:7px;right:7px;width:16px;height:16px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:var(--text3);cursor:pointer;font-size:11px;line-height:1;padding:0;}
+.citem-del:hover{background:var(--red-pale);color:var(--red);}
+.truck-ft{padding:6px 11px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);text-align:center;flex-shrink:0;}
+.add-truck{width:270px;flex-shrink:0;height:56px;border:2px dashed var(--border2);border-radius:var(--r);background:transparent;color:var(--text3);font-size:22px;cursor:pointer;}
+.add-truck:hover{background:var(--bg2);color:var(--text2);}
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+.overlay.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:18px;}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.modal-title{font-size:15px;font-weight:700;}
+.modal-x{background:var(--bg3);border:none;color:var(--text3);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;}
+.fg{margin-bottom:9px;}
+.fg label{display:block;font-size:12px;color:var(--text3);margin-bottom:3px;}
+.fg input,.fg textarea,.fg select{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
+.fg textarea{resize:none;}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--blue);}
+.irow{display:flex;gap:5px;margin-bottom:5px;align-items:center;}
+.irow .inp-name{flex:1;}
+.irow .inp-qty{width:65px;flex:none;}
+.irow select{width:90px;flex:none;padding:8px 4px;}
+.irow .btn-x{padding:4px 8px;border:1px solid var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);cursor:pointer;font-family:inherit;font-size:12px;flex:none;}
+.add-row{width:100%;padding:7px;border:1px dashed var(--border2);border-radius:var(--rs);background:transparent;color:var(--text3);font-size:12px;cursor:pointer;margin-bottom:10px;font-family:inherit;}
+.save-btn{width:100%;padding:11px;background:var(--blue);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+/* CONFIRM */
+.summary{background:var(--bg3);border-radius:var(--rs);padding:12px;font-size:13px;line-height:1.8;white-space:pre-wrap;margin:10px 0;max-height:300px;overflow-y:auto;}
+.cfm-btns{display:flex;gap:8px;margin-top:12px;}
+.cfm-cancel{flex:1;padding:10px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:var(--rs);font-size:13px;cursor:pointer;font-family:inherit;}
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);padding:9px 20px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;z-index:400;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
 
-<div class="header">
+<div class="hd">
   <div class="logo">🔩 STK Metal — <span>จัดแผนงาน</span></div>
-  <div class="header-btns">
-    <button class="hbtn" onclick="window.open('stkmetal-manager.html','_blank')">📋 ผู้จัดการ</button>
-    <button class="hbtn primary" id="save-all-btn" onclick="confirmSaveAll()">💾 บันทึกทั้งหมด</button>
+  <div class="hd-btns">
+    <button class="btn" onclick="window.open('stkmetal-manager.html','_blank')">📋 ผู้จัดการ</button>
+    <button class="btn primary" onclick="confirmSave()">💾 บันทึกทั้งหมด</button>
   </div>
 </div>
 
 <div class="layout">
   <!-- คลังงาน -->
-  <div class="left-panel">
-    <div class="panel-header">
+  <div class="left">
+    <div class="panel-hd">
       <span class="panel-title">📦 คลังงาน</span>
-      <span class="panel-count" id="bank-count">0 รายการ</span>
+      <span class="badge" id="bank-count">0</span>
     </div>
-    <div class="search-box">
-      <input class="search-input" type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="filterBank(this.value)" id="search-input">
+    <div class="search">
+      <input type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="renderBank(this.value)" id="search-inp">
     </div>
     <div class="bank-list" id="bank-list"></div>
-    <button class="add-bank-btn" onclick="showAddModal()">+ เพิ่มลูกค้าใหม่ในคลัง</button>
+    <button class="add-btn" onclick="openAdd()">+ เพิ่มลูกค้าใหม่ในคลัง</button>
   </div>
 
   <!-- แผนงาน -->
-  <div class="right-panel">
-    <div class="plan-toolbar">
-      <span style="font-size:13px;color:var(--text3)">📅 วันที่ส่ง:</span>
-      <input class="date-input" type="date" id="plan-date">
-      <button class="hbtn" onclick="clearAllTrucks()" style="margin-left:auto;color:var(--red)">🗑 ล้างแผน</button>
+  <div class="right">
+    <div class="toolbar">
+      <label>📅 วันที่ส่ง:</label>
+      <input class="date-inp" type="date" id="plan-date">
+      <button class="btn danger" style="margin-left:auto" onclick="clearAll()">🗑 ล้างแผน</button>
     </div>
-    <div class="trucks-container" id="trucks-container">
-      <!-- trucks added here -->
-      <button class="add-truck-btn" id="add-truck-btn" onclick="addTruck()">+</button>
+    <div class="trucks" id="trucks">
+      <button class="add-truck" id="add-truck-btn" onclick="addTruck()">+</button>
     </div>
   </div>
 </div>
 
-<!-- Add/Edit Customer Modal -->
-<div class="modal-bg" id="add-modal" style="display:none">
+<!-- Add/Edit Modal -->
+<div class="overlay" id="add-overlay">
   <div class="modal">
-    <div class="modal-title">
-      <span id="modal-title-text">➕ เพิ่มลูกค้าในคลัง</span>
-      <button class="modal-close" onclick="closeAddModal()">✕ ปิด</button>
+    <div class="modal-hd">
+      <span class="modal-title" id="modal-ttl">➕ เพิ่มลูกค้า</span>
+      <button class="modal-x" onclick="closeAdd()">✕ ปิด</button>
     </div>
-    <div class="input-group">
-      <div class="input-label">ชื่อลูกค้า / บริษัท</div>
-      <input class="input-field" id="m-name" type="text" placeholder="ชื่อบริษัทหรือชื่อลูกค้า">
-    </div>
-    <div class="input-group">
-      <div class="input-label">เบอร์โทร</div>
-      <input class="input-field" id="m-tel" type="tel" placeholder="0812345678">
-    </div>
-    <div class="input-group">
-      <div class="input-label">📍 โลเคชั่น Google Maps</div>
-      <input class="input-field" id="m-loc" type="url" placeholder="https://maps.app.goo.gl/...">
-    </div>
-    <div class="input-group">
-      <div class="input-label">📝 Note ถึงคนขับ</div>
-      <textarea class="input-field" id="m-note" rows="2" style="resize:none" placeholder="หมายเหตุ..."></textarea>
-    </div>
-    <div class="input-label" style="margin-bottom:8px">รายการสินค้า</div>
+    <div class="fg"><label>ชื่อลูกค้า / บริษัท *</label><input id="m-name" placeholder="ชื่อบริษัท..."></div>
+    <div class="fg"><label>เบอร์โทร</label><input id="m-tel" type="tel" placeholder="08xxxxxxxx"></div>
+    <div class="fg"><label>📍 โลเคชั่น</label><input id="m-loc" placeholder="https://maps.app.goo.gl/..."></div>
+    <div class="fg"><label>📝 Note</label><textarea id="m-note" rows="2" placeholder="หมายเหตุ..."></textarea></div>
+    <div class="fg"><label>รายการสินค้า</label></div>
     <div id="m-items"></div>
-    <button class="add-row-btn" onclick="addItemRow()">+ เพิ่มสินค้า</button>
-    <button class="save-btn" onclick="saveToBank()">💾 บันทึกในคลัง</button>
+    <button class="add-row" onclick="addRow()">+ เพิ่มสินค้า</button>
+    <button class="save-btn" onclick="saveItem()">💾 บันทึก</button>
   </div>
 </div>
 
-<!-- Confirm Save Modal -->
-<div class="modal-bg" id="confirm-modal" style="display:none">
-  <div class="confirm-modal">
-    <div class="modal-title">
-      <span>📋 ยืนยันบันทึกแผนงาน</span>
-      <button class="modal-close" onclick="document.getElementById('confirm-modal').style.display='none'">✕</button>
+<!-- Confirm Modal -->
+<div class="overlay" id="cfm-overlay">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title">📋 ยืนยันบันทึก</span>
+      <button class="modal-x" onclick="document.getElementById('cfm-overlay').classList.remove('show')">✕</button>
     </div>
-    <div class="plan-summary" id="plan-summary"></div>
-    <div class="confirm-btns">
-      <button class="cancel-btn" onclick="document.getElementById('confirm-modal').style.display='none'">ยกเลิก</button>
-      <button class="save-btn" id="confirm-save-btn" onclick="doSaveAll()">✅ บันทึกเข้าระบบ</button>
+    <div class="summary" id="cfm-summary"></div>
+    <div class="cfm-btns">
+      <button class="cfm-cancel" onclick="document.getElementById('cfm-overlay').classList.remove('show')">ยกเลิก</button>
+      <button class="save-btn" id="cfm-btn" onclick="doSave()">✅ บันทึกเข้าระบบ</button>
     </div>
   </div>
 </div>
@@ -198,326 +169,276 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 <div class="toast" id="toast"></div>
 
 <script>
-let db = null;
-
-window.initFirebase = async function() {
-  if (db) return db;
-  const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-  const { getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-  const existing = getApps().find(a => a.name === "planner");
-  const app = existing || initializeApp({
-    apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
-    authDomain: "delivery-stkmetal.firebaseapp.com",
-    projectId: "delivery-stkmetal"
-  }, "planner");
-  db = getFirestore(app);
-  return db;
-}
-
 // ===== STATE =====
-let bank = JSON.parse(localStorage.getItem('stk-bank') || '[]');
-let trucks = [];
-let editingId = null;
-let dragItem = null;
-let truckCounter = 0;
+var bank = JSON.parse(localStorage.getItem('stk-bank2') || '[]');
+var trucks = [];
+var truckN = 0;
+var editId = null;
+var dragId = null;
 
 // ===== INIT =====
 document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
 addTruck();
-renderBank();
+renderBank('');
+
+// ===== TOAST =====
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
 
 // ===== BANK =====
-function saveBank() {
-  localStorage.setItem('stk-bank', JSON.stringify(bank));
-}
+function saveBank() { localStorage.setItem('stk-bank2', JSON.stringify(bank)); }
 
-window.renderBank = function(filter = '') {
-  const list = document.getElementById('bank-list');
-  const lower = filter.toLowerCase();
-  const filtered = bank.filter(b => !filter || b.name.toLowerCase().includes(lower));
+function renderBank(filter) {
+  var list = document.getElementById('bank-list');
+  var fl = (filter||'').toLowerCase();
+  var shown = bank.filter(function(b){ return !fl || b.name.toLowerCase().indexOf(fl) >= 0; });
   document.getElementById('bank-count').textContent = bank.length + ' รายการ';
-
-  if (!filtered.length) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">' + (filter ? 'ไม่พบลูกค้า' : 'ยังไม่มีลูกค้าในคลัง') + '</div>';
+  if (!shown.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">' + (fl ? 'ไม่พบ' : 'ยังไม่มีลูกค้า') + '</div>';
     return;
   }
-
-  list.innerHTML = filtered.map(item => {
-    const usedIn = getUsedIn(item.id);
-    const used = usedIn.length > 0;
-    return `<div class="bank-item${used ? ' used' : ''}" 
-      id="bank-${item.id}"
-      draggable="${!used}"
-      ondragstart="onDragStart(event,'${item.id}')"
-      ondragend="onDragEnd(event)"
-      onclick="${used ? '' : `showEditModal('${item.id}')`}">
-      <div class="bank-name">${item.name}</div>
-      <div class="bank-items-count">${item.tel ? '📞 '+item.tel+' • ' : ''}${item.items.length} สินค้า</div>
-      ${used ? `<div class="bank-used-badge">✓ คัน${usedIn.join(',')}</div>` : ''}
-    </div>`;
-  }).join('');
+  var html = '';
+  shown.forEach(function(item) {
+    var used = trucks.filter(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); }).map(function(t){ return t.name; });
+    var isUsed = used.length > 0;
+    html += '<div class="bitem' + (isUsed?' used':'') + '" id="bi-' + item.id + '" draggable="' + (!isUsed) + '" ondragstart="dStart(event,\'' + item.id + '\')" ondragend="dEnd()" onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
+      + '<div class="bitem-name">' + esc(item.name) + '</div>'
+      + '<div class="bitem-sub">' + (item.tel ? '📞' + item.tel + ' • ' : '') + item.items.length + ' สินค้า</div>'
+      + (isUsed ? '<div class="bitem-badge">✓ ' + used.join(',') + '</div>' : '')
+      + '</div>';
+  });
+  list.innerHTML = html;
 }
 
-function getUsedIn(id) {
-  return trucks.filter(t => t.customers.some(c => c.bankId === id)).map(t => t.name);
-}
-
-window.filterBank = filter => renderBank(filter);
-
-// ===== ADD/EDIT MODAL =====
-window.showAddModal = function() {
-  editingId = null;
-  document.getElementById('modal-title-text').textContent = '➕ เพิ่มลูกค้าใหม่ในคลัง';
+// ===== ADD/EDIT =====
+function openAdd() {
+  editId = null;
+  document.getElementById('modal-ttl').textContent = '➕ เพิ่มลูกค้าใหม่';
   document.getElementById('m-name').value = '';
   document.getElementById('m-tel').value = '';
   document.getElementById('m-loc').value = '';
   document.getElementById('m-note').value = '';
   document.getElementById('m-items').innerHTML = '';
-  addItemRow(); addItemRow();
-  document.getElementById('add-modal').style.display = 'flex';
-};
+  addRow(); addRow();
+  document.getElementById('add-overlay').classList.add('show');
+}
 
-window.showEditModal = function(id) {
-  const item = bank.find(b => b.id === id);
+function openEdit(id) {
+  var item = bank.find(function(b){ return b.id === id; });
   if (!item) return;
-  editingId = id;
-  document.getElementById('modal-title-text').textContent = '✏️ แก้ไขลูกค้า';
+  editId = id;
+  document.getElementById('modal-ttl').textContent = '✏️ แก้ไขลูกค้า';
   document.getElementById('m-name').value = item.name;
   document.getElementById('m-tel').value = item.tel || '';
   document.getElementById('m-loc').value = item.location || '';
   document.getElementById('m-note').value = item.note || '';
   document.getElementById('m-items').innerHTML = '';
-  item.items.forEach(it => addItemRow(it));
-  document.getElementById('add-modal').style.display = 'flex';
-};
+  item.items.forEach(function(it){ addRow(it); });
+  document.getElementById('add-overlay').classList.add('show');
+}
 
-window.closeAddModal = () => document.getElementById('add-modal').style.display = 'none';
+function closeAdd() { document.getElementById('add-overlay').classList.remove('show'); }
 
-window.addItemRow = function(prefill) {
-  const container = document.getElementById('m-items');
-  const row = document.createElement('div');
-  row.className = 'item-row';
-  row.innerHTML = `<input class="input-field" type="text" placeholder="ชื่อสินค้า" value="${prefill ? escHtml(prefill.name) : ''}">
-    <input class="input-field qty" type="text" placeholder="จำนวน" value="${prefill ? escHtml(prefill.qty) : ''}">
-    <select class="src-select">
-      <option value="สาขาใหญ่"${prefill?.src==='สาขาใหญ่'?' selected':''}>สาขาใหญ่</option>
-      <option value="ในสต้อค"${prefill?.src==='ในสต้อค'?' selected':''}>ในสต้อค</option>
-      <option value="ระบุเอง"${prefill?.src&&prefill.src!=='สาขาใหญ่'&&prefill.src!=='ในสต้อค'?' selected':''}>ระบุเอง</option>
-    </select>
-    <button class="remove-row-btn" onclick="this.parentElement.remove()">✕</button>`;
-  if (prefill?.src && prefill.src !== 'สาขาใหญ่' && prefill.src !== 'ในสต้อค') {
-    const sel = row.querySelector('select');
-    sel.value = 'ระบุเอง';
-    const inp = document.createElement('input');
-    inp.className = 'input-field'; inp.style.width = '80px'; inp.style.flex = 'none';
-    inp.value = prefill.src;
-    sel.after(inp);
+function addRow(prefill) {
+  var c = document.getElementById('m-items');
+  var div = document.createElement('div');
+  div.className = 'irow';
+  var src = (prefill && prefill.src) ? prefill.src : 'สาขาใหญ่';
+  var srcVal = (src === 'สาขาใหญ่' || src === 'ในสต้อค') ? src : 'อื่นๆ';
+  div.innerHTML = '<input class="inp-name" placeholder="ชื่อสินค้า" value="' + esc(prefill ? prefill.name : '') + '">'
+    + '<input class="inp-qty" placeholder="จำนวน" value="' + esc(prefill ? prefill.qty : '') + '">'
+    + '<select onchange="chkSrc(this)">'
+    + '<option value="สาขาใหญ่"' + (srcVal==='สาขาใหญ่'?' selected':'') + '>สาขาใหญ่</option>'
+    + '<option value="ในสต้อค"' + (srcVal==='ในสต้อค'?' selected':'') + '>ในสต้อค</option>'
+    + '<option value="อื่นๆ"' + (srcVal==='อื่นๆ'?' selected':'') + '>อื่นๆ</option>'
+    + '</select>'
+    + (srcVal==='อื่นๆ' ? '<input style="width:80px;flex:none;padding:8px 6px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit" value="' + esc(src) + '">' : '')
+    + '<button class="btn-x" onclick="this.parentElement.remove()">✕</button>';
+  c.appendChild(div);
+}
+
+function chkSrc(sel) {
+  var row = sel.parentElement;
+  var existing = row.querySelectorAll('input')[2];
+  if (sel.value === 'อื่นๆ') {
+    if (!existing) {
+      var inp = document.createElement('input');
+      inp.style.cssText = 'width:80px;flex:none;padding:8px 6px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit';
+      inp.placeholder = 'ระบุ...';
+      sel.after(inp);
+    }
+  } else {
+    if (existing) existing.remove();
   }
-  container.appendChild(row);
-};
+}
 
-window.saveToBank = function() {
-  const name = document.getElementById('m-name').value.trim();
+function saveItem() {
+  var name = document.getElementById('m-name').value.trim();
   if (!name) { toast('⚠️ กรุณาใส่ชื่อลูกค้า'); return; }
-  const items = [];
-  document.querySelectorAll('#m-items .item-row').forEach(row => {
-    const inputs = row.querySelectorAll('input');
-    const n = inputs[0]?.value.trim();
-    const q = inputs[1]?.value.trim();
-    const sel = row.querySelector('select');
-    const customInp = row.querySelectorAll('input')[2];
-    const src = sel?.value === 'ระบุเอง' ? (customInp?.value || 'ระบุเอง') : (sel?.value || 'สาขาใหญ่');
-    if (n) items.push({ name: n, qty: q || '-', src });
+  var items = [];
+  document.querySelectorAll('#m-items .irow').forEach(function(row) {
+    var inps = row.querySelectorAll('input');
+    var n = inps[0] ? inps[0].value.trim() : '';
+    var q = inps[1] ? inps[1].value.trim() : '';
+    var sel = row.querySelector('select');
+    var srcInp = inps[2];
+    var src = sel ? (sel.value === 'อื่นๆ' ? (srcInp ? srcInp.value.trim() : 'อื่นๆ') : sel.value) : 'สาขาใหญ่';
+    if (n) items.push({ name: n, qty: q || '-', src: src });
   });
-  const data = {
-    id: editingId || 'b' + Date.now(),
-    name, tel: document.getElementById('m-tel').value.trim(),
+  var data = {
+    id: editId || 'b' + Date.now(),
+    name: name,
+    tel: document.getElementById('m-tel').value.trim(),
     location: document.getElementById('m-loc').value.trim(),
     note: document.getElementById('m-note').value.trim(),
-    items
+    items: items
   };
-  if (editingId) {
-    const idx = bank.findIndex(b => b.id === editingId);
+  if (editId) {
+    var idx = bank.findIndex(function(b){ return b.id === editId; });
     if (idx >= 0) bank[idx] = data;
   } else {
     bank.push(data);
   }
-  saveBank(); renderBank(); closeAddModal();
-  toast(editingId ? '✅ แก้ไขแล้ว' : '✅ เพิ่มในคลังแล้ว');
-};
+  saveBank(); renderBank(document.getElementById('search-inp').value); closeAdd();
+  toast(editId ? '✅ แก้ไขแล้ว' : '✅ เพิ่มในคลังแล้ว');
+}
 
 // ===== TRUCKS =====
-window.addTruck = function() {
-  truckCounter++;
-  const id = 't' + Date.now();
-  const truck = { id, name: 'คันที่ ' + truckCounter, driver: '', customers: [] };
-  trucks.push(truck);
+function addTruck() {
+  truckN++;
+  var t = { id: 't' + Date.now(), name: 'คันที่ ' + truckN, driver: '', custs: [] };
+  trucks.push(t);
   renderTrucks();
-};
+}
 
-window.removeTruck = function(id) {
+function delTruck(id) {
   if (!confirm('ลบคันนี้?')) return;
-  trucks = trucks.filter(t => t.id !== id);
-  renderTrucks(); renderBank();
-};
+  trucks = trucks.filter(function(t){ return t.id !== id; });
+  renderTrucks(); renderBank(document.getElementById('search-inp').value);
+}
 
-window.renderTrucks = function() {
-  const container = document.getElementById('trucks-container');
-  const addBtn = document.getElementById('add-truck-btn');
-  // ลบ truck cols เก่าออก
-  container.querySelectorAll('.truck-col').forEach(el => el.remove());
-
-  trucks.forEach(truck => {
-    const col = document.createElement('div');
-    col.className = 'truck-col';
-    col.innerHTML = `
-      <div class="truck-header">
-        <input class="truck-name-input" value="${escHtml(truck.name)}" placeholder="ชื่อรถ" 
-          onchange="updateTruckName('${truck.id}',this.value)">
-        <button class="remove-truck-btn" onclick="removeTruck('${truck.id}')">✕</button>
-      </div>
-      <input class="truck-driver-input" value="${escHtml(truck.driver)}" placeholder="ชื่อคนขับ..."
-        onchange="updateTruckDriver('${truck.id}',this.value)">
-      <div class="drop-zone${truck.customers.length===0?' empty':''}" 
-        id="drop-${truck.id}"
-        ondragover="onDragOver(event)"
-        ondragleave="onDragLeave(event)"
-        ondrop="onDrop(event,'${truck.id}')">
-        ${truck.customers.length === 0 
-          ? '<span>ลากลูกค้ามาวางที่นี่</span>'
-          : truck.customers.map((c, ci) => `
-            <div class="truck-item">
-              <div class="truck-item-name">${ci+1}. ${c.name}</div>
-              <div class="truck-item-detail">${c.items.length} สินค้า${c.tel?' • 📞'+c.tel:''}</div>
-              <button class="remove-item-btn" onclick="removeFromTruck('${truck.id}','${c.bankId}')">✕</button>
-            </div>`).join('')
-        }
-      </div>
-      <div class="truck-footer">${truck.customers.length} ลูกค้า</div>`;
-    container.insertBefore(col, addBtn);
+function renderTrucks() {
+  var container = document.getElementById('trucks');
+  var addBtn = document.getElementById('add-truck-btn');
+  container.querySelectorAll('.truck').forEach(function(el){ el.remove(); });
+  trucks.forEach(function(t) {
+    var div = document.createElement('div');
+    div.className = 'truck';
+    var custs = t.custs.map(function(c, i) {
+      return '<div class="citem">'
+        + '<div class="citem-name">' + (i+1) + '. ' + esc(c.name) + '</div>'
+        + '<div class="citem-sub">' + c.items.length + ' สินค้า' + (c.tel ? ' • 📞' + esc(c.tel) : '') + '</div>'
+        + '<button class="citem-del" onclick="removeFromTruck(\'' + t.id + '\',\'' + c.bid + '\')">✕</button>'
+        + '</div>';
+    }).join('');
+    div.innerHTML = '<div class="truck-hd">'
+      + '<input value="' + esc(t.name) + '" placeholder="ชื่อรถ" onchange="updName(\'' + t.id + '\',this.value)">'
+      + '<button class="truck-del" onclick="delTruck(\'' + t.id + '\')">✕</button>'
+      + '</div>'
+      + '<div class="truck-driver"><input value="' + esc(t.driver) + '" placeholder="ชื่อคนขับ..." onchange="updDriver(\'' + t.id + '\',this.value)"></div>'
+      + '<div class="drop" id="drop-' + t.id + '" ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event,\'' + t.id + '\')">'
+      + (t.custs.length ? custs : '<div class="drop-empty">ลากลูกค้ามาวางที่นี่</div>')
+      + '</div>'
+      + '<div class="truck-ft">' + t.custs.length + ' ลูกค้า</div>';
+    container.insertBefore(div, addBtn);
   });
 }
 
-window.updateTruckName = (id, val) => { const t = trucks.find(t => t.id === id); if (t) t.name = val; };
-window.updateTruckDriver = (id, val) => { const t = trucks.find(t => t.id === id); if (t) t.driver = val; };
+function updName(id, v) { var t = trucks.find(function(t){ return t.id===id; }); if(t) t.name=v; }
+function updDriver(id, v) { var t = trucks.find(function(t){ return t.id===id; }); if(t) t.driver=v; }
 
-window.removeFromTruck = function(truckId, bankId) {
-  const truck = trucks.find(t => t.id === truckId);
-  if (truck) truck.customers = truck.customers.filter(c => c.bankId !== bankId);
-  renderTrucks(); renderBank();
-};
+function removeFromTruck(tid, bid) {
+  var t = trucks.find(function(t){ return t.id===tid; });
+  if (t) t.custs = t.custs.filter(function(c){ return c.bid!==bid; });
+  renderTrucks(); renderBank(document.getElementById('search-inp').value);
+}
 
-window.clearAllTrucks = function() {
+function clearAll() {
   if (!confirm('ล้างแผนงานทั้งหมด?')) return;
-  trucks.forEach(t => t.customers = []);
-  renderTrucks(); renderBank();
-};
+  trucks.forEach(function(t){ t.custs=[]; });
+  renderTrucks(); renderBank(document.getElementById('search-inp').value);
+}
 
 // ===== DRAG & DROP =====
-window.onDragStart = function(e, bankId) {
-  dragItem = bankId;
+function dStart(e, id) {
+  dragId = id;
   e.dataTransfer.effectAllowed = 'copy';
-  setTimeout(() => { const el = document.getElementById('bank-'+bankId); if(el) el.classList.add('dragging'); }, 0);
-};
-window.onDragEnd = function(e) {
-  if (dragItem) {
-    const el = document.getElementById('bank-'+dragItem);
-    if (el) el.classList.remove('dragging');
-  }
-  dragItem = null;
-};
-window.onDragOver = function(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
-window.onDragLeave = function(e) { e.currentTarget.classList.remove('drag-over'); };
-window.onDrop = function(e, truckId) {
+  setTimeout(function(){ var el=document.getElementById('bi-'+id); if(el) el.classList.add('dragging'); }, 0);
+}
+function dEnd() {
+  if (dragId) { var el=document.getElementById('bi-'+dragId); if(el) el.classList.remove('dragging'); }
+  dragId = null;
+}
+function dOver(e) { e.preventDefault(); e.currentTarget.classList.add('over'); }
+function dLeave(e) { e.currentTarget.classList.remove('over'); }
+function dDrop(e, tid) {
   e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  if (!dragItem) return;
-  const item = bank.find(b => b.id === dragItem);
+  e.currentTarget.classList.remove('over');
+  if (!dragId) return;
+  var item = bank.find(function(b){ return b.id===dragId; });
   if (!item) return;
-  const truck = trucks.find(t => t.id === truckId);
-  if (!truck) return;
-  if (truck.customers.some(c => c.bankId === dragItem)) { toast('⚠️ ลูกค้านี้อยู่ในคันนี้แล้ว'); return; }
-  truck.customers.push({ ...item, bankId: item.id });
-  renderTrucks(); renderBank();
-};
+  var t = trucks.find(function(t){ return t.id===tid; });
+  if (!t) return;
+  if (t.custs.some(function(c){ return c.bid===dragId; })) { toast('⚠️ มีลูกค้านี้อยู่แล้ว'); return; }
+  t.custs.push({ bid: item.id, name: item.name, tel: item.tel, location: item.location, note: item.note, items: item.items });
+  renderTrucks(); renderBank(document.getElementById('search-inp').value);
+}
 
-// ===== SAVE TO FIREBASE =====
-window.confirmSaveAll = function() {
-  const date = document.getElementById('plan-date').value;
-  if (!date) { toast('⚠️ กรุณาเลือกวันที่ก่อน'); return; }
-  const activeTrucks = trucks.filter(t => t.customers.length > 0);
-  if (!activeTrucks.length) { toast('⚠️ ยังไม่มีลูกค้าในแผนงาน'); return; }
-
-  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  const [y,m,d] = date.split('-');
-  const dateStr = parseInt(d)+' '+months[parseInt(m)]+' '+(parseInt(y)+543);
-
-  let summary = '📅 '+dateStr+'\n\n';
-  activeTrucks.forEach(t => {
-    summary += '🚛 '+t.name+(t.driver?' ('+t.driver+')':'')+'\n';
-    t.customers.forEach((c,i) => { summary += '  '+(i+1)+'. '+c.name+'\n'; });
-    summary += '\n';
+// ===== SAVE =====
+function confirmSave() {
+  var date = document.getElementById('plan-date').value;
+  if (!date) { toast('⚠️ กรุณาเลือกวันที่'); return; }
+  var active = trucks.filter(function(t){ return t.custs.length > 0; });
+  if (!active.length) { toast('⚠️ ยังไม่มีลูกค้าในแผน'); return; }
+  var mo = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var p = date.split('-'); var ds = parseInt(p[2])+' '+mo[parseInt(p[1])]+' '+(parseInt(p[0])+543);
+  var txt = '📅 '+ds+'\n\n';
+  active.forEach(function(t){
+    txt += '🚛 '+t.name+(t.driver?' ('+t.driver+')':'')+'\n';
+    t.custs.forEach(function(c,i){ txt += '  '+(i+1)+'. '+c.name+'\n'; });
+    txt += '\n';
   });
+  document.getElementById('cfm-summary').textContent = txt;
+  document.getElementById('cfm-overlay').classList.add('show');
+}
 
-  document.getElementById('plan-summary').textContent = summary;
-  document.getElementById('confirm-modal').style.display = 'flex';
-};
-
-window.doSaveAll = async function() {
-  const btn = document.getElementById('confirm-save-btn');
+function doSave() {
+  var btn = document.getElementById('cfm-btn');
   btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
-  const date = document.getElementById('plan-date').value;
-  const activeTrucks = trucks.filter(t => t.customers.length > 0);
-  let success = 0;
-  try {
-    const db = await initFirebase();
-    const { collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    for (const truck of activeTrucks) {
-      // สร้าง pickups จากสินค้าที่มี src = สาขาใหญ่
-      const pickupItems = [];
-      truck.customers.forEach(c => {
-        c.items.forEach(it => {
-          if (it.src === 'สาขาใหญ่') pickupItems.push({ ...it });
-        });
-      });
-      const pickups = pickupItems.length > 0 ? [{
-        location: 'https://share.google/PsXOyJMknK7rzlI0g',
-        note: 'รับสินค้าจากสาขาใหญ่',
-        items: pickupItems,
-        done: false, doneAt: null, photos: [], problem: null, problemNote: null, problemAt: null
-      }] : [];
-      const customers = truck.customers.map(c => ({
-        name: c.name, tel: c.tel || '', location: c.location || '',
-        note: c.note || '', items: c.items,
-        done: false, doneAt: null, photos: [], problem: null, problemNote: null, problemAt: null
-      }));
-      await addDoc(collection(db, 'plans'), {
-        date, truckName: truck.name, driver: truck.driver || '',
-        createdAt: Date.now(), pickups, customers
-      });
-      success++;
-    }
-    document.getElementById('confirm-modal').style.display = 'none';
-    toast('✅ บันทึกสำเร็จ '+success+' คัน!');
-    trucks.forEach(t => t.customers = []);
-    renderTrucks(); renderBank();
-  } catch(e) {
-    toast('❌ บันทึกไม่สำเร็จ: '+e.message);
-  }
-  btn.disabled = false; btn.textContent = '✅ บันทึกเข้าระบบ';
-};
+  var date = document.getElementById('plan-date').value;
+  var active = trucks.filter(function(t){ return t.custs.length > 0; });
 
-// ===== UTILS =====
-window.toast = function(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
-}
-window.toast = toast;
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(function(appMod) {
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fsMod) {
+      var getApps = appMod.getApps, initializeApp = appMod.initializeApp;
+      var getFirestore = fsMod.getFirestore, collection = fsMod.collection, addDoc = fsMod.addDoc;
+      var ex = getApps().find(function(a){ return a.name==='planner2'; });
+      var app = ex || initializeApp({ apiKey:'AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM', authDomain:'delivery-stkmetal.firebaseapp.com', projectId:'delivery-stkmetal' }, 'planner2');
+      var db = getFirestore(app);
 
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      var saves = active.map(function(t) {
+        var pickupItems = [];
+        t.custs.forEach(function(c){ c.items.forEach(function(it){ if(it.src==='สาขาใหญ่') pickupItems.push(Object.assign({},it)); }); });
+        var pickups = pickupItems.length > 0 ? [{ location:'https://share.google/PsXOyJMknK7rzlI0g', note:'รับสินค้าจากสาขาใหญ่', items:pickupItems, done:false, doneAt:null, photos:[], problem:null, problemNote:null, problemAt:null }] : [];
+        var customers = t.custs.map(function(c){ return { name:c.name, tel:c.tel||'', location:c.location||'', note:c.note||'', items:c.items, done:false, doneAt:null, photos:[], problem:null, problemNote:null, problemAt:null }; });
+        return addDoc(collection(db,'plans'), { date:date, truckName:t.name, driver:t.driver||'', createdAt:Date.now(), pickups:pickups, customers:customers });
+      });
+
+      Promise.all(saves).then(function() {
+        document.getElementById('cfm-overlay').classList.remove('show');
+        toast('✅ บันทึกสำเร็จ ' + saves.length + ' คัน!');
+        trucks.forEach(function(t){ t.custs=[]; });
+        renderTrucks(); renderBank(document.getElementById('search-inp').value);
+        btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ';
+      }).catch(function(e){ toast('❌ '+e.message); btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ'; });
+    });
+  });
 }
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>

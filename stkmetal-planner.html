@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a1628">
+<title>STK Metal — จัดแผนงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a1628; --bg2: #0f2040; --bg3: #162a52; --bg4: #1e3464;
+  --green: #90caf9; --green2: #1e90ff; --green-pale: #0d2a4a;
+  --amber: #ffd166; --amber-pale: #2a2000;
+  --red: #ef5350; --red-pale: #2a0f0f;
+  --text: #fff; --text2: #e0f0ff; --text3: #7ab0d4;
+  --border: #1a3a5c; --border2: #2a5080;
+  --r: 10px; --rs: 7px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ===== HEADER ===== */
+.header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.logo { font-size: 17px; font-weight: 700; }
+.logo span { color: var(--green2); }
+.header-btns { display: flex; gap: 8px; }
+.hbtn { padding: 7px 12px; border-radius: var(--rs); border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 13px; font-family: inherit; cursor: pointer; }
+.hbtn.primary { background: var(--green2); color: #fff; border-color: var(--green2); font-weight: 600; }
+.hbtn:active { opacity: 0.8; }
+
+/* ===== LAYOUT ===== */
+.layout { display: grid; grid-template-columns: 340px 1fr; height: calc(100vh - 57px); }
+
+/* ===== LEFT: คลังงาน ===== */
+.left-panel { background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.panel-header { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; }
+.panel-title { font-size: 14px; font-weight: 700; color: var(--text2); }
+.panel-count { font-size: 11px; color: var(--text3); background: var(--bg3); padding: 2px 8px; border-radius: 20px; }
+.search-box { padding: 8px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.search-input { width: 100%; padding: 8px 10px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 13px; font-family: inherit; }
+.search-input:focus { outline: none; border-color: var(--green2); }
+.bank-list { flex: 1; overflow-y: auto; padding: 8px; }
+.bank-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; margin-bottom: 6px; cursor: grab; user-select: none; transition: all 0.15s; position: relative; }
+.bank-item:active { cursor: grabbing; }
+.bank-item.dragging { opacity: 0.4; }
+.bank-item:hover { border-color: var(--border2); background: var(--bg4); }
+.bank-item.used { opacity: 0.4; border-style: dashed; cursor: not-allowed; }
+.bank-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.bank-items-count { font-size: 11px; color: var(--text3); }
+.bank-used-badge { position: absolute; top: 8px; right: 8px; font-size: 10px; background: var(--green-pale); color: var(--green2); padding: 1px 6px; border-radius: 8px; }
+.add-bank-btn { margin: 8px; padding: 10px; border: 1px dashed var(--border2); border-radius: var(--rs); background: transparent; color: var(--text3); font-size: 13px; font-family: inherit; cursor: pointer; width: calc(100% - 16px); }
+.add-bank-btn:hover { background: var(--bg3); color: var(--text2); }
+
+/* ===== RIGHT: แผนงาน ===== */
+.right-panel { display: flex; flex-direction: column; overflow: hidden; }
+.plan-toolbar { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: var(--bg2); }
+.date-input { padding: 7px 10px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 13px; font-family: inherit; }
+.date-input:focus { outline: none; border-color: var(--green2); }
+.trucks-container { flex: 1; display: flex; gap: 10px; padding: 10px; overflow-x: auto; align-items: flex-start; }
+.truck-col { width: 280px; flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; max-height: calc(100vh - 130px); }
+.truck-header { padding: 10px 12px; background: var(--bg3); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.truck-name-input { flex: 1; background: transparent; border: none; color: var(--text); font-size: 13px; font-weight: 700; font-family: inherit; }
+.truck-name-input:focus { outline: none; }
+.truck-name-input::placeholder { color: var(--text3); }
+.truck-driver-input { width: 100%; background: transparent; border: none; border-top: 1px solid var(--border); color: var(--text3); font-size: 12px; font-family: inherit; padding: 5px 12px; }
+.truck-driver-input:focus { outline: none; color: var(--text2); }
+.remove-truck-btn { padding: 2px 6px; border: none; background: transparent; color: var(--text3); cursor: pointer; font-size: 14px; }
+.drop-zone { flex: 1; overflow-y: auto; padding: 8px; min-height: 200px; transition: background 0.15s; }
+.drop-zone.drag-over { background: var(--green-pale); border-radius: 6px; }
+.drop-zone.empty { display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: 12px; }
+.truck-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rs); padding: 9px 11px; margin-bottom: 5px; position: relative; }
+.truck-item-name { font-size: 12px; font-weight: 600; color: var(--text2); padding-right: 20px; }
+.truck-item-detail { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.remove-item-btn { position: absolute; top: 8px; right: 8px; width: 16px; height: 16px; border-radius: 50%; border: none; background: rgba(255,255,255,0.1); color: var(--text3); cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; padding: 0; }
+.remove-item-btn:hover { background: var(--red-pale); color: var(--red); }
+.truck-footer { padding: 8px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); text-align: center; flex-shrink: 0; }
+.add-truck-btn { width: 280px; flex-shrink: 0; height: 60px; border: 2px dashed var(--border2); border-radius: var(--r); background: transparent; color: var(--text3); font-size: 20px; cursor: pointer; }
+.add-truck-btn:hover { background: var(--bg2); color: var(--text2); }
+
+/* ===== MODALS ===== */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto; padding: 20px; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.modal-close { background: var(--bg3); border: none; color: var(--text3); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; }
+.input-group { margin-bottom: 10px; }
+.input-label { font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+.input-field { width: 100%; padding: 9px 11px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 13px; font-family: inherit; }
+.input-field:focus { outline: none; border-color: var(--green2); }
+.item-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
+.item-row .input-field { flex: 1; }
+.item-row .qty { width: 70px; flex: none; }
+.src-select { width: 85px; flex: none; padding: 9px 4px; border: 1px solid var(--border2); border-radius: var(--rs); background: var(--bg3); color: var(--text); font-size: 11px; font-family: inherit; }
+.remove-row-btn { padding: 4px 8px; border: 1px solid var(--border2); border-radius: var(--rs); background: transparent; color: var(--text3); cursor: pointer; font-family: inherit; font-size: 12px; }
+.add-row-btn { width: 100%; padding: 8px; border: 1px dashed var(--border2); border-radius: var(--rs); background: transparent; color: var(--text3); font-size: 12px; font-family: inherit; cursor: pointer; margin-bottom: 12px; }
+.save-btn { width: 100%; padding: 12px; background: var(--green2); color: #fff; border: none; border-radius: var(--rs); font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; }
+
+/* ===== Toast ===== */
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--bg3); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.25s; z-index: 400; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; }
+
+/* ===== Confirm Modal ===== */
+.confirm-modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r); width: 100%; max-width: 460px; padding: 20px; }
+.plan-summary { background: var(--bg3); border-radius: var(--rs); padding: 12px; margin: 12px 0; font-size: 13px; line-height: 1.7; }
+.confirm-btns { display: flex; gap: 8px; margin-top: 14px; }
+.cancel-btn { flex: 1; padding: 11px; background: var(--bg3); color: var(--text3); border: 1px solid var(--border2); border-radius: var(--rs); font-size: 13px; font-family: inherit; cursor: pointer; }
+
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .left-panel { height: 220px; }
+  .bank-list { display: flex; gap: 6px; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+  .bank-item { min-width: 160px; margin-bottom: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🔩 STK Metal — <span>จัดแผนงาน</span></div>
+  <div class="header-btns">
+    <button class="hbtn" onclick="window.open('stkmetal-manager.html','_blank')">📋 ผู้จัดการ</button>
+    <button class="hbtn primary" id="save-all-btn" onclick="confirmSaveAll()">💾 บันทึกทั้งหมด</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- คลังงาน -->
+  <div class="left-panel">
+    <div class="panel-header">
+      <span class="panel-title">📦 คลังงาน</span>
+      <span class="panel-count" id="bank-count">0 รายการ</span>
+    </div>
+    <div class="search-box">
+      <input class="search-input" type="text" placeholder="🔍 ค้นหาลูกค้า..." oninput="filterBank(this.value)" id="search-input">
+    </div>
+    <div class="bank-list" id="bank-list"></div>
+    <button class="add-bank-btn" onclick="showAddModal()">+ เพิ่มลูกค้าใหม่ในคลัง</button>
+  </div>
+
+  <!-- แผนงาน -->
+  <div class="right-panel">
+    <div class="plan-toolbar">
+      <span style="font-size:13px;color:var(--text3)">📅 วันที่ส่ง:</span>
+      <input class="date-input" type="date" id="plan-date">
+      <button class="hbtn" onclick="clearAllTrucks()" style="margin-left:auto;color:var(--red)">🗑 ล้างแผน</button>
+    </div>
+    <div class="trucks-container" id="trucks-container">
+      <!-- trucks added here -->
+      <button class="add-truck-btn" id="add-truck-btn" onclick="addTruck()">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Customer Modal -->
+<div class="modal-bg" id="add-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title-text">➕ เพิ่มลูกค้าในคลัง</span>
+      <button class="modal-close" onclick="closeAddModal()">✕ ปิด</button>
+    </div>
+    <div class="input-group">
+      <div class="input-label">ชื่อลูกค้า / บริษัท</div>
+      <input class="input-field" id="m-name" type="text" placeholder="ชื่อบริษัทหรือชื่อลูกค้า">
+    </div>
+    <div class="input-group">
+      <div class="input-label">เบอร์โทร</div>
+      <input class="input-field" id="m-tel" type="tel" placeholder="0812345678">
+    </div>
+    <div class="input-group">
+      <div class="input-label">📍 โลเคชั่น Google Maps</div>
+      <input class="input-field" id="m-loc" type="url" placeholder="https://maps.app.goo.gl/...">
+    </div>
+    <div class="input-group">
+      <div class="input-label">📝 Note ถึงคนขับ</div>
+      <textarea class="input-field" id="m-note" rows="2" style="resize:none" placeholder="หมายเหตุ..."></textarea>
+    </div>
+    <div class="input-label" style="margin-bottom:8px">รายการสินค้า</div>
+    <div id="m-items"></div>
+    <button class="add-row-btn" onclick="addItemRow()">+ เพิ่มสินค้า</button>
+    <button class="save-btn" onclick="saveToBank()">💾 บันทึกในคลัง</button>
+  </div>
+</div>
+
+<!-- Confirm Save Modal -->
+<div class="modal-bg" id="confirm-modal" style="display:none">
+  <div class="confirm-modal">
+    <div class="modal-title">
+      <span>📋 ยืนยันบันทึกแผนงาน</span>
+      <button class="modal-close" onclick="document.getElementById('confirm-modal').style.display='none'">✕</button>
+    </div>
+    <div class="plan-summary" id="plan-summary"></div>
+    <div class="confirm-btns">
+      <button class="cancel-btn" onclick="document.getElementById('confirm-modal').style.display='none'">ยกเลิก</button>
+      <button class="save-btn" id="confirm-save-btn" onclick="doSaveAll()">✅ บันทึกเข้าระบบ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const existing = getApps().find(a => a.name === "planner");
+const app = existing || initializeApp({
+  apiKey: "AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM",
+  authDomain: "delivery-stkmetal.firebaseapp.com",
+  projectId: "delivery-stkmetal"
+}, "planner");
+const db = getFirestore(app);
+
+// ===== STATE =====
+let bank = JSON.parse(localStorage.getItem('stk-bank') || '[]');
+let trucks = [];
+let editingId = null;
+let dragItem = null;
+let truckCounter = 0;
+
+// ===== INIT =====
+document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
+addTruck();
+renderBank();
+
+// ===== BANK =====
+function saveBank() {
+  localStorage.setItem('stk-bank', JSON.stringify(bank));
+}
+
+function renderBank(filter = '') {
+  const list = document.getElementById('bank-list');
+  const lower = filter.toLowerCase();
+  const filtered = bank.filter(b => !filter || b.name.toLowerCase().includes(lower));
+  document.getElementById('bank-count').textContent = bank.length + ' รายการ';
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">' + (filter ? 'ไม่พบลูกค้า' : 'ยังไม่มีลูกค้าในคลัง') + '</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => {
+    const usedIn = getUsedIn(item.id);
+    const used = usedIn.length > 0;
+    return `<div class="bank-item${used ? ' used' : ''}" 
+      id="bank-${item.id}"
+      draggable="${!used}"
+      ondragstart="onDragStart(event,'${item.id}')"
+      ondragend="onDragEnd(event)"
+      onclick="${used ? '' : `showEditModal('${item.id}')`}">
+      <div class="bank-name">${item.name}</div>
+      <div class="bank-items-count">${item.tel ? '📞 '+item.tel+' • ' : ''}${item.items.length} สินค้า</div>
+      ${used ? `<div class="bank-used-badge">✓ คัน${usedIn.join(',')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function getUsedIn(id) {
+  return trucks.filter(t => t.customers.some(c => c.bankId === id)).map(t => t.name);
+}
+
+window.filterBank = filter => renderBank(filter);
+
+// ===== ADD/EDIT MODAL =====
+window.showAddModal = function() {
+  editingId = null;
+  document.getElementById('modal-title-text').textContent = '➕ เพิ่มลูกค้าใหม่ในคลัง';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-tel').value = '';
+  document.getElementById('m-loc').value = '';
+  document.getElementById('m-note').value = '';
+  document.getElementById('m-items').innerHTML = '';
+  addItemRow(); addItemRow();
+  document.getElementById('add-modal').style.display = 'flex';
+};
+
+window.showEditModal = function(id) {
+  const item = bank.find(b => b.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('modal-title-text').textContent = '✏️ แก้ไขลูกค้า';
+  document.getElementById('m-name').value = item.name;
+  document.getElementById('m-tel').value = item.tel || '';
+  document.getElementById('m-loc').value = item.location || '';
+  document.getElementById('m-note').value = item.note || '';
+  document.getElementById('m-items').innerHTML = '';
+  item.items.forEach(it => addItemRow(it));
+  document.getElementById('add-modal').style.display = 'flex';
+};
+
+window.closeAddModal = () => document.getElementById('add-modal').style.display = 'none';
+
+window.addItemRow = function(prefill) {
+  const container = document.getElementById('m-items');
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.innerHTML = `<input class="input-field" type="text" placeholder="ชื่อสินค้า" value="${prefill ? escHtml(prefill.name) : ''}">
+    <input class="input-field qty" type="text" placeholder="จำนวน" value="${prefill ? escHtml(prefill.qty) : ''}">
+    <select class="src-select">
+      <option value="สาขาใหญ่"${prefill?.src==='สาขาใหญ่'?' selected':''}>สาขาใหญ่</option>
+      <option value="ในสต้อค"${prefill?.src==='ในสต้อค'?' selected':''}>ในสต้อค</option>
+      <option value="ระบุเอง"${prefill?.src&&prefill.src!=='สาขาใหญ่'&&prefill.src!=='ในสต้อค'?' selected':''}>ระบุเอง</option>
+    </select>
+    <button class="remove-row-btn" onclick="this.parentElement.remove()">✕</button>`;
+  if (prefill?.src && prefill.src !== 'สาขาใหญ่' && prefill.src !== 'ในสต้อค') {
+    const sel = row.querySelector('select');
+    sel.value = 'ระบุเอง';
+    const inp = document.createElement('input');
+    inp.className = 'input-field'; inp.style.width = '80px'; inp.style.flex = 'none';
+    inp.value = prefill.src;
+    sel.after(inp);
+  }
+  container.appendChild(row);
+};
+
+window.saveToBank = function() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) { toast('⚠️ กรุณาใส่ชื่อลูกค้า'); return; }
+  const items = [];
+  document.querySelectorAll('#m-items .item-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const n = inputs[0]?.value.trim();
+    const q = inputs[1]?.value.trim();
+    const sel = row.querySelector('select');
+    const customInp = row.querySelectorAll('input')[2];
+    const src = sel?.value === 'ระบุเอง' ? (customInp?.value || 'ระบุเอง') : (sel?.value || 'สาขาใหญ่');
+    if (n) items.push({ name: n, qty: q || '-', src });
+  });
+  const data = {
+    id: editingId || 'b' + Date.now(),
+    name, tel: document.getElementById('m-tel').value.trim(),
+    location: document.getElementById('m-loc').value.trim(),
+    note: document.getElementById('m-note').value.trim(),
+    items
+  };
+  if (editingId) {
+    const idx = bank.findIndex(b => b.id === editingId);
+    if (idx >= 0) bank[idx] = data;
+  } else {
+    bank.push(data);
+  }
+  saveBank(); renderBank(); closeAddModal();
+  toast(editingId ? '✅ แก้ไขแล้ว' : '✅ เพิ่มในคลังแล้ว');
+};
+
+// ===== TRUCKS =====
+window.addTruck = function() {
+  truckCounter++;
+  const id = 't' + Date.now();
+  const truck = { id, name: 'คันที่ ' + truckCounter, driver: '', customers: [] };
+  trucks.push(truck);
+  renderTrucks();
+};
+
+window.removeTruck = function(id) {
+  if (!confirm('ลบคันนี้?')) return;
+  trucks = trucks.filter(t => t.id !== id);
+  renderTrucks(); renderBank();
+};
+
+function renderTrucks() {
+  const container = document.getElementById('trucks-container');
+  const addBtn = document.getElementById('add-truck-btn');
+  // ลบ truck cols เก่าออก
+  container.querySelectorAll('.truck-col').forEach(el => el.remove());
+
+  trucks.forEach(truck => {
+    const col = document.createElement('div');
+    col.className = 'truck-col';
+    col.innerHTML = `
+      <div class="truck-header">
+        <input class="truck-name-input" value="${escHtml(truck.name)}" placeholder="ชื่อรถ" 
+          onchange="updateTruckName('${truck.id}',this.value)">
+        <button class="remove-truck-btn" onclick="removeTruck('${truck.id}')">✕</button>
+      </div>
+      <input class="truck-driver-input" value="${escHtml(truck.driver)}" placeholder="ชื่อคนขับ..."
+        onchange="updateTruckDriver('${truck.id}',this.value)">
+      <div class="drop-zone${truck.customers.length===0?' empty':''}" 
+        id="drop-${truck.id}"
+        ondragover="onDragOver(event)"
+        ondragleave="onDragLeave(event)"
+        ondrop="onDrop(event,'${truck.id}')">
+        ${truck.customers.length === 0 
+          ? '<span>ลากลูกค้ามาวางที่นี่</span>'
+          : truck.customers.map((c, ci) => `
+            <div class="truck-item">
+              <div class="truck-item-name">${ci+1}. ${c.name}</div>
+              <div class="truck-item-detail">${c.items.length} สินค้า${c.tel?' • 📞'+c.tel:''}</div>
+              <button class="remove-item-btn" onclick="removeFromTruck('${truck.id}','${c.bankId}')">✕</button>
+            </div>`).join('')
+        }
+      </div>
+      <div class="truck-footer">${truck.customers.length} ลูกค้า</div>`;
+    container.insertBefore(col, addBtn);
+  });
+}
+
+window.updateTruckName = (id, val) => { const t = trucks.find(t => t.id === id); if (t) t.name = val; };
+window.updateTruckDriver = (id, val) => { const t = trucks.find(t => t.id === id); if (t) t.driver = val; };
+
+window.removeFromTruck = function(truckId, bankId) {
+  const truck = trucks.find(t => t.id === truckId);
+  if (truck) truck.customers = truck.customers.filter(c => c.bankId !== bankId);
+  renderTrucks(); renderBank();
+};
+
+window.clearAllTrucks = function() {
+  if (!confirm('ล้างแผนงานทั้งหมด?')) return;
+  trucks.forEach(t => t.customers = []);
+  renderTrucks(); renderBank();
+};
+
+// ===== DRAG & DROP =====
+window.onDragStart = function(e, bankId) {
+  dragItem = bankId;
+  e.dataTransfer.effectAllowed = 'copy';
+  setTimeout(() => { const el = document.getElementById('bank-'+bankId); if(el) el.classList.add('dragging'); }, 0);
+};
+window.onDragEnd = function(e) {
+  if (dragItem) {
+    const el = document.getElementById('bank-'+dragItem);
+    if (el) el.classList.remove('dragging');
+  }
+  dragItem = null;
+};
+window.onDragOver = function(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); };
+window.onDragLeave = function(e) { e.currentTarget.classList.remove('drag-over'); };
+window.onDrop = function(e, truckId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragItem) return;
+  const item = bank.find(b => b.id === dragItem);
+  if (!item) return;
+  const truck = trucks.find(t => t.id === truckId);
+  if (!truck) return;
+  if (truck.customers.some(c => c.bankId === dragItem)) { toast('⚠️ ลูกค้านี้อยู่ในคันนี้แล้ว'); return; }
+  truck.customers.push({ ...item, bankId: item.id });
+  renderTrucks(); renderBank();
+};
+
+// ===== SAVE TO FIREBASE =====
+window.confirmSaveAll = function() {
+  const date = document.getElementById('plan-date').value;
+  if (!date) { toast('⚠️ กรุณาเลือกวันที่ก่อน'); return; }
+  const activeTrucks = trucks.filter(t => t.customers.length > 0);
+  if (!activeTrucks.length) { toast('⚠️ ยังไม่มีลูกค้าในแผนงาน'); return; }
+
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const [y,m,d] = date.split('-');
+  const dateStr = parseInt(d)+' '+months[parseInt(m)]+' '+(parseInt(y)+543);
+
+  let summary = '📅 '+dateStr+'\n\n';
+  activeTrucks.forEach(t => {
+    summary += '🚛 '+t.name+(t.driver?' ('+t.driver+')':'')+'\n';
+    t.customers.forEach((c,i) => { summary += '  '+(i+1)+'. '+c.name+'\n'; });
+    summary += '\n';
+  });
+
+  document.getElementById('plan-summary').textContent = summary;
+  document.getElementById('confirm-modal').style.display = 'flex';
+};
+
+window.doSaveAll = async function() {
+  const btn = document.getElementById('confirm-save-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  const date = document.getElementById('plan-date').value;
+  const activeTrucks = trucks.filter(t => t.customers.length > 0);
+  let success = 0;
+  try {
+    for (const truck of activeTrucks) {
+      // สร้าง pickups จากสินค้าที่มี src = สาขาใหญ่
+      const pickupItems = [];
+      truck.customers.forEach(c => {
+        c.items.forEach(it => {
+          if (it.src === 'สาขาใหญ่') pickupItems.push({ ...it });
+        });
+      });
+      const pickups = pickupItems.length > 0 ? [{
+        location: 'https://share.google/PsXOyJMknK7rzlI0g',
+        note: 'รับสินค้าจากสาขาใหญ่',
+        items: pickupItems,
+        done: false, doneAt: null, photos: [], problem: null, problemNote: null, problemAt: null
+      }] : [];
+      const customers = truck.customers.map(c => ({
+        name: c.name, tel: c.tel || '', location: c.location || '',
+        note: c.note || '', items: c.items,
+        done: false, doneAt: null, photos: [], problem: null, problemNote: null, problemAt: null
+      }));
+      await addDoc(collection(db, 'plans'), {
+        date, truckName: truck.name, driver: truck.driver || '',
+        createdAt: Date.now(), pickups, customers
+      });
+      success++;
+    }
+    document.getElementById('confirm-modal').style.display = 'none';
+    toast('✅ บันทึกสำเร็จ '+success+' คัน!');
+    trucks.forEach(t => t.customers = []);
+    renderTrucks(); renderBank();
+  } catch(e) {
+    toast('❌ บันทึกไม่สำเร็จ: '+e.message);
+  }
+  btn.disabled = false; btn.textContent = '✅ บันทึกเข้าระบบ';
+};
+
+// ===== UTILS =====
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+window.toast = toast;
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>

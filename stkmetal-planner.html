@@ -179,22 +179,22 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
       <span class="modal-title" id="modal-ttl">➕ เพิ่มลูกค้า</span>
       <button class="modal-x" onclick="closeAdd()">✕</button>
     </div>
-    <div class="fg"><label>ชื่อลูกค้า / บริษัท *</label><input id="m-name" placeholder="ชื่อบริษัท..."></div>
-    <div class="fg"><label>เบอร์โทร</label><input id="m-tel" type="tel" placeholder="08xxxxxxxx"></div>
+    <div class="fg"><label>🏢 ชื่อบริษัท / ลูกค้า *</label><input id="m-name" placeholder="เช่น บริษัท ABC จำกัด..."></div>
+    <div class="fg"><label>📞 เบอร์ติดต่อ</label><input id="m-tel" type="tel" placeholder="08xxxxxxxx ชื่อผู้ติดต่อ"></div>
     <div class="fg">
-      <label>📍 โลเคชั่น Google Maps</label>
-      <input id="m-loc" placeholder="https://maps.app.goo.gl/...">
+      <label>📍 โลเคชั่น <b style="color:var(--blue)">จุดส่งสินค้า</b> (ใช้ที่อยู่จริงที่ส่ง ไม่ใช่ที่อยู่บริษัท)</label>
+      <input id="m-loc" placeholder="https://maps.app.goo.gl/... (จุดที่ต้องไปส่งจริงๆ)">
     </div>
     <div class="fg">
-      <label>📌 พิกัด (lat, lng) — วางจาก Google Maps เพื่อให้แผนที่แม่นยำ</label>
+      <label>📌 พิกัด <b style="color:var(--blue)">จุดส่ง</b> (lat, lng) — เพื่อให้แผนที่แสดงถูกต้อง</label>
       <div style="display:flex;gap:5px">
         <input id="m-lat" placeholder="lat เช่น 13.5478" style="flex:1;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit">
         <input id="m-lng" placeholder="lng เช่น 100.2743" style="flex:1;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit">
         <button onclick="extractFromUrl()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--blue);font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">📍 ดึงพิกัด</button>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:3px">💡 เปิด Google Maps → คัดลอก URL ที่มี @lat,lng → วางใน "โลเคชั่น" แล้วกด "📍 ดึงพิกัด"</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">💡 วาง URL ทุกรูปแบบได้เลย (share.google, maps.app.goo.gl, หรือ URL ยาว) แล้วกด "📍 ดึงพิกัด"</div>
     </div>
-    <div class="fg"><label>📝 Note</label><textarea id="m-note" rows="2" placeholder="หมายเหตุ..."></textarea></div>
+    <div class="fg"><label>📝 Note ถึงคนขับ</label><textarea id="m-note" rows="2" placeholder="เช่น ติดต่อคุณ... / แผนก... / จอดหน้า... / เข้าประตู..."></textarea></div>
     <div class="fg"><label>รายการสินค้า</label></div>
     <div id="m-items"></div>
     <button class="add-row" onclick="addRow()">+ เพิ่มสินค้า</button>
@@ -304,13 +304,10 @@ function getCachedCoords(item) {
     geocodeCache[key] = { lat: item.lat, lng: item.lng };
     return geocodeCache[key];
   }
-  // 2. ดึงจาก URL
-  var url = item.location || '';
-  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-  if (m) {
-    geocodeCache[key] = { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // 2. ดึงจาก URL (ใช้ parseCoords)
+  var coords = parseCoords(item.location || '');
+  if (coords) {
+    geocodeCache[key] = coords;
     return geocodeCache[key];
   }
   return null;
@@ -377,6 +374,8 @@ function renderBank(filter) {
     html += '<div class="bitem' + (isUsed?' used':'') + '" id="bi-'+item.id+'" draggable="'+ (!isUsed) +'"'
       + ' ondragstart="dStart(event,\''+item.id+'\')" ondragend="dEnd()"'
       + ' onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
+      + '<div style="flex:1;min-width:0">'
       + '<div class="bitem-name">'
       + '<span class="bitem-num">' + (i+1) + '</span>'
       + esc(item.name)
@@ -384,12 +383,28 @@ function renderBank(filter) {
       + '</div>'
       + '<div class="bitem-sub">' + (item.tel?'📞'+item.tel+' • ':'') + item.items.length + ' สินค้า</div>'
       + (isUsed ? '<div class="bitem-badge">✓ '+used.join(',')+'</div>' : '')
+      + '</div>'
+      + (!isUsed ? '<button onclick="event.stopPropagation();deleteBank(\''+item.id+'\')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>' : '')
+      + '</div>'
       + '</div>';
   });
   list.innerHTML = html;
 }
 
 // ===== ADD/EDIT =====
+function deleteBank(id) {
+  var item = bank.find(function(b){ return b.id===id; });
+  if (!item) return;
+  if (!confirm('ลบ "' + item.name.substring(0,30) + '" ออกจากคลัง?')) return;
+  bank = bank.filter(function(b){ return b.id!==id; });
+  // ลบพิกัดจาก cache ด้วย
+  delete geocodeCache[id];
+  saveBank();
+  renderBank(document.getElementById('search-inp').value);
+  refreshMap();
+  toast('🗑 ลบออกจากคลังแล้ว');
+}
+
 function openAdd() {
   editId = null;
   document.getElementById('modal-ttl').textContent = '➕ เพิ่มลูกค้าใหม่';
@@ -420,22 +435,54 @@ function openEdit(id) {
 
 function closeAdd() { document.getElementById('add-overlay').classList.remove('show'); }
 
-function extractFromUrl() {
+async function extractFromUrl() {
   var url = document.getElementById('m-loc').value.trim();
   if (!url) { toast('⚠️ ใส่ URL ก่อนครับ'); return; }
-  // หาพิกัดจาก URL
-  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || url.match(/place\/[^/]+\/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
-  if (m) {
-    document.getElementById('m-lat').value = m[1];
-    document.getElementById('m-lng').value = m[2];
-    toast('✅ ดึงพิกัดสำเร็จ: ' + m[1] + ', ' + m[2]);
-  } else {
-    toast('⚠️ ไม่พบพิกัดใน URL นี้ กรุณาเปิด Google Maps แล้วคัดลอก URL ยาวที่มี @lat,lng ครับ');
+
+  // ลองดึงพิกัดจาก URL ตรงๆ ก่อน
+  var coords = parseCoords(url);
+  if (coords) {
+    document.getElementById('m-lat').value = coords.lat;
+    document.getElementById('m-lng').value = coords.lng;
+    toast('✅ ดึงพิกัดสำเร็จ: ' + coords.lat + ', ' + coords.lng);
+    return;
   }
+
+  // ถ้าเป็น short URL (share.google, maps.app.goo.gl) ให้ resolve ก่อน
+  if (url.includes('share.google') || url.includes('goo.gl') || url.includes('maps.app')) {
+    toast('⏳ กำลัง resolve URL...');
+    try {
+      // ใช้ allorigins.win เป็น proxy เพื่อ follow redirect
+      var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
+      var resp = await fetch(proxyUrl);
+      var data = await resp.json();
+      // ดึงพิกัดจาก redirect URL หรือ content
+      var finalUrl = data.status && data.status.url ? data.status.url : '';
+      coords = parseCoords(finalUrl) || parseCoords(data.contents || '');
+      if (coords) {
+        document.getElementById('m-lat').value = coords.lat;
+        document.getElementById('m-lng').value = coords.lng;
+        toast('✅ ดึงพิกัดสำเร็จ: ' + coords.lat + ', ' + coords.lng);
+        return;
+      }
+    } catch(e) {}
+
+    // fallback: เปิด URL ในหน้าต่างใหม่แล้วให้ user copy URL ยาว
+    toast('⚠️ ไม่สามารถดึงพิกัดอัตโนมัติ — เปิดลิงก์แล้วคัดลอก URL ยาวมาวางครับ');
+    window.open(url, '_blank');
+  } else {
+    toast('⚠️ ไม่พบพิกัดใน URL นี้');
+  }
+}
+
+function parseCoords(url) {
+  if (!url) return null;
+  var m = url.match(/@(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/)
+    || url.match(/query=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/)
+    || url.match(/!3d(-?[0-9]+\.[0-9]+)!4d(-?[0-9]+\.[0-9]+)/)
+    || url.match(/ll=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  return null;
 }
 
 function addRow(prefill) {
@@ -444,8 +491,8 @@ function addRow(prefill) {
   div.className = 'irow';
   var src = (prefill&&prefill.src)||'สาขาใหญ่';
   var srcVal = (src==='สาขาใหญ่'||src==='ในสต้อค')?src:'อื่นๆ';
-  div.innerHTML = '<input class="inp-n" placeholder="ชื่อสินค้า" value="'+esc(prefill?prefill.name:'') + '">'
-    + '<input class="inp-q" placeholder="จำนวน" value="'+esc(prefill?prefill.qty:'')+'">'
+  div.innerHTML = '<input class="inp-n" placeholder="ชื่อสินค้า" value="'+escVal(prefill?prefill.name:'') + '">'
+    + '<input class="inp-q" placeholder="จำนวน" value="'+escVal(prefill?prefill.qty:'')+'">'
     + '<select onchange="chkSrc(this)">'
     + '<option value="สาขาใหญ่"'+(srcVal==='สาขาใหญ่'?' selected':'')+'>สาขาใหญ่</option>'
     + '<option value="ในสต้อค"'+(srcVal==='ในสต้อค'?' selected':'')+'>ในสต้อค</option>'
@@ -542,7 +589,7 @@ function renderTrucks() {
     }
     var custsHtml = t.custs.map(function(c,ci){
       return '<div class="citem">'
-        + '<div class="citem-name"><span style="color:var(--text3);font-size:10px;margin-right:3px">'+(ci+1)+'.</span>'+esc(c.name)+'</div>'
+        + '<div class="citem-name"><span style="color:var(--text3);font-size:10px;margin-right:3px">'+(ci+1)+'.</span>'+escVal(c.name)+'</div>'
         + '<div class="citem-sub">' + c.items.length + ' สินค้า'+(c.tel?'  📞'+esc(c.tel):'')+'</div>'
         + '<button class="citem-del" onclick="removeC(\''+t.id+'\',\''+c.bid+'\')">✕</button>'
         + '</div>';
@@ -551,11 +598,11 @@ function renderTrucks() {
     var div = document.createElement('div');
     div.className = 'truck';
     div.innerHTML = '<div class="truck-hd">'
-      + '<input value="'+esc(t.name)+'" placeholder="ชื่อรถ" onchange="updName(\''+t.id+'\',this.value)">'
+      + '<input value="'+escVal(t.name)+'" placeholder="ชื่อรถ" onchange="updName(\''+t.id+'\',this.value)">'
       + '<button class="truck-del" onclick="delTruck(\''+t.id+'\')">✕</button>'
       + '</div>'
       + '<div class="truck-sub">'
-      + '<input value="'+esc(t.driver)+'" placeholder="คนขับ..." onchange="updDriver(\''+t.id+'\',this.value)">'
+      + '<input value="'+escVal(t.driver)+'" placeholder="คนขับ..." onchange="updDriver(\''+t.id+'\',this.value)">'
       + '<button class="branch-btn'+(t.hasBranch?' on':'')+'" onclick="toggleBranch(\''+t.id+'\')">📦'+(t.hasBranch?' ✓':'')+' สาขา</button>'
       + '</div>'
       + '<div class="drop" id="drop-'+t.id+'" ondragover="dOver(event)" ondragleave="dLeave(event)" ondrop="dDrop(event,\''+t.id+'\')">'
@@ -707,6 +754,8 @@ function doSave(){
 }
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// สำหรับใช้ใน value="" attribute เท่านั้น (encode เฉพาะ " และ &)
+function escVal(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 
 // geocode ทุกรายการในพื้นหลัง
 setTimeout(geocodeAll, 1000);

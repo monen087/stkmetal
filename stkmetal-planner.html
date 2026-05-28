@@ -456,9 +456,18 @@ async function extractFromUrl() {
       var proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
       var resp = await fetch(proxyUrl);
       var data = await resp.json();
-      // ดึงพิกัดจาก redirect URL หรือ content
-      var finalUrl = data.status && data.status.url ? data.status.url : '';
-      coords = parseCoords(finalUrl) || parseCoords(data.contents || '');
+      // ลองหาพิกัดจากทุก source ตามลำดับความแม่นยำ
+      var finalUrl = (data.status && data.status.url) ? data.status.url : '';
+      var content = data.contents || '';
+      // 1. จาก redirect URL (แม่นที่สุด เพราะเป็น URL จริง)
+      coords = parseCoords(finalUrl);
+      // 2. จาก og:url หรือ canonical URL ใน HTML content
+      if (!coords) {
+        var ogUrl = content.match(/og:url[^>]*content="([^"]+)"/);
+        if (ogUrl) coords = parseCoords(decodeURIComponent(ogUrl[1]));
+      }
+      // 3. จาก content โดยตรง
+      if (!coords) coords = parseCoords(content);
       if (coords) {
         document.getElementById('m-lat').value = coords.lat;
         document.getElementById('m-lng').value = coords.lng;
@@ -477,11 +486,39 @@ async function extractFromUrl() {
 
 function parseCoords(url) {
   if (!url) return null;
-  var m = url.match(/@(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/)
-    || url.match(/query=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/)
-    || url.match(/!3d(-?[0-9]+\.[0-9]+)!4d(-?[0-9]+\.[0-9]+)/)
-    || url.match(/ll=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/);
-  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+
+  // URL แบบ dir/ มีจุดหมายใน !2d (lng) !2d (lat) ดึงจุดสุดท้าย
+  // รูปแบบ: !2dLNG!2dLAT หรือ !1dLNG!2dLAT
+  var dirMatch = url.match(/maps\/dir\//);
+  if (dirMatch) {
+    // หา destination จาก !2d หรือ !1d ที่อยู่ใน destination part
+    // รูปแบบ: !2m2!1dLNG!2dLAT
+    var destMatches = [];
+    var re = /!2m2!1d(-?[0-9]+\.[0-9]+)!2d(-?[0-9]+\.[0-9]+)/g;
+    var dm;
+    while ((dm = re.exec(url)) !== null) destMatches.push(dm);
+    if (destMatches.length > 0) {
+      var last = destMatches[destMatches.length - 1];
+      return { lat: parseFloat(last[2]), lng: parseFloat(last[1]) };
+    }
+  }
+
+  // URL แบบ place/ ดึงจาก !3d (lat) !4d (lng) ซึ่งแม่นกว่า @
+  var placeMatch = url.match(/!3d(-?[0-9]+\.[0-9]+)!4d(-?[0-9]+\.[0-9]+)/);
+  if (placeMatch) return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
+
+  // query= แบบ ?q=lat,lng
+  var qm = url.match(/[?&]q=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/);
+  if (qm) return { lat: parseFloat(qm[1]), lng: parseFloat(qm[2]) };
+
+  // @ พิกัดทั่วไป (fallback)
+  var atm = url.match(/@(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/);
+  if (atm) return { lat: parseFloat(atm[1]), lng: parseFloat(atm[2]) };
+
+  // ll=
+  var llm = url.match(/ll=(-?[0-9]+\.[0-9]+),(-?[0-9]+\.[0-9]+)/);
+  if (llm) return { lat: parseFloat(llm[1]), lng: parseFloat(llm[2]) };
+
   return null;
 }
 

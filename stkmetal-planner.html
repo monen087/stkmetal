@@ -200,7 +200,7 @@ body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--t
 <script>
 let db = null;
 
-async function initFirebase() {
+window.initFirebase = async function() {
   if (db) return db;
   const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
   const { getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
@@ -231,7 +231,7 @@ function saveBank() {
   localStorage.setItem('stk-bank', JSON.stringify(bank));
 }
 
-function renderBank(filter = '') {
+window.renderBank = function(filter = '') {
   const list = document.getElementById('bank-list');
   const lower = filter.toLowerCase();
   const filtered = bank.filter(b => !filter || b.name.toLowerCase().includes(lower));
@@ -361,7 +361,7 @@ window.removeTruck = function(id) {
   renderTrucks(); renderBank();
 };
 
-function renderTrucks() {
+window.renderTrucks = function() {
   const container = document.getElementById('trucks-container');
   const addBtn = document.getElementById('add-truck-btn');
   // ลบ truck cols เก่าออก
@@ -508,7 +508,7 @@ window.doSaveAll = async function() {
 };
 
 // ===== UTILS =====
-function toast(msg) {
+window.toast = function(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg; el.classList.add('show');
   setTimeout(() => el.classList.remove('show'), 2500);

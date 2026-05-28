@@ -181,7 +181,19 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
     </div>
     <div class="fg"><label>ชื่อลูกค้า / บริษัท *</label><input id="m-name" placeholder="ชื่อบริษัท..."></div>
     <div class="fg"><label>เบอร์โทร</label><input id="m-tel" type="tel" placeholder="08xxxxxxxx"></div>
-    <div class="fg"><label>📍 โลเคชั่น Google Maps</label><input id="m-loc" placeholder="https://maps.app.goo.gl/..."></div>
+    <div class="fg">
+      <label>📍 โลเคชั่น Google Maps</label>
+      <input id="m-loc" placeholder="https://maps.app.goo.gl/...">
+    </div>
+    <div class="fg">
+      <label>📌 พิกัด (lat, lng) — วางจาก Google Maps เพื่อให้แผนที่แม่นยำ</label>
+      <div style="display:flex;gap:5px">
+        <input id="m-lat" placeholder="lat เช่น 13.5478" style="flex:1;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit">
+        <input id="m-lng" placeholder="lng เช่น 100.2743" style="flex:1;padding:7px 9px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:12px;font-family:inherit">
+        <button onclick="extractFromUrl()" style="padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--blue);font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">📍 ดึงพิกัด</button>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">💡 เปิด Google Maps → คัดลอก URL ที่มี @lat,lng → วางใน "โลเคชั่น" แล้วกด "📍 ดึงพิกัด"</div>
+    </div>
     <div class="fg"><label>📝 Note</label><textarea id="m-note" rows="2" placeholder="หมายเหตุ..."></textarea></div>
     <div class="fg"><label>รายการสินค้า</label></div>
     <div id="m-items"></div>
@@ -287,9 +299,16 @@ function getCachedCoords(item) {
   if (!item) return null;
   var key = item.id || item.bid || item.name;
   if (geocodeCache[key]) return geocodeCache[key];
-  // ดึงพิกัดจาก URL ถ้ามี
+  // 1. ดึงจาก lat/lng ที่บันทึกไว้ตรงๆ (แม่นยำที่สุด)
+  if (item.lat && item.lng) {
+    geocodeCache[key] = { lat: item.lat, lng: item.lng };
+    return geocodeCache[key];
+  }
+  // 2. ดึงจาก URL
   var url = item.location || '';
-  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/) || url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
   if (m) {
     geocodeCache[key] = { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
     return geocodeCache[key];
@@ -391,6 +410,8 @@ function openEdit(id) {
   document.getElementById('m-name').value = item.name;
   document.getElementById('m-tel').value = item.tel||'';
   document.getElementById('m-loc').value = item.location||'';
+  document.getElementById('m-lat').value = item.lat||'';
+  document.getElementById('m-lng').value = item.lng||'';
   document.getElementById('m-note').value = item.note||'';
   document.getElementById('m-items').innerHTML = '';
   item.items.forEach(function(it){ addRow(it); });
@@ -398,6 +419,24 @@ function openEdit(id) {
 }
 
 function closeAdd() { document.getElementById('add-overlay').classList.remove('show'); }
+
+function extractFromUrl() {
+  var url = document.getElementById('m-loc').value.trim();
+  if (!url) { toast('⚠️ ใส่ URL ก่อนครับ'); return; }
+  // หาพิกัดจาก URL
+  var m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || url.match(/query=(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || url.match(/place\/[^/]+\/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if (m) {
+    document.getElementById('m-lat').value = m[1];
+    document.getElementById('m-lng').value = m[2];
+    toast('✅ ดึงพิกัดสำเร็จ: ' + m[1] + ', ' + m[2]);
+  } else {
+    toast('⚠️ ไม่พบพิกัดใน URL นี้ กรุณาเปิด Google Maps แล้วคัดลอก URL ยาวที่มี @lat,lng ครับ');
+  }
+}
 
 function addRow(prefill) {
   var c = document.getElementById('m-items');
@@ -443,11 +482,15 @@ function saveItem() {
     var src = sel?(sel.value==='อื่นๆ'?(srcInp?srcInp.value.trim():'อื่นๆ'):sel.value):'สาขาใหญ่';
     if (n) items.push({name:n, qty:q||'-', src:src});
   });
+  var lat = parseFloat(document.getElementById('m-lat').value);
+  var lng = parseFloat(document.getElementById('m-lng').value);
   var data = {
     id: editId||('b'+Date.now()),
     name: name,
     tel: document.getElementById('m-tel').value.trim(),
     location: document.getElementById('m-loc').value.trim(),
+    lat: isNaN(lat) ? null : lat,
+    lng: isNaN(lng) ? null : lng,
     note: document.getElementById('m-note').value.trim(),
     items: items
   };

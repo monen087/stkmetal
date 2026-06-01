@@ -580,9 +580,11 @@ window.sharePlan = id => {
   });
   msg += '\n🚚 ส่งลูกค้า:\n';
   (p.customers||[]).forEach((c,i) => {
-    msg += (i+1)+'. '+c.name+(c.tel?' 📞'+c.tel:'')+'\n';
-    (c.items||[]).forEach(it => { msg += '   • '+it.name+' = '+it.qty+(it.src?' ('+it.src+')':'')+'\n'; });
+    msg += (i+1)+'. '+c.name+'\n';
+    (c.items||[]).forEach(it => { msg += '   • '+it.name+' = '+it.qty+(it.src?' ('+it.src+') ▼':' ▼')+'\n'; });
+    if (c.tel) msg += '   📞 '+c.tel+'\n';
     if (c.note) msg += '   📝 '+c.note+'\n';
+    msg += '\n';
   });
   _shareMsg = msg;
   document.getElementById('share-msg-box').textContent = msg;

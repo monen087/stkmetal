@@ -582,6 +582,8 @@ window.sharePlan = id => {
   (p.customers||[]).forEach((c,i) => {
     msg += (i+1)+'. '+c.name+'\n';
     (c.items||[]).forEach(it => { msg += '   • '+it.name+' = '+it.qty+(it.src?' ('+it.src+') ▼':' ▼')+'\n'; });
+    msg += '\n';
+    if (c.location) msg += '   📍 จุดส่ง: '+c.location+'\n';
     if (c.tel) msg += '   📞 '+c.tel+'\n';
     if (c.note) msg += '   📝 '+c.note+'\n';
     msg += '\n';

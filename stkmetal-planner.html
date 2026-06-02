@@ -303,19 +303,18 @@ function refreshMap() {
   mapLines.forEach(function(l){ mainMap.removeLayer(l); });
   mapMarkers = []; mapLines = [];
 
-  // แสดงลูกค้าในคลังที่ยังไม่ได้ใช้ — นับเลขแยก pending vs ready
-  var pendingNum = 0, readyNum = 0;
-  bank.forEach(function(item) {
-    var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
-    if (inPlan) return;
+  // แสดงลูกค้าในคลังทั้งหมด — เลขคงที่ตาม index ใน bank ไม่เปลี่ยนเมื่อลากใส่รถ
+  bank.forEach(function(item, i) {
     var coords = getCachedCoords(item);
     if (!coords) return;
+    var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
     var isPending = item.status === 'pending';
-    var markerColor = isPending ? '#ef5350' : '#1565c0';
-    var label = isPending ? String(++pendingNum) : String(++readyNum);
+    var markerColor = inPlan ? '#2e7d32' : (isPending ? '#ef5350' : '#1565c0');
+    var label = String(i + 1);
+    var tooltip = (inPlan ? '🚛 ' : (isPending ? '⏳ ' : '✅ ')) + item.name;
     var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(label, markerColor, 26) })
       .addTo(mainMap)
-      .bindTooltip('<b>' + (isPending ? '⏳ ' : '✅ ') + item.name + '</b>', { permanent: false, direction: 'top' });
+      .bindTooltip('<b>' + tooltip + '</b>', { permanent: false, direction: 'top' });
     mapMarkers.push(m);
   });
 

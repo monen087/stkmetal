@@ -512,8 +512,10 @@ function renderBank(filter) {
 var _bankDragId = null;
 function bankItemDragStart(e, id) {
   _bankDragId = id;
+  dragId = id; // ให้ dDrop (truck) รับได้ด้วย
+  e.dataTransfer.effectAllowed = 'copy';
   e.dataTransfer.setData('text/plain', id);
-  e.dataTransfer.setData('bank-item', '1'); // mark ว่าเป็น bank item
+  e.dataTransfer.setData('source', 'bank');
   setTimeout(function(){ var el=document.getElementById('bi-'+id); if(el) el.classList.add('dragging'); }, 0);
 }
 function panelDragOver(e, panelType) {
@@ -528,8 +530,8 @@ function panelDragLeave(panelType) {
 function panelDrop(e, targetStatus) {
   e.preventDefault();
   ['ready','pending'].forEach(function(p){ var el=document.getElementById('panel-'+p); if(el) el.classList.remove('drop-over'); });
-  var isBankItem = e.dataTransfer.getData('bank-item');
-  if (!isBankItem) return; // ถ้าเป็น drag จาก truck → ไม่ทำอะไร
+  var src = e.dataTransfer.getData('source');
+  if (src !== 'bank') return; // ถ้าไม่ได้มาจาก bank panel → ไม่ทำอะไร
   var id = e.dataTransfer.getData('text/plain') || _bankDragId;
   if (!id) return;
   var item = bank.find(function(b){ return b.id===id; });
@@ -862,7 +864,7 @@ function updatePlanInfo(){
 
 // ===== DRAG & DROP =====
 function dStart(e,id){ dragId=id; e.dataTransfer.effectAllowed='copy'; setTimeout(function(){ var el=document.getElementById('bi-'+id); if(el) el.classList.add('dragging'); },0); }
-function dEnd(){ if(dragId){ var el=document.getElementById('bi-'+dragId); if(el) el.classList.remove('dragging'); } dragId=null; }
+function dEnd(){ var cid=dragId||_bankDragId; if(cid){ var el=document.getElementById('bi-'+cid); if(el) el.classList.remove('dragging'); } dragId=null; _bankDragId=null; }
 function dOver(e){ e.preventDefault(); e.currentTarget.classList.add('over'); }
 function dLeave(e){ e.currentTarget.classList.remove('over'); }
 function dDrop(e,tid){

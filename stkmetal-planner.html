@@ -29,10 +29,15 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
 
 /* 3-COLUMN LAYOUT */
-.layout{flex:1;display:grid;grid-template-columns:260px 1fr 420px;overflow:hidden;}
+.layout{flex:1;display:grid;grid-template-columns:220px 220px 1fr 400px;overflow:hidden;}
 
 /* ===== LEFT: คลังงาน ===== */
-.left{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.col-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+
+
+
+
+
 .panel-hd{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .panel-title{font-size:13px;font-weight:700;color:var(--text2);}
 .badge{font-size:11px;background:var(--bg3);color:var(--text3);padding:1px 8px;border-radius:20px;}
@@ -44,6 +49,11 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .bitem:hover{border-color:var(--border2);background:var(--bg4);}
 .bitem.used{opacity:0.45;cursor:not-allowed;border-style:dashed;}
 .bitem.dragging{opacity:0.3;}
+.bitem.pending{border-left:3px solid #ef5350;}
+.bitem.ready{border-left:3px solid #1e90ff;}
+.bank-section-hd{padding:5px 8px;font-size:11px;font-weight:700;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.bank-section-hd.ready-hd{color:#1e90ff;}
+.bank-section-hd.pending-hd{color:#ef5350;}
 .bitem-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:700;margin-right:5px;flex-shrink:0;vertical-align:middle;}
 .bitem-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;}
 .bitem-sub{font-size:11px;color:var(--text3);margin-top:2px;}
@@ -85,6 +95,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .add-truck:hover{background:var(--bg2);color:var(--text2);}
 
 /* ===== RIGHT: แผนที่ ===== */
+.col-panel.drop-over{outline:2px dashed var(--blue);outline-offset:-2px;}
 .right{display:flex;flex-direction:column;overflow:hidden;}
 .map-hd{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0;}
 .map-hd-title{font-size:13px;font-weight:700;color:var(--text2);}
@@ -133,23 +144,37 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 </div>
 
 <div class="layout">
-  <!-- LEFT: คลังงาน -->
-  <div class="left">
-    <div class="panel-hd">
-      <span class="panel-title">📦 คลังงาน</span>
-      <span class="badge" id="bank-count">0</span>
+  <!-- COL 1: รอผลิต -->
+  <div class="col-panel" id="panel-pending"
+       ondragover="panelDragOver(event,'pending')" ondragleave="panelDragLeave('pending')" ondrop="panelDrop(event,'pending')">
+    <div class="panel-hd" style="flex-shrink:0">
+      <span class="panel-title" style="color:#ef5350">⏳ รอผลิต</span>
+      <span class="badge" id="count-pending">0</span>
     </div>
-    <div class="search">
+    <div class="search" style="flex-shrink:0">
       <input type="text" placeholder="🔍 ค้นหา..." oninput="renderBank(this.value)" id="search-inp">
     </div>
-    <div class="bank-list" id="bank-list"></div>
-    <button class="add-btn" onclick="openAdd()">+ เพิ่มลูกค้าใหม่ในคลัง</button>
+    <div class="bank-list" id="list-pending" style="flex:1;overflow-y:auto;padding:6px"></div>
+    <button class="add-btn" onclick="openAdd()" style="flex-shrink:0">+ เพิ่มใหม่</button>
+  </div>
+
+  <!-- COL 2: พร้อมส่ง -->
+  <div class="col-panel" id="panel-ready"
+       ondragover="panelDragOver(event,'ready')" ondragleave="panelDragLeave('ready')" ondrop="panelDrop(event,'ready')">
+    <div class="panel-hd" style="flex-shrink:0">
+      <span class="panel-title" style="color:#1e90ff">✅ พร้อมส่ง</span>
+      <span class="badge" id="count-ready">0</span>
+    </div>
+    <div style="padding:7px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <span style="font-size:10px;color:var(--text3)">รวม <span id="bank-count">0</span> รายการ</span>
+    </div>
+    <div class="bank-list" id="list-ready" style="flex:1;overflow-y:auto;padding:6px"></div>
   </div>
 
   <!-- MIDDLE: แผนงาน -->
-  <div class="mid">
-    <div class="mid-tb">
-      <span style="font-size:12px;color:var(--text3)">🚛 แผนงาน</span>
+  <div class="col-panel mid">
+    <div class="panel-hd" style="flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border)">
+      <span class="panel-title">🚛 จัดเข้ารถ</span>
       <span style="font-size:11px;color:var(--text3);margin-left:4px" id="plan-info"></span>
     </div>
     <div class="trucks" id="trucks">
@@ -163,7 +188,8 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
       <span class="map-hd-title">🗺️ แผนที่</span>
       <div class="map-legend">
         <span><span style="width:12px;height:12px;border-radius:50%;background:#2e7d32;display:inline-block"></span>STK</span>
-        <span><span style="width:12px;height:12px;border-radius:50%;background:#1565c0;display:inline-block"></span>คลัง</span>
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#1565c0;display:inline-block"></span>พร้อมส่ง</span>
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#ef5350;display:inline-block"></span>รอผลิต</span>
         <span><span style="width:12px;height:12px;border-radius:50%;background:#e65100;display:inline-block"></span>แผน</span>
       </div>
     </div>
@@ -195,6 +221,13 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
       <div style="font-size:10px;color:var(--text3);margin-top:3px">💡 วาง URL ทุกรูปแบบได้เลย (share.google, maps.app.goo.gl, หรือ URL ยาว) แล้วกด "📍 ดึงพิกัด"</div>
     </div>
     <div class="fg"><label>📝 Note ถึงคนขับ</label><textarea id="m-note" rows="2" placeholder="เช่น ติดต่อคุณ... / แผนก... / จอดหน้า... / เข้าประตู..."></textarea></div>
+    <div class="fg">
+      <label>🔖 สถานะงาน</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button type="button" id="s-ready" onclick="setStatus('ready')" style="flex:1;padding:8px;border-radius:var(--rs);border:2px solid #1e90ff;background:#0d2a4a;color:#1e90ff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">✅ พร้อมส่ง</button>
+        <button type="button" id="s-pending" onclick="setStatus('pending')" style="flex:1;padding:8px;border-radius:var(--rs);border:2px solid var(--border2);background:var(--bg3);color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">⏳ รอผลิต</button>
+      </div>
+    </div>
     <div class="fg"><label>รายการสินค้า</label></div>
     <div id="m-items"></div>
     <button class="add-row" onclick="addRow()">+ เพิ่มสินค้า</button>
@@ -273,10 +306,11 @@ function refreshMap() {
   // แสดงลูกค้าในคลังที่ยังไม่ได้ใช้ (สีน้ำเงิน)
   bank.forEach(function(item, i) {
     var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
+    var markerColor = (item.status === 'pending') ? '#ef5350' : '#1565c0';
     if (inPlan) return; // ข้ามถ้าอยู่ในแผนแล้ว
     var coords = getCachedCoords(item);
     if (!coords) return;
-    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), '#1565c0', 26) })
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), markerColor, 26) })
       .addTo(mainMap)
       .bindTooltip('<b>' + item.name + '</b>', { permanent: false, direction: 'top' });
     mapMarkers.push(m);
@@ -419,40 +453,97 @@ function saveBank() {
   // sync ขึ้น Firebase ทุกครั้ง
 }
 
-function renderBank(filter) {
-  var list = document.getElementById('bank-list');
-  var fl = (filter||'').toLowerCase();
-  var shown = bank.filter(function(b){ return !fl || b.name.toLowerCase().indexOf(fl) >= 0; });
-  document.getElementById('bank-count').textContent = bank.length + ' รายการ';
-  if (!shown.length) {
-    list.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">' + (fl?'ไม่พบ':'ยังไม่มีลูกค้า<br><span style="font-size:10px">กด "+ เพิ่มลูกค้า" ด้านล่าง</span>') + '</div>';
-    return;
+function setStatus(s) {
+  var rBtn = document.getElementById('s-ready');
+  var pBtn = document.getElementById('s-pending');
+  if (!rBtn) return;
+  if (s === 'ready') {
+    rBtn.dataset.active = '1'; pBtn.dataset.active = '0';
+    rBtn.style.borderColor = '#1e90ff'; rBtn.style.background = '#0d2a4a'; rBtn.style.color = '#1e90ff';
+    pBtn.style.borderColor = 'var(--border2)'; pBtn.style.background = 'var(--bg3)'; pBtn.style.color = 'var(--text3)';
+  } else {
+    rBtn.dataset.active = '0'; pBtn.dataset.active = '1';
+    pBtn.style.borderColor = '#ef5350'; pBtn.style.background = '#2a0f0f'; pBtn.style.color = '#ef5350';
+    rBtn.style.borderColor = 'var(--border2)'; rBtn.style.background = 'var(--bg3)'; rBtn.style.color = 'var(--text3)';
   }
-  var html = '';
-  shown.forEach(function(item, i) {
-    var used = trucks.filter(function(t){ return t.custs.some(function(c){ return c.bid===item.id; }); }).map(function(t){ return t.name; });
-    var isUsed = used.length > 0;
-    var hasCoords = !!getCachedCoords(item);
-    html += '<div class="bitem' + (isUsed?' used':'') + '" id="bi-'+item.id+'" draggable="'+ (!isUsed) +'"'
-      + ' ondragstart="dStart(event,\''+item.id+'\')" ondragend="dEnd()"'
-      + ' onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
-      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
-      + '<div style="flex:1;min-width:0">'
-      + '<div class="bitem-name">'
-      + '<span class="bitem-num">' + (i+1) + '</span>'
-      + esc(item.name)
-      + (!hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '')
-      + '</div>'
-      + '<div class="bitem-sub">' + (item.tel?'📞'+item.tel+' • ':'') + item.items.length + ' สินค้า</div>'
-      + (isUsed ? '<div class="bitem-badge">✓ '+used.join(',')+'</div>' : '')
-      + '</div>'
-      + (!isUsed ? '<button onclick="event.stopPropagation();deleteBank(\''+item.id+'\')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>' : '')
-      + '</div>'
-      + '</div>';
-  });
-  list.innerHTML = html;
 }
 
+function buildBankItem(item, i) {
+  var used = trucks.filter(function(t){ return t.custs.some(function(c){ return c.bid===item.id; }); }).map(function(t){ return t.name; });
+  var isUsed = used.length > 0;
+  var hasCoords = !!getCachedCoords(item);
+  var isPending = item.status === 'pending';
+  return '<div class="bitem' + (isUsed?' used':'') + (isPending?' pending':' ready') + '" id="bi-'+item.id+'" draggable="'+ (!isUsed) +'"'
+    + ' ondragstart="bankItemDragStart(event,\'' + item.id + '\')" ondragend="dEnd()"'
+    + ' onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
+    + '<div style="flex:1;min-width:0">'
+    + '<div class="bitem-name">'
+    + '<span class="bitem-num" style="background:' + (isPending?'#ef5350':'#1e90ff') + '">' + i + '</span>'
+    + esc(item.name)
+    + (!hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '')
+    + '</div>'
+    + '<div class="bitem-sub">' + (item.tel?'📞'+item.tel+' • ':'') + item.items.length + ' สินค้า</div>'
+    + (isUsed ? '<div class="bitem-badge">✓ '+used.join(',')+'</div>' : '')
+    + '</div>'
+    + (!isUsed ? '<button onclick="event.stopPropagation();deleteBank(\''+item.id+'\')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>' : '')
+    + '</div>'
+    + '</div>';
+}
+
+function renderBank(filter) {
+  var fl = (filter||'').toLowerCase();
+  var shown = bank.filter(function(b){ return !fl || b.name.toLowerCase().indexOf(fl) >= 0; });
+  var readyItems = shown.filter(function(b){ return !b.status || b.status === 'ready'; });
+  var pendingItems = shown.filter(function(b){ return b.status === 'pending'; });
+  document.getElementById('bank-count').textContent = bank.length + ' รายการ';
+  document.getElementById('count-ready').textContent = readyItems.length;
+  document.getElementById('count-pending').textContent = pendingItems.length;
+
+  document.getElementById('list-ready').innerHTML = readyItems.length
+    ? readyItems.map(function(it,i){ return buildBankItem(it, i+1); }).join('')
+    : '<div style="text-align:center;padding:14px;color:var(--text3);font-size:11px">ลากมาวางที่นี่</div>';
+  document.getElementById('list-pending').innerHTML = pendingItems.length
+    ? pendingItems.map(function(it,i){ return buildBankItem(it, i+1); }).join('')
+    : '<div style="text-align:center;padding:14px;color:var(--text3);font-size:11px">ลากมาวางที่นี่</div>';
+}
+
+// ===== PANEL DRAG (ย้ายระหว่าง พร้อมส่ง <-> รอผลิต) =====
+var _bankDragId = null;
+function bankItemDragStart(e, id) {
+  _bankDragId = id;
+  e.dataTransfer.setData('text/plain', id);
+  e.dataTransfer.setData('bank-item', '1'); // mark ว่าเป็น bank item
+  setTimeout(function(){ var el=document.getElementById('bi-'+id); if(el) el.classList.add('dragging'); }, 0);
+}
+function panelDragOver(e, panelType) {
+  e.preventDefault();
+  var el = document.getElementById('panel-'+panelType);
+  if (el) el.classList.add('drop-over');
+}
+function panelDragLeave(panelType) {
+  var el = document.getElementById('panel-'+panelType);
+  if (el) el.classList.remove('drop-over');
+}
+function panelDrop(e, targetStatus) {
+  e.preventDefault();
+  ['ready','pending'].forEach(function(p){ var el=document.getElementById('panel-'+p); if(el) el.classList.remove('drop-over'); });
+  var isBankItem = e.dataTransfer.getData('bank-item');
+  if (!isBankItem) return; // ถ้าเป็น drag จาก truck → ไม่ทำอะไร
+  var id = e.dataTransfer.getData('text/plain') || _bankDragId;
+  if (!id) return;
+  var item = bank.find(function(b){ return b.id===id; });
+  if (!item) return;
+  var isUsed = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid===id; }); });
+  if (isUsed) return;
+  var currentStatus = item.status || 'ready';
+  if (currentStatus === targetStatus) return;
+  item.status = targetStatus;
+  saveBankItem(item);
+  renderBank(document.getElementById('search-inp').value);
+  updateMap();
+  toast(targetStatus === 'ready' ? '✅ ย้ายไปพร้อมส่งแล้ว' : '⏳ ย้ายไปรอผลิตแล้ว');
+}
 // ===== ADD/EDIT =====
 function deleteBank(id) {
   var item = bank.find(function(b){ return b.id===id; });
@@ -480,6 +571,7 @@ function openAdd() {
   document.getElementById('m-tel').value = '';
   document.getElementById('m-loc').value = '';
   document.getElementById('m-note').value = '';
+  setStatus('ready');
   document.getElementById('m-items').innerHTML = '';
   addRow(); addRow();
   document.getElementById('add-overlay').classList.add('show');
@@ -496,6 +588,7 @@ function openEdit(id) {
   document.getElementById('m-lat').value = item.lat||'';
   document.getElementById('m-lng').value = item.lng||'';
   document.getElementById('m-note').value = item.note||'';
+  setStatus(item.status||'ready');
   document.getElementById('m-items').innerHTML = '';
   item.items.forEach(function(it){ addRow(it); });
   document.getElementById('add-overlay').classList.add('show');
@@ -644,6 +737,7 @@ function saveItem() {
     lat: isNaN(lat) ? null : lat,
     lng: isNaN(lng) ? null : lng,
     note: document.getElementById('m-note').value.trim(),
+    status: document.getElementById('s-ready').dataset.active==='1' ? 'ready' : 'pending',
     items: items
   };
   if (editId) {

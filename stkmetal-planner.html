@@ -303,18 +303,29 @@ function refreshMap() {
   mapLines.forEach(function(l){ mainMap.removeLayer(l); });
   mapMarkers = []; mapLines = [];
 
-  // แสดงลูกค้าในคลังทั้งหมด — เลขคงที่ตาม index ใน bank ไม่เปลี่ยนเมื่อลากใส่รถ
-  bank.forEach(function(item, i) {
+  // แยก pending / ready แล้วนับเลขเป็น 2 ชุดอิสระ เลขคงที่ไม่เปลี่ยนแม้ลากใส่รถ
+  var pendingList = bank.filter(function(b){ return b.status === 'pending'; });
+  var readyList   = bank.filter(function(b){ return !b.status || b.status === 'ready'; });
+
+  pendingList.forEach(function(item, i) {
     var coords = getCachedCoords(item);
     if (!coords) return;
     var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
-    var isPending = item.status === 'pending';
-    var markerColor = inPlan ? '#2e7d32' : (isPending ? '#ef5350' : '#1565c0');
-    var label = String(i + 1);
-    var tooltip = (inPlan ? '🚛 ' : (isPending ? '⏳ ' : '✅ ')) + item.name;
-    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(label, markerColor, 26) })
+    var markerColor = inPlan ? '#e65100' : '#ef5350';
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), markerColor, 26) })
       .addTo(mainMap)
-      .bindTooltip('<b>' + tooltip + '</b>', { permanent: false, direction: 'top' });
+      .bindTooltip('<b>' + (inPlan?'🚛 ':'⏳ ') + item.name + '</b>', { permanent: false, direction: 'top' });
+    mapMarkers.push(m);
+  });
+
+  readyList.forEach(function(item, i) {
+    var coords = getCachedCoords(item);
+    if (!coords) return;
+    var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
+    var markerColor = inPlan ? '#2e7d32' : '#1565c0';
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), markerColor, 26) })
+      .addTo(mainMap)
+      .bindTooltip('<b>' + (inPlan?'🚛 ':'✅ ') + item.name + '</b>', { permanent: false, direction: 'top' });
     mapMarkers.push(m);
   });
 

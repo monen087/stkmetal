@@ -303,16 +303,19 @@ function refreshMap() {
   mapLines.forEach(function(l){ mainMap.removeLayer(l); });
   mapMarkers = []; mapLines = [];
 
-  // แสดงลูกค้าในคลังที่ยังไม่ได้ใช้ (สีน้ำเงิน)
-  bank.forEach(function(item, i) {
+  // แสดงลูกค้าในคลังที่ยังไม่ได้ใช้ — นับเลขแยก pending vs ready
+  var pendingNum = 0, readyNum = 0;
+  bank.forEach(function(item) {
     var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
-    var markerColor = (item.status === 'pending') ? '#ef5350' : '#1565c0';
-    if (inPlan) return; // ข้ามถ้าอยู่ในแผนแล้ว
+    if (inPlan) return;
     var coords = getCachedCoords(item);
     if (!coords) return;
-    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), markerColor, 26) })
+    var isPending = item.status === 'pending';
+    var markerColor = isPending ? '#ef5350' : '#1565c0';
+    var label = isPending ? String(++pendingNum) : String(++readyNum);
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(label, markerColor, 26) })
       .addTo(mainMap)
-      .bindTooltip('<b>' + item.name + '</b>', { permanent: false, direction: 'top' });
+      .bindTooltip('<b>' + (isPending ? '⏳ ' : '✅ ') + item.name + '</b>', { permanent: false, direction: 'top' });
     mapMarkers.push(m);
   });
 
@@ -473,22 +476,24 @@ function buildBankItem(item, i) {
   var isUsed = used.length > 0;
   var hasCoords = !!getCachedCoords(item);
   var isPending = item.status === 'pending';
-  return '<div class="bitem' + (isUsed?' used':'') + (isPending?' pending':' ready') + '" id="bi-'+item.id+'" draggable="'+ (!isUsed) +'"'
-    + ' ondragstart="bankItemDragStart(event,\'' + item.id + '\')" ondragend="dEnd()"'
-    + ' onclick="' + (isUsed?'':'openEdit(\''+item.id+'\')') + '">'
+  var numColor = isPending ? '#ef5350' : '#1e90ff';
+  var cls = 'bitem' + (isUsed?' used':'') + (isPending?' pending':' ready');
+  var draggable = !isUsed;
+  var onDragStart = isUsed ? '' : ' ondragstart="bankItemDragStart(event,' + "'" + item.id + "'" + ')"';
+  var onDragEnd = ' ondragend="dEnd()"';
+  var onClick = isUsed ? '' : ' onclick="openEdit(' + "'" + item.id + "'" + ')"';
+  var delBtn = isUsed ? '' : '<button onclick="event.stopPropagation();deleteBank(' + "'" + item.id + "'" + ')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>';
+  var coordWarn = !hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '';
+  var usedBadge = isUsed ? '<div class="bitem-badge">✓ ' + used.join(',') + '</div>' : '';
+  return '<div class="' + cls + '" id="bi-' + item.id + '" draggable="' + draggable + '"' + onDragStart + onDragEnd + onClick + '>'
     + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
     + '<div style="flex:1;min-width:0">'
-    + '<div class="bitem-name">'
-    + '<span class="bitem-num" style="background:' + (isPending?'#ef5350':'#1e90ff') + '">' + i + '</span>'
-    + esc(item.name)
-    + (!hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '')
+    + '<div class="bitem-name"><span class="bitem-num" style="background:' + numColor + '">' + i + '</span>' + esc(item.name) + coordWarn + '</div>'
+    + '<div class="bitem-sub">' + (item.tel ? '📞' + item.tel + ' • ' : '') + item.items.length + ' สินค้า</div>'
+    + usedBadge
     + '</div>'
-    + '<div class="bitem-sub">' + (item.tel?'📞'+item.tel+' • ':'') + item.items.length + ' สินค้า</div>'
-    + (isUsed ? '<div class="bitem-badge">✓ '+used.join(',')+'</div>' : '')
-    + '</div>'
-    + (!isUsed ? '<button onclick="event.stopPropagation();deleteBank(\''+item.id+'\')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>' : '')
-    + '</div>'
-    + '</div>';
+    + delBtn
+    + '</div></div>';
 }
 
 function renderBank(filter) {

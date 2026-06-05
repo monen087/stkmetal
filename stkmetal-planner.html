@@ -321,7 +321,12 @@ initMap();
 if (!loadTrucks()) addTruck(); // ถ้าไม่มี saved trucks ให้เพิ่ม 1 คัน
 renderTrucks();
 renderBank('');
-initBankFromFirebase(); // โหลดคลังจาก Firebase
+// โหลด delivering จาก localStorage ทันที (ก่อน Firebase เสร็จ)
+try {
+  var _dl = JSON.parse(localStorage.getItem('stk-delivering') || '[]');
+  if (_dl.length > 0) { deliveringPlans = _dl; renderDelivering(); }
+} catch(e) {}
+initBankFromFirebase(); // โหลดคลังจาก Firebase (จะ call loadDeliveringFromFirebase ต่อ)
 
 // ===== MAP INIT =====
 function initMap() {
@@ -470,6 +475,8 @@ async function initBankFromFirebase() {
       // geocode ใน background
       setTimeout(geocodeAll, 500);
       toast('✅ โหลดคลังงาน ' + bank.length + ' รายการ');
+      // โหลด delivering หลัง bank พร้อมแล้ว (เพื่อ sync delivering flag ถูกต้อง)
+      await loadDeliveringFromFirebase();
     } else {
       // ถ้า Firestore ว่าง ให้ migrate จาก localStorage
       var local = JSON.parse(localStorage.getItem('stk-bank2') || '[]');

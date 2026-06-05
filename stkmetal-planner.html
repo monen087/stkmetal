@@ -622,7 +622,6 @@ function panelDrop(e, targetStatus) {
   saveBankItem(item);
   renderBank(document.getElementById('search-inp').value);
   renderDelivering();
-  await loadDeliveringFromFirebase();
   updateMap();
   toast(targetStatus === 'ready' ? '✅ ย้ายไปพร้อมส่งแล้ว' : '⏳ ย้ายไปรอผลิตแล้ว');
 }
@@ -903,7 +902,7 @@ function renderDelivering() {
 async function toggleDeliveringDone(pi, ci) {
   deliveringPlans[pi].custs[ci].done = !deliveringPlans[pi].custs[ci].done;
   renderDelivering();
-  await saveDeliveringToFirebase();
+  saveDeliveringToFirebase();
 }
 
 function editDeliveringCust(pi, ci) {
@@ -929,7 +928,7 @@ function completeDelivery(pi) {
       plan.custs.forEach(function(c) { deleteBankFromFirebase(c.bid); });
       deliveringPlans.splice(pi, 1);
       renderDelivering();
-      await saveDeliveringToFirebase();
+      saveDeliveringToFirebase();
       renderBank(document.getElementById('search-inp').value);
       refreshMap();
       toast('✅ จัดส่งสำเร็จ! ลบออกจากระบบแล้ว');
@@ -956,7 +955,7 @@ function postponeSingle(pi, ci) {
       plan.custs.splice(ci, 1);
       if (plan.custs.length === 0) deliveringPlans.splice(pi, 1);
       renderDelivering();
-      await saveDeliveringToFirebase();
+      saveDeliveringToFirebase();
       renderBank(document.getElementById('search-inp').value);
       refreshMap();
       toast('↩️ คืน ' + c.name.substring(0,20) + ' กลับสู่คลังแล้ว');
@@ -981,7 +980,7 @@ function postponeDelivery(pi) {
       });
       deliveringPlans.splice(pi, 1);
       renderDelivering();
-      await saveDeliveringToFirebase();
+      saveDeliveringToFirebase();
       renderBank(document.getElementById('search-inp').value);
       refreshMap();
       toast('↩️ คืนงานกลับสู่คลังพร้อมส่งแล้ว');
@@ -1214,7 +1213,7 @@ function doSave(){
           t.custs=[]; t.hasBranch=false;
         });
         renderTrucks(); renderBank(document.getElementById('search-inp').value);
-        renderDelivering(); await saveDeliveringToFirebase(); refreshMap(); updatePlanInfo();
+        renderDelivering(); saveDeliveringToFirebase(); refreshMap(); updatePlanInfo();
         btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ';
       }).catch(function(e){ toast('❌ '+e.message); btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ'; });
     });

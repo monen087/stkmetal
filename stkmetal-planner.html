@@ -29,7 +29,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
 
 /* 3-COLUMN LAYOUT */
-.layout{flex:1;display:grid;grid-template-columns:220px 220px 1fr 400px;overflow:hidden;}
+.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr 220px 380px;overflow:hidden;}
 
 /* ===== LEFT: คลังงาน ===== */
 .col-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
@@ -96,6 +96,15 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 
 /* ===== RIGHT: แผนที่ ===== */
 .col-panel.drop-over{outline:2px dashed var(--blue);outline-offset:-2px;}
+.delivering-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.truck.delivering{border:1px solid var(--amber);background:rgba(255,214,102,0.05);}
+.truck.delivering .truck-hd input{pointer-events:none;color:var(--amber);}
+.citem.locked{opacity:0.85;}
+.citem.locked .citem-del{display:none;}
+.citem-actions{display:flex;gap:4px;margin-top:4px;}
+.citem-act-btn{flex:1;padding:4px 6px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.deliver-success-btn{width:100%;padding:10px;background:#1e90ff;color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
+.deliver-success-btn:hover{background:#1565c0;}
 .right{display:flex;flex-direction:column;overflow:hidden;}
 .map-hd{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0;}
 .map-hd-title{font-size:13px;font-weight:700;color:var(--text2);}
@@ -180,6 +189,15 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
     <div class="trucks" id="trucks">
       <button class="add-truck" id="add-truck-btn" onclick="addTruck()">+</button>
     </div>
+  </div>
+
+  <!-- DELIVERING: กำลังส่ง -->
+  <div class="delivering-panel">
+    <div class="panel-hd" style="flex-shrink:0">
+      <span class="panel-title" style="color:var(--amber)">🚚 กำลังส่ง</span>
+      <span class="badge" id="delivering-count" style="background:var(--amber-pale);color:var(--amber)">0</span>
+    </div>
+    <div id="delivering-list" style="flex:1;overflow-y:auto;padding:8px"></div>
   </div>
 
   <!-- RIGHT: แผนที่ -->
@@ -484,17 +502,19 @@ function setStatus(s) {
 function buildBankItem(item, i) {
   var used = trucks.filter(function(t){ return t.custs.some(function(c){ return c.bid===item.id; }); }).map(function(t){ return t.name; });
   var isUsed = used.length > 0;
+  var isDelivering = !!item.delivering;
   var hasCoords = !!getCachedCoords(item);
   var isPending = item.status === 'pending';
-  var numColor = isPending ? '#ef5350' : '#1e90ff';
-  var cls = 'bitem' + (isUsed?' used':'') + (isPending?' pending':' ready');
-  var draggable = !isUsed;
+  var numColor = isDelivering ? 'var(--amber)' : (isPending ? '#ef5350' : '#1e90ff');
+  var cls = 'bitem' + (isUsed?' used':'') + (isDelivering?' used':'') + (isPending?' pending':' ready');
+  var draggable = !isUsed && !isDelivering;
   var onDragStart = isUsed ? '' : ' ondragstart="bankItemDragStart(event,' + "'" + item.id + "'" + ')"';
   var onDragEnd = ' ondragend="dEnd()"';
   var onClick = isUsed ? '' : ' onclick="openEdit(' + "'" + item.id + "'" + ')"';
-  var delBtn = isUsed ? '' : '<button onclick="event.stopPropagation();deleteBank(' + "'" + item.id + "'" + ')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>';
+  var delBtn = (isUsed || isDelivering) ? '' : '<button onclick="event.stopPropagation();deleteBank(' + "'" + item.id + "'" + ')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>';
+  var delivBadge = isDelivering ? '<div class="bitem-badge" style="background:rgba(255,214,102,0.15);color:var(--amber)">🚚 กำลังส่ง</div>' : '';
   var coordWarn = !hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '';
-  var usedBadge = isUsed ? '<div class="bitem-badge">✓ ' + used.join(',') + '</div>' : '';
+  var usedBadge = isDelivering ? delivBadge : (isUsed ? '<div class="bitem-badge">✓ ' + used.join(',') + '</div>' : '');
   return '<div class="' + cls + '" id="bi-' + item.id + '" draggable="' + draggable + '"' + onDragStart + onDragEnd + onClick + '>'
     + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
     + '<div style="flex:1;min-width:0">'
@@ -558,6 +578,7 @@ function panelDrop(e, targetStatus) {
   item.status = targetStatus;
   saveBankItem(item);
   renderBank(document.getElementById('search-inp').value);
+  renderDelivering();
   updateMap();
   toast(targetStatus === 'ready' ? '✅ ย้ายไปพร้อมส่งแล้ว' : '⏳ ย้ายไปรอผลิตแล้ว');
 }
@@ -796,6 +817,88 @@ function delTruck(id) {
   );
 }
 
+// ===== DELIVERING STATE =====
+var deliveringPlans = []; // [{planId, truckName, driver, custs:[{bid,name,tel,items,done}], savedAt}]
+
+function renderDelivering() {
+  var list = document.getElementById('delivering-list');
+  var badge = document.getElementById('delivering-count');
+  badge.textContent = deliveringPlans.length;
+  if (!deliveringPlans.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">ยังไม่มีงานที่กำลังส่ง</div>';
+    return;
+  }
+  list.innerHTML = deliveringPlans.map(function(plan, pi) {
+    var custsHtml = plan.custs.map(function(c, ci) {
+      var doneStyle = c.done ? 'text-decoration:line-through;color:var(--text3);' : '';
+      return '<div class="citem locked" style="' + (c.done?'opacity:0.5':'') + '">'
+        + '<div class="citem-name" style="' + doneStyle + '"><span style="color:var(--text3);font-size:10px;margin-right:3px">' + (ci+1) + '.</span>' + esc(c.name) + '</div>'
+        + '<div class="citem-sub">' + c.items.length + ' สินค้า' + (c.tel?'  📞'+esc(c.tel):'') + '</div>'
+        + '<div class="citem-actions">'
+        + '<button class="citem-act-btn" style="background:var(--bg3);color:var(--text2)" onclick="editDeliveringCust(' + pi + ',' + ci + ')">✏️ แก้ไข</button>'
+        + '<button class="citem-act-btn" style="background:' + (c.done?'var(--bg3)':'rgba(30,144,255,0.15)') + ';color:' + (c.done?'var(--text3)':'#1e90ff') + '" onclick="toggleDeliveringDone(' + pi + ',' + ci + ')">' + (c.done?'↩️ ยังไม่เสร็จ':'✅ เสร็จสิ้น') + '</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    var allDone = plan.custs.every(function(c){ return c.done; });
+    return '<div class="truck delivering" style="margin-bottom:10px">'
+      + '<div class="truck-hd"><input value="' + esc(plan.truckName) + '" readonly style="pointer-events:none;color:var(--amber)"></div>'
+      + '<div class="truck-sub" style="padding:4px 8px;font-size:11px;color:var(--text3)">🕐 บันทึก: ' + plan.savedAt + ' • ' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + ' เสร็จ</div>'
+      + '<div style="padding:4px 8px">' + custsHtml + '</div>'
+      + '<div style="padding:4px 8px 8px">'
+      + '<button class="deliver-success-btn" style="background:' + (allDone?'#1e90ff':'var(--bg3)') + ';color:' + (allDone?'#fff':'var(--text3)') + '" onclick="completeDelivery(' + pi + ')">'
+      + (allDone ? '🏁 จัดส่งสำเร็จ ✅' : '🚚 กำลังส่ง... (' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + ')')
+      + '</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function toggleDeliveringDone(pi, ci) {
+  deliveringPlans[pi].custs[ci].done = !deliveringPlans[pi].custs[ci].done;
+  renderDelivering();
+}
+
+function editDeliveringCust(pi, ci) {
+  var c = deliveringPlans[pi].custs[ci];
+  // หา bank item แล้วเปิด edit modal
+  var bankItem = bank.find(function(b){ return b.id === c.bid; });
+  if (bankItem) openEdit(bankItem.id);
+}
+
+function completeDelivery(pi) {
+  var plan = deliveringPlans[pi];
+  showConfirmModal(
+    '🏁 จัดส่งสำเร็จ',
+    'ยืนยันว่า <b style="color:var(--amber)">' + plan.truckName + '</b> ส่งสำเร็จแล้ว?<br><small style="color:#aaa">งานทั้งหมดจะออกจาก "กำลังส่ง"</small>',
+    function() {
+      // ลบ bank items ที่ส่งเสร็จออก
+      plan.custs.forEach(function(c) {
+        bank = bank.filter(function(b){ return b.id !== c.bid; });
+        // ลบออกจาก Firebase bank collection ด้วย
+        deleteBankFromFirebase(c.bid);
+      });
+      deliveringPlans.splice(pi, 1);
+      renderDelivering();
+      renderBank(document.getElementById('search-inp').value);
+      refreshMap();
+      toast('✅ จัดส่งสำเร็จ! ลบออกจากระบบแล้ว');
+    },
+    '#1e90ff', '🏁 ยืนยันจัดส่งสำเร็จ'
+  );
+}
+
+function deleteBankFromFirebase(bid) {
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(function(am){
+    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fm){
+      var ex=am.getApps().find(function(a){ return a.name==='bk'; });
+      var app=ex||am.initializeApp({apiKey:'AIzaSyD8FDKz4Zd8SnnqCviwPgPxuotKxT-4pTM',authDomain:'delivery-stkmetal.firebaseapp.com',projectId:'delivery-stkmetal'},'bk');
+      var db=fm.getFirestore(app);
+      fm.deleteDoc(fm.doc(db,'bank',bid)).catch(function(){});
+    });
+  });
+}
+
 function renderTrucks() {
   var container = document.getElementById('trucks');
   var addBtn = document.getElementById('add-truck-btn');
@@ -986,12 +1089,30 @@ function doSave(){
         var customers=t.custs.map(function(c){ return {name:c.name,tel:c.tel||'',location:c.location||'',note:c.note||'',items:c.items,done:false,doneAt:null,photos:[],problem:null,problemNote:null,problemAt:null}; });
         return fm.addDoc(fm.collection(db,'plans'),{date:date,truckName:t.name,driver:t.driver||'',createdAt:Date.now(),pickups:pickups,customers:customers});
       });
-      Promise.all(saves).then(function(){
+      Promise.all(saves).then(function(docRefs){
         document.getElementById('cfm-overlay').classList.remove('show');
         toast('✅ บันทึกสำเร็จ '+saves.length+' คัน!');
-        trucks.forEach(function(t){ t.custs=[]; t.hasBranch=false; });
+        // ย้าย customers ไป deliveringPlans แทนการลบ
+        var now = new Date();
+        var timeStr = now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+        active.forEach(function(t, ti) {
+          var planCusts = t.custs.map(function(c){ return {bid:c.bid, name:c.name, tel:c.tel||'', items:c.items, done:false}; });
+          deliveringPlans.push({
+            planId: docRefs[ti] ? docRefs[ti].id : ('plan-'+Date.now()),
+            truckName: t.name,
+            driver: t.driver||'',
+            custs: planCusts,
+            savedAt: timeStr
+          });
+          // lock customers ใน bank (status = delivering)
+          t.custs.forEach(function(c){
+            var bi = bank.find(function(b){ return b.id===c.bid; });
+            if (bi) bi.delivering = true;
+          });
+          t.custs=[]; t.hasBranch=false;
+        });
         renderTrucks(); renderBank(document.getElementById('search-inp').value);
-        refreshMap(); updatePlanInfo();
+        renderDelivering(); refreshMap(); updatePlanInfo();
         btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ';
       }).catch(function(e){ toast('❌ '+e.message); btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ'; });
     });

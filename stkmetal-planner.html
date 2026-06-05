@@ -206,9 +206,9 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
       <span class="map-hd-title">🗺️ แผนที่</span>
       <div class="map-legend">
         <span><span style="width:12px;height:12px;border-radius:50%;background:#2e7d32;display:inline-block"></span>STK</span>
-        <span><span style="width:12px;height:12px;border-radius:50%;background:#1565c0;display:inline-block"></span>พร้อมส่ง</span>
         <span><span style="width:12px;height:12px;border-radius:50%;background:#ef5350;display:inline-block"></span>รอผลิต</span>
-        <span><span style="width:12px;height:12px;border-radius:50%;background:#e65100;display:inline-block"></span>แผน</span>
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#2e7d32;display:inline-block"></span>พร้อมส่ง</span>
+        <span><span style="width:12px;height:12px;border-radius:50%;background:#ffd166;display:inline-block"></span>กำลังส่ง</span>
       </div>
     </div>
     <div id="main-map"></div>
@@ -325,25 +325,29 @@ function refreshMap() {
   var pendingList = bank.filter(function(b){ return b.status === 'pending'; });
   var readyList   = bank.filter(function(b){ return !b.status || b.status === 'ready'; });
 
+  // รอผลิต = แดง
   pendingList.forEach(function(item, i) {
     var coords = getCachedCoords(item);
     if (!coords) return;
-    var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
-    var markerColor = inPlan ? '#e65100' : '#ef5350';
-    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), markerColor, 26) })
+    var isDelivering = !!item.delivering;
+    var markerColor = isDelivering ? '#ffd166' : '#ef5350';
+    var label = isDelivering ? '🚚' : String(i+1);
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(label, markerColor, 26) })
       .addTo(mainMap)
-      .bindTooltip('<b>' + (inPlan?'🚛 ':'⏳ ') + item.name + '</b>', { permanent: false, direction: 'top' });
+      .bindTooltip('<b>' + (isDelivering?'🚚 ':'⏳ ') + item.name + '</b>', { permanent: false, direction: 'top' });
     mapMarkers.push(m);
   });
 
+  // พร้อมส่ง = เขียว, กำลังส่ง = เหลือง
   readyList.forEach(function(item, i) {
     var coords = getCachedCoords(item);
     if (!coords) return;
-    var inPlan = trucks.some(function(t){ return t.custs.some(function(c){ return c.bid === item.id; }); });
-    var markerColor = inPlan ? '#2e7d32' : '#1565c0';
-    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(String(i+1), markerColor, 26) })
+    var isDelivering = !!item.delivering;
+    var markerColor = isDelivering ? '#ffd166' : '#2e7d32';
+    var label = isDelivering ? '🚚' : String(i+1);
+    var m = L.marker([coords.lat, coords.lng], { icon: makeIcon(label, markerColor, 26) })
       .addTo(mainMap)
-      .bindTooltip('<b>' + (inPlan?'🚛 ':'✅ ') + item.name + '</b>', { permanent: false, direction: 'top' });
+      .bindTooltip('<b>' + (isDelivering?'🚚 ':'✅ ') + item.name + '</b>', { permanent: false, direction: 'top' });
     mapMarkers.push(m);
   });
 
@@ -845,10 +849,11 @@ function renderDelivering() {
       + '<div class="truck-hd"><input value="' + esc(plan.truckName) + '" readonly style="pointer-events:none;color:var(--amber)"></div>'
       + '<div class="truck-sub" style="padding:4px 8px;font-size:11px;color:var(--text3)">🕐 บันทึก: ' + plan.savedAt + ' • ' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + ' เสร็จ</div>'
       + '<div style="padding:4px 8px">' + custsHtml + '</div>'
-      + '<div style="padding:4px 8px 8px">'
+      + '<div style="padding:4px 8px 8px;display:flex;flex-direction:column;gap:6px">'
       + '<button class="deliver-success-btn" style="background:' + (allDone?'#1e90ff':'var(--bg3)') + ';color:' + (allDone?'#fff':'var(--text3)') + '" onclick="completeDelivery(' + pi + ')">'
       + (allDone ? '🏁 จัดส่งสำเร็จ ✅' : '🚚 กำลังส่ง... (' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + ')')
       + '</button>'
+      + '<button class="deliver-success-btn" style="background:rgba(255,214,102,0.1);color:var(--amber);border:1px solid var(--amber)" onclick="postponeDelivery(' + pi + ')">↩️ เลื่อนส่ง — คืนสู่คลัง</button>'
       + '</div>'
       + '</div>';
   }).join('');
@@ -885,6 +890,30 @@ function completeDelivery(pi) {
       toast('✅ จัดส่งสำเร็จ! ลบออกจากระบบแล้ว');
     },
     '#1e90ff', '🏁 ยืนยันจัดส่งสำเร็จ'
+  );
+}
+
+function postponeDelivery(pi) {
+  var plan = deliveringPlans[pi];
+  showConfirmModal(
+    '↩️ เลื่อนส่ง',
+    'คืนงานของ <b style="color:var(--amber)">' + plan.truckName + '</b><br>กลับไปที่ "พร้อมส่ง" ทั้งหมด?',
+    function() {
+      // คืน bank items กลับเป็น ready และ unlock
+      plan.custs.forEach(function(c) {
+        var bi = bank.find(function(b){ return b.id === c.bid; });
+        if (bi) {
+          bi.delivering = false;
+          bi.status = 'ready';
+        }
+      });
+      deliveringPlans.splice(pi, 1);
+      renderDelivering();
+      renderBank(document.getElementById('search-inp').value);
+      refreshMap();
+      toast('↩️ คืนงานกลับสู่คลังพร้อมส่งแล้ว');
+    },
+    'var(--amber)', '↩️ ยืนยันเลื่อนส่ง'
   );
 }
 

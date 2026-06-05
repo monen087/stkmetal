@@ -278,8 +278,36 @@ var BRANCH = { lat: 13.5490, lng: 100.2730, name: 'สาขาใหญ่ (ร
 // ===== STATE =====
 var bank = JSON.parse(localStorage.getItem('stk-bank2') || '[]'); // cache local
 var dbRef = null; // Firebase reference
-var trucks = [];
 var truckN = 0;
+
+function saveTrucks() {
+  localStorage.setItem('stk-trucks', JSON.stringify(trucks));
+  var d = document.getElementById('plan-date');
+  if (d) localStorage.setItem('stk-plan-date', d.value);
+}
+
+function loadTrucks() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('stk-trucks') || '[]');
+    var savedDate = localStorage.getItem('stk-plan-date') || '';
+    if (saved.length > 0) {
+      trucks = saved;
+      // หา truckN จาก truck ที่มีอยู่
+      trucks.forEach(function(t) {
+        var n = parseInt((t.name || '').replace(/[^0-9]/g,''));
+        if (n > truckN) truckN = n;
+      });
+      if (savedDate) {
+        var d = document.getElementById('plan-date');
+        if (d) d.value = savedDate;
+      }
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+var trucks = [];
 var editId = null;
 var dragId = null;
 var mainMap = null;
@@ -290,7 +318,8 @@ var geocodeCache = {};
 // ===== INIT =====
 document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
 initMap();
-addTruck();
+if (!loadTrucks()) addTruck(); // ถ้าไม่มี saved trucks ให้เพิ่ม 1 คัน
+renderTrucks();
 renderBank('');
 initBankFromFirebase(); // โหลดคลังจาก Firebase
 
@@ -842,6 +871,7 @@ function addTruck() {
   truckN++;
   trucks.push({ id:'t'+Date.now(), name:'คันที่ '+truckN, driver:'', hasBranch:false, custs:[] });
   renderTrucks();
+  saveTrucks();
   updatePlanInfo();
 }
 
@@ -854,7 +884,7 @@ function delTruck(id) {
     function() {
       trucks = trucks.filter(function(t){ return t.id!==id; });
       renderTrucks(); renderBank(document.getElementById('search-inp').value);
-      refreshMap(); updatePlanInfo();
+      saveTrucks(); refreshMap(); updatePlanInfo();
     },
     '#ef5350', '🗑 ลบคัน'
   );
@@ -1046,9 +1076,9 @@ function renderTrucks() {
   });
 }
 
-function updName(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t) t.name=v; updatePlanInfo(); }
-function updDriver(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t) t.driver=v; }
-function toggleBranch(id){ var t=trucks.find(function(t){return t.id===id;}); if(t){ t.hasBranch=!t.hasBranch; renderTrucks(); } }
+function updName(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t) t.name=v; saveTrucks(); updatePlanInfo(); }
+function updDriver(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t){ t.driver=v; saveTrucks(); } }
+function toggleBranch(id){ var t=trucks.find(function(t){return t.id===id;}); if(t){ t.hasBranch=!t.hasBranch; renderTrucks(); saveTrucks(); } }
 function removeC(tid,bid){
   var t=trucks.find(function(t){return t.id===tid;});
   if(!t) return;
@@ -1059,7 +1089,7 @@ function removeC(tid,bid){
     function() {
       t.custs=t.custs.filter(function(c){return c.bid!==bid;});
       renderTrucks(); renderBank(document.getElementById('search-inp').value);
-      refreshMap(); updatePlanInfo();
+      saveTrucks(); refreshMap(); updatePlanInfo();
     },
     '#ffd166', '❌ ลบออกจากแผน'
   );
@@ -1096,7 +1126,7 @@ function dDrop(e,tid){
   if(t.custs.some(function(c){ return c.bid===dragId; })){ toast('⚠️ มีลูกค้านี้อยู่แล้ว'); return; }
   t.custs.push({bid:item.id, name:item.name, tel:item.tel, location:item.location, note:item.note, items:item.items});
   renderTrucks(); renderBank(document.getElementById('search-inp').value);
-  refreshMap(); updatePlanInfo();
+  saveTrucks(); refreshMap(); updatePlanInfo();
   // เลื่อนแผนที่ไปยังจุดที่เพิ่ม
   var coords = getCachedCoords(item);
   if(coords) mainMap.setView([coords.lat, coords.lng], 11);
@@ -1212,6 +1242,7 @@ function doSave(){
           });
           t.custs=[]; t.hasBranch=false;
         });
+        localStorage.removeItem('stk-trucks');
         renderTrucks(); renderBank(document.getElementById('search-inp').value);
         renderDelivering(); saveDeliveringToFirebase(); refreshMap(); updatePlanInfo();
         btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ';

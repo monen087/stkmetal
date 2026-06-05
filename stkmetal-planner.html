@@ -475,6 +475,40 @@ async function deleteBankItemFromFirebase(id) {
   } catch(e) { console.error('delete bank error:', e); }
 }
 
+// ===== FIREBASE DELIVERING =====
+// เก็บ deliveringPlans ลง localStorage เป็น backup เสมอ
+function saveDeliveringToFirebase() {
+  localStorage.setItem('stk-delivering', JSON.stringify(deliveringPlans));
+  // sync status='delivering' กลับเข้า bank document ทุกตัวที่เกี่ยวข้อง
+  if (!dbRef) return;
+  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fm) {
+    // อัปเดต bank items ที่เป็น delivering
+    deliveringPlans.forEach(function(plan) {
+      plan.custs.forEach(function(c) {
+        fm.setDoc(fm.doc(dbRef, 'bank', c.bid), { delivering: true, deliveringPlan: plan.planId }, { merge: true }).catch(function(){});
+      });
+    });
+  });
+}
+
+async function loadDeliveringFromFirebase() {
+  // โหลดจาก localStorage ก่อน (เร็วกว่า)
+  try {
+    var saved = JSON.parse(localStorage.getItem('stk-delivering') || '[]');
+    if (saved.length > 0) {
+      deliveringPlans = saved;
+      deliveringPlans.forEach(function(plan) {
+        plan.custs.forEach(function(c) {
+          var bi = bank.find(function(b){ return b.id === c.bid; });
+          if (bi) bi.delivering = true;
+        });
+      });
+      renderDelivering();
+      renderBank(document.getElementById('search-inp').value);
+    }
+  } catch(e) { console.error('load delivering error:', e); }
+}
+
 // ===== TOAST =====
 function toast(msg) {
   var el = document.getElementById('toast');
@@ -583,6 +617,7 @@ function panelDrop(e, targetStatus) {
   saveBankItem(item);
   renderBank(document.getElementById('search-inp').value);
   renderDelivering();
+  await loadDeliveringFromFirebase();
   updateMap();
   toast(targetStatus === 'ready' ? '✅ ย้ายไปพร้อมส่งแล้ว' : '⏳ ย้ายไปรอผลิตแล้ว');
 }
@@ -840,8 +875,9 @@ function renderDelivering() {
         + '<div class="citem-sub">' + c.items.length + ' สินค้า' + (c.tel?'  📞'+esc(c.tel):'') + '</div>'
         + '<div class="citem-actions">'
         + '<button class="citem-act-btn" style="background:var(--bg3);color:var(--text2)" onclick="editDeliveringCust(' + pi + ',' + ci + ')">✏️ แก้ไข</button>'
-        + '<button class="citem-act-btn" style="background:' + (c.done?'var(--bg3)':'rgba(30,144,255,0.15)') + ';color:' + (c.done?'var(--text3)':'#1e90ff') + '" onclick="toggleDeliveringDone(' + pi + ',' + ci + ')">' + (c.done?'↩️ ยังไม่เสร็จ':'✅ เสร็จสิ้น') + '</button>'
+        + '<button class="citem-act-btn" style="background:' + (c.done?'var(--bg3)':'rgba(30,144,255,0.15)') + ';color:' + (c.done?'var(--text3)':'#1e90ff') + '" onclick="toggleDeliveringDone(' + pi + ',' + ci + ')">' + (c.done?'↺ ยังไม่เสร็จ':'✅ เสร็จสิ้น') + '</button>'
         + '</div>'
+        + (!c.done ? '<div style="padding:2px 0 2px"><button class="citem-act-btn" style="width:100%;background:rgba(255,214,102,0.1);color:var(--amber);border:1px solid rgba(255,214,102,0.3)" onclick="postponeSingle(' + pi + ',' + ci + ')">↩️ เลื่อนส่ง</button></div>' : '')
         + '</div>';
     }).join('');
     var allDone = plan.custs.every(function(c){ return c.done; });
@@ -862,6 +898,7 @@ function renderDelivering() {
 function toggleDeliveringDone(pi, ci) {
   deliveringPlans[pi].custs[ci].done = !deliveringPlans[pi].custs[ci].done;
   renderDelivering();
+  saveDeliveringToFirebase();
 }
 
 function editDeliveringCust(pi, ci) {
@@ -883,13 +920,43 @@ function completeDelivery(pi) {
         // ลบออกจาก Firebase bank collection ด้วย
         deleteBankFromFirebase(c.bid);
       });
+      // ลบ bank items ออกจาก Firebase
+      plan.custs.forEach(function(c) { deleteBankFromFirebase(c.bid); });
       deliveringPlans.splice(pi, 1);
       renderDelivering();
+      saveDeliveringToFirebase();
       renderBank(document.getElementById('search-inp').value);
       refreshMap();
       toast('✅ จัดส่งสำเร็จ! ลบออกจากระบบแล้ว');
     },
     '#1e90ff', '🏁 ยืนยันจัดส่งสำเร็จ'
+  );
+}
+
+function postponeSingle(pi, ci) {
+  var plan = deliveringPlans[pi];
+  var c = plan.custs[ci];
+  showConfirmModal(
+    '↩️ เลื่อนส่ง',
+    'คืน <b style="color:var(--amber)">' + esc(c.name) + '</b><br>กลับไปที่ "พร้อมส่ง"?',
+    function() {
+      var bi = bank.find(function(b){ return b.id === c.bid; });
+      if (bi) { bi.delivering = false; bi.status = 'ready'; }
+      // ลบ delivering flag ออกจาก Firebase bank doc
+      if (dbRef) {
+        import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fm){
+          fm.setDoc(fm.doc(dbRef,'bank',c.bid), {delivering:false, status:'ready'}, {merge:true}).catch(function(){});
+        });
+      }
+      plan.custs.splice(ci, 1);
+      if (plan.custs.length === 0) deliveringPlans.splice(pi, 1);
+      renderDelivering();
+      saveDeliveringToFirebase();
+      renderBank(document.getElementById('search-inp').value);
+      refreshMap();
+      toast('↩️ คืน ' + c.name.substring(0,20) + ' กลับสู่คลังแล้ว');
+    },
+    'var(--amber)', '↩️ ยืนยันเลื่อนส่ง'
   );
 }
 
@@ -909,6 +976,7 @@ function postponeDelivery(pi) {
       });
       deliveringPlans.splice(pi, 1);
       renderDelivering();
+      saveDeliveringToFirebase();
       renderBank(document.getElementById('search-inp').value);
       refreshMap();
       toast('↩️ คืนงานกลับสู่คลังพร้อมส่งแล้ว');
@@ -1141,7 +1209,7 @@ function doSave(){
           t.custs=[]; t.hasBranch=false;
         });
         renderTrucks(); renderBank(document.getElementById('search-inp').value);
-        renderDelivering(); refreshMap(); updatePlanInfo();
+        renderDelivering(); saveDeliveringToFirebase(); refreshMap(); updatePlanInfo();
         btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ';
       }).catch(function(e){ toast('❌ '+e.message); btn.disabled=false; btn.textContent='✅ บันทึกเข้าระบบ'; });
     });

@@ -1292,10 +1292,10 @@ function insertCust(tid, atIndex) {
   picker.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;z-index:9999;min-width:260px;max-height:60vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.6)';
   picker.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">แทรกลูกค้าที่ตำแหน่ง '+(atIndex+1)+'</div>'
     + available.map(function(b,i){
-      return '<button onclick="doInsertCust(''+tid+'','+atIndex+',''+b.id+'')" style="display:block;width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:12px;text-align:left;cursor:pointer;margin-bottom:4px;font-family:inherit">'
+      return '<button onclick="doInsertCust(\'' + tid + '\','+ atIndex +',\'' + b.id + '\')" style="display:block;width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:12px;text-align:left;cursor:pointer;margin-bottom:4px;font-family:inherit">'
         + '<b>'+(i+1)+'. '+esc(b.name)+'</b><br><span style="color:var(--text3);font-size:10px">'+b.items.length+' สินค้า'+(b.tel?' • 📞'+esc(b.tel):'')+' </span></button>';
     }).join('')
-    + '<button onclick="document.getElementById('insert-picker').remove()" style="width:100%;padding:7px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-size:12px;cursor:pointer;margin-top:4px;font-family:inherit">ยกเลิก</button>';
+    + '<button onclick="document.getElementById(\'insert-picker\').remove()" style="width:100%;padding:7px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-size:12px;cursor:pointer;margin-top:4px;font-family:inherit">ยกเลิก</button>';
   document.body.appendChild(picker);
 }
 

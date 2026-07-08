@@ -29,7 +29,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
 
 /* 3-COLUMN LAYOUT */
-.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr 220px 500px;overflow:hidden;}
+.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr 280px 480px;overflow:hidden;}
 
 /* ===== LEFT: คลังงาน ===== */
 .col-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
@@ -83,6 +83,12 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .branch-title{font-size:11px;font-weight:700;color:var(--amber);margin-bottom:3px;}
 .branch-item{font-size:10px;color:var(--text2);padding:1px 0;}
 .citem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:7px 9px;margin-bottom:4px;position:relative;}
+.citem-reorder{position:absolute;top:5px;right:22px;display:flex;flex-direction:column;gap:1px;}
+.citem-arrow{width:14px;height:14px;border:none;background:transparent;color:var(--text3);cursor:pointer;font-size:9px;padding:0;line-height:1;border-radius:3px;}
+.citem-arrow:hover{background:var(--border2);color:#fff;}
+.citem-insert{width:100%;padding:2px;border:1px dashed var(--border2);border-radius:5px;background:transparent;color:var(--text3);font-size:10px;cursor:pointer;margin-bottom:4px;opacity:0;transition:.15s;}
+.citem-insert:hover{opacity:1;background:rgba(30,144,255,0.1);color:var(--blue);border-color:var(--blue);}
+.truck:hover .citem-insert{opacity:0.4;}
 .citem-name{font-size:12px;font-weight:600;color:var(--text2);padding-right:18px;line-height:1.3;}
 .citem-sub{font-size:10px;color:var(--text3);margin-top:2px;}
 .citem-del{position:absolute;top:6px;right:6px;width:15px;height:15px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:var(--text3);cursor:pointer;font-size:10px;line-height:1;padding:0;}
@@ -101,8 +107,8 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .truck.delivering .truck-hd input{pointer-events:none;color:var(--amber);}
 .citem.locked{opacity:0.85;}
 .citem.locked .citem-del{display:none;}
-.citem-actions{display:flex;gap:4px;margin-top:4px;}
-.citem-act-btn{flex:1;padding:4px 6px;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
+.citem-actions{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
+.citem-act-btn{width:100%;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;}
 .deliver-success-btn{width:100%;padding:10px;background:#1e90ff;color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
 .deliver-success-btn:hover{background:#1565c0;}
 .right{display:flex;flex-direction:column;overflow:hidden;}
@@ -1219,13 +1225,22 @@ function renderTrucks() {
         + (branchItems.length ? branchItems.map(function(it){ return '<div class="branch-item">• '+esc(it.name)+' = '+esc(it.qty)+'</div>'; }).join('') : '<div class="branch-item" style="color:var(--text3)">ยังไม่มีสินค้าสาขาใหญ่</div>')
         + '</div>';
     }
-    var custsHtml = t.custs.map(function(c,ci){
-      return '<div class="citem">'
+    var custsHtml = '';
+    t.custs.forEach(function(c,ci){
+      // ปุ่ม + แทรกก่อนรายการ
+      custsHtml += '<button class="citem-insert" onclick="insertCust(\''+t.id+'\','+ci+')">＋ แทรกที่นี่</button>';
+      custsHtml += '<div class="citem">'
         + '<div class="citem-name"><span style="color:var(--text3);font-size:10px;margin-right:3px">'+(ci+1)+'.</span>'+escVal(c.name)+'</div>'
         + '<div class="citem-sub">' + c.items.length + ' สินค้า'+(c.tel?'  📞'+esc(c.tel):'')+'</div>'
+        + '<div class="citem-reorder">'
+        + (ci>0 ? '<button class="citem-arrow" onclick="moveCust(\''+t.id+'\','+ci+',-1)" title="เลื่อนขึ้น">▲</button>' : '<span style="width:14px"></span>')
+        + (ci<t.custs.length-1 ? '<button class="citem-arrow" onclick="moveCust(\''+t.id+'\','+ci+',1)" title="เลื่อนลง">▼</button>' : '<span style="width:14px"></span>')
+        + '</div>'
         + '<button class="citem-del" onclick="removeC(\''+t.id+'\',\''+c.bid+'\')">✕</button>'
         + '</div>';
-    }).join('');
+    });
+    // ปุ่ม + แทรกท้ายสุด
+    if (t.custs.length > 0) custsHtml += '<button class="citem-insert" onclick="insertCust(\''+t.id+'\','+t.custs.length+')">＋ แทรกท้าย</button>';
 
     var div = document.createElement('div');
     div.className = 'truck';
@@ -1247,6 +1262,55 @@ function renderTrucks() {
       + '</div>';
     container.insertBefore(div, addBtn);
   });
+}
+
+function moveCust(tid, ci, dir) {
+  var t = trucks.find(function(t){ return t.id===tid; });
+  if (!t) return;
+  var ni = ci + dir;
+  if (ni < 0 || ni >= t.custs.length) return;
+  var tmp = t.custs[ci];
+  t.custs[ci] = t.custs[ni];
+  t.custs[ni] = tmp;
+  renderTrucks();
+  saveTrucks();
+}
+
+function insertCust(tid, atIndex) {
+  // เปิด bank picker — หา bank items ที่ยังไม่ได้ใช้
+  var t = trucks.find(function(t){ return t.id===tid; });
+  if (!t) return;
+  var available = bank.filter(function(b){
+    return !b.delivering && !trucks.some(function(tr){ return tr.custs.some(function(c){ return c.bid===b.id; }); });
+  });
+  if (!available.length) { toast('ไม่มีลูกค้าพร้อมส่งเหลือแล้ว'); return; }
+  // สร้าง picker popup
+  var old = document.getElementById('insert-picker');
+  if (old) old.remove();
+  var picker = document.createElement('div');
+  picker.id = 'insert-picker';
+  picker.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;z-index:9999;min-width:260px;max-height:60vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.6)';
+  picker.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">แทรกลูกค้าที่ตำแหน่ง '+(atIndex+1)+'</div>'
+    + available.map(function(b,i){
+      return '<button onclick="doInsertCust(''+tid+'','+atIndex+',''+b.id+'')" style="display:block;width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:12px;text-align:left;cursor:pointer;margin-bottom:4px;font-family:inherit">'
+        + '<b>'+(i+1)+'. '+esc(b.name)+'</b><br><span style="color:var(--text3);font-size:10px">'+b.items.length+' สินค้า'+(b.tel?' • 📞'+esc(b.tel):'')+' </span></button>';
+    }).join('')
+    + '<button onclick="document.getElementById('insert-picker').remove()" style="width:100%;padding:7px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-size:12px;cursor:pointer;margin-top:4px;font-family:inherit">ยกเลิก</button>';
+  document.body.appendChild(picker);
+}
+
+function doInsertCust(tid, atIndex, bid) {
+  var t = trucks.find(function(t){ return t.id===tid; });
+  var item = bank.find(function(b){ return b.id===bid; });
+  if (!t || !item) return;
+  if (t.custs.some(function(c){ return c.bid===bid; })) { toast('มีลูกค้านี้อยู่แล้ว'); return; }
+  t.custs.splice(atIndex, 0, {bid:item.id, name:item.name, tel:item.tel, location:item.location, note:item.note, items:item.items});
+  document.getElementById('insert-picker').remove();
+  renderTrucks();
+  renderBank(document.getElementById('search-inp').value);
+  saveTrucks();
+  refreshMap();
+  toast('✅ แทรกลูกค้าที่ตำแหน่ง '+(atIndex+1)+' แล้ว');
 }
 
 function updName(id,v){ var t=trucks.find(function(t){return t.id===id;}); if(t) t.name=v; saveTrucks(); updatePlanInfo(); }

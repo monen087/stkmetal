@@ -137,6 +137,26 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .cfm-cancel{flex:1;padding:9px;background:var(--bg3);color:var(--text3);border:1px solid var(--border2);border-radius:var(--rs);font-size:12px;cursor:pointer;font-family:inherit;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border2);padding:8px 18px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .25s;z-index:400;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;}
+/* PIN POPUP */
+#pin-popup{position:fixed;top:50px;right:12px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px;width:240px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,0.6);}
+#pin-popup.hidden{display:none;}
+.pin-pop-title{font-size:12px;font-weight:700;color:var(--text3);margin-bottom:10px;text-align:center;letter-spacing:1px;text-transform:uppercase;}
+.pin-user-sel{display:block;width:100%;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;text-align:left;margin-bottom:5px;}
+.pin-user-sel:hover{background:rgba(30,144,255,0.15);border-color:var(--blue);color:var(--blue);}
+.pin-who{font-size:12px;color:var(--text3);text-align:center;margin-bottom:10px;}
+.pin-dots{display:flex;justify-content:center;gap:8px;margin-bottom:14px;}
+.pin-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:.15s;}
+.pin-dot.filled{background:var(--blue);border-color:var(--blue);}
+.pin-dot.error{background:var(--red);border-color:var(--red);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.pin-btn{padding:11px 6px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;}
+.pin-btn:hover{background:var(--border2);}
+.pin-btn.sm{font-size:11px;color:var(--text3);}
+.pin-login-btn{padding:5px 10px;border:1px solid var(--border2);border-radius:20px;background:var(--bg3);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+.pin-login-btn:hover{border-color:var(--blue);color:var(--blue);}
+.pin-user-badge{font-size:12px;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;cursor:pointer;white-space:nowrap;}
+.pin-user-badge:hover{border-color:var(--red);color:var(--red);}
+
 </style>
 </head>
 <body>
@@ -144,6 +164,8 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 <div class="hd">
   <div class="logo">🔩 STK Metal — <span>จัดแผนงาน</span></div>
   <div class="hd-right">
+    <button class="pin-login-btn" id="login-btn" onclick="pinTogglePopup()">🔐 LOGIN</button>
+    <div class="pin-user-badge hidden" id="user-badge" onclick="pinTogglePopup()"></div>
     <label style="font-size:12px;color:var(--text3)">📅</label>
     <input class="date-inp" type="date" id="plan-date">
     <button class="btn" onclick="window.open('stkmetal-manager.html','_blank')">📋 ผู้จัดการ</button>
@@ -331,10 +353,10 @@ document.getElementById('plan-date').value = new Date().toISOString().split('T')
     var saved = JSON.parse(localStorage.getItem('stk-user') || 'null');
     if (saved && USERS.find(function(u){ return u.pin === saved.pin; })) {
       currentUser = saved;
-      document.getElementById('pin-overlay').classList.add('hidden');
+      document.getElementById('login-btn').classList.add('hidden');
       var badge = document.getElementById('user-badge');
       badge.classList.remove('hidden');
-      badge.textContent = (saved.role === 'admin' ? '👑 ' : '👤 ') + saved.name + '  ออก';
+      badge.textContent = (saved.role === 'admin' ? '👑 ' : '👤 ') + saved.name;
     }
   } catch(e) {}
 })();
@@ -588,12 +610,54 @@ async function loadDeliveringFromFirebase() {
 
 // ===== PIN LOGIN =====
 var _pinBuffer = '';
+var _pinSelectedUser = null;
+
+function pinTogglePopup() {
+  var popup = document.getElementById('pin-popup');
+  var isHidden = popup.classList.contains('hidden');
+  if (isHidden) {
+    // reset กลับ step 1
+    _pinBuffer = ''; _pinSelectedUser = null;
+    document.getElementById('pin-step-pin').style.display = 'none';
+    document.getElementById('pin-step-user').style.display = 'block';
+    updatePinDots();
+    popup.classList.remove('hidden');
+  } else {
+    popup.classList.add('hidden');
+  }
+}
+
+// ปิด popup เมื่อคลิกนอก
+document.addEventListener('click', function(e) {
+  var popup = document.getElementById('pin-popup');
+  var loginBtn = document.getElementById('login-btn');
+  var badge = document.getElementById('user-badge');
+  if (!popup.contains(e.target) && e.target !== loginBtn && e.target !== badge) {
+    popup.classList.add('hidden');
+  }
+});
+
+function pinSelectUser(idx) {
+  _pinSelectedUser = USERS[idx];
+  _pinBuffer = '';
+  document.getElementById('pin-step-user').style.display = 'none';
+  document.getElementById('pin-step-pin').style.display = 'block';
+  document.getElementById('pin-who-label').textContent = 'PIN ของ ' + _pinSelectedUser.name;
+  updatePinDots();
+}
+
+function pinBack() {
+  _pinBuffer = ''; _pinSelectedUser = null;
+  document.getElementById('pin-step-pin').style.display = 'none';
+  document.getElementById('pin-step-user').style.display = 'block';
+  updatePinDots();
+}
 
 function pinPress(n) {
   if (_pinBuffer.length >= 4) return;
   _pinBuffer += n;
   updatePinDots();
-  if (_pinBuffer.length === 4) setTimeout(pinCheck, 120);
+  if (_pinBuffer.length === 4) setTimeout(pinCheck, 150);
 }
 
 function pinDel() {
@@ -601,29 +665,26 @@ function pinDel() {
   updatePinDots();
 }
 
-function pinClear() {
-  _pinBuffer = '';
-  updatePinDots();
-}
-
 function updatePinDots(error) {
   for (var i = 0; i < 4; i++) {
     var d = document.getElementById('pd' + i);
+    if (!d) return;
     d.classList.toggle('filled', i < _pinBuffer.length && !error);
     d.classList.toggle('error', !!error);
   }
 }
 
 function pinCheck() {
-  var user = USERS.find(function(u) { return u.pin === _pinBuffer; });
-  if (user) {
-    currentUser = user;
-    localStorage.setItem('stk-user', JSON.stringify(user));
-    document.getElementById('pin-overlay').classList.add('hidden');
+  if (!_pinSelectedUser) return;
+  if (_pinSelectedUser.pin === _pinBuffer) {
+    currentUser = _pinSelectedUser;
+    localStorage.setItem('stk-user', JSON.stringify(currentUser));
+    document.getElementById('pin-popup').classList.add('hidden');
+    document.getElementById('login-btn').classList.add('hidden');
     var badge = document.getElementById('user-badge');
     badge.classList.remove('hidden');
-    badge.textContent = (user.role === 'admin' ? '👑 ' : '👤 ') + user.name + '  ออก';
-    _pinBuffer = '';
+    badge.textContent = (currentUser.role === 'admin' ? '👑 ' : '👤 ') + currentUser.name;
+    _pinBuffer = ''; _pinSelectedUser = null;
     updatePinDots();
   } else {
     updatePinDots(true);
@@ -631,14 +692,20 @@ function pinCheck() {
   }
 }
 
+function pinViewOnly() {
+  currentUser = null;
+  document.getElementById('pin-popup').classList.add('hidden');
+  document.getElementById('login-btn').classList.remove('hidden');
+  document.getElementById('user-badge').classList.add('hidden');
+}
+
 function pinLogout() {
-  if (!confirm('ออกจากระบบ?')) return;
   currentUser = null;
   localStorage.removeItem('stk-user');
-  document.getElementById('pin-overlay').classList.remove('hidden');
+  document.getElementById('pin-popup').classList.add('hidden');
+  document.getElementById('login-btn').classList.remove('hidden');
   document.getElementById('user-badge').classList.add('hidden');
-  _pinBuffer = '';
-  updatePinDots();
+  _pinBuffer = ''; _pinSelectedUser = null;
 }
 
 // ===== TOAST =====
@@ -778,6 +845,7 @@ function deleteBank(id) {
 }
 
 function openAdd() {
+  if (!currentUser) { toast('⛔ กรุณา login ก่อน'); return; }
   editId = null;
   document.getElementById('modal-ttl').textContent = '➕ เพิ่มลูกค้าใหม่';
   document.getElementById('m-name').value = '';
@@ -791,6 +859,7 @@ function openAdd() {
 }
 
 function openEdit(id) {
+  if (!currentUser) { toast('⛔ กรุณา login ก่อน'); return; }
   var item = bank.find(function(b){ return b.id===id; });
   if (!item) return;
   editId = id;
@@ -1383,13 +1452,20 @@ function escVal(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&qu
 // geocode ทุกรายการในพื้นหลัง
 setTimeout(geocodeAll, 1000);
 </script>
-<!-- PIN LOGIN OVERLAY -->
-<div id="pin-overlay">
-  <div class="pin-box">
-    <div class="pin-logo">🔩</div>
-    <div class="pin-title">STK Metal</div>
-    <div class="pin-sub">กรุณาใส่ PIN เพื่อเข้าใช้งาน</div>
-    <div class="pin-dots" id="pin-dots">
+<!-- PIN POPUP -->
+<div id="pin-popup" class="hidden">
+  <!-- Step 1: เลือกชื่อ -->
+  <div id="pin-step-user">
+    <div class="pin-pop-title">เลือกผู้ใช้งาน</div>
+    <button class="pin-user-sel" onclick="pinSelectUser(0)">👑 ม่อน</button>
+    <button class="pin-user-sel" onclick="pinSelectUser(1)">👤 กร</button>
+    <button class="pin-user-sel" onclick="pinSelectUser(2)">👤 แม็ก</button>
+    <button class="pin-user-sel" onclick="pinViewOnly()" style="color:var(--text3);font-size:12px;border-style:dashed">👁 ดูอย่างเดียว</button>
+  </div>
+  <!-- Step 2: กรอก PIN -->
+  <div id="pin-step-pin" style="display:none">
+    <div class="pin-pop-title" id="pin-who-label">ใส่ PIN</div>
+    <div class="pin-dots">
       <div class="pin-dot" id="pd0"></div>
       <div class="pin-dot" id="pd1"></div>
       <div class="pin-dot" id="pd2"></div>
@@ -1405,14 +1481,12 @@ setTimeout(geocodeAll, 1000);
       <button class="pin-btn" onclick="pinPress('7')">7</button>
       <button class="pin-btn" onclick="pinPress('8')">8</button>
       <button class="pin-btn" onclick="pinPress('9')">9</button>
-      <button class="pin-btn del" onclick="pinClear()">ล้าง</button>
+      <button class="pin-btn sm" onclick="pinBack()">← กลับ</button>
       <button class="pin-btn" onclick="pinPress('0')">0</button>
-      <button class="pin-btn del" onclick="pinDel()">⌫</button>
+      <button class="pin-btn sm" onclick="pinDel()">⌫</button>
     </div>
   </div>
 </div>
-<!-- USER BADGE -->
-<div class="pin-user-badge hidden" id="user-badge" onclick="pinLogout()" title="กดเพื่อออกจากระบบ"></div>
 
 </body>
 </html>

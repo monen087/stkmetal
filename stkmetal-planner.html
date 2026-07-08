@@ -275,6 +275,14 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 var STK = { lat: 13.5478, lng: 100.2743, name: 'STK Metal สมุทรสาคร' };
 var BRANCH = { lat: 13.5490, lng: 100.2730, name: 'สาขาใหญ่ (รับสินค้า)' };
 
+// ===== USERS & PIN =====
+var USERS = [
+  { pin: '2540', name: 'ม่อน', role: 'admin' },
+  { pin: '2141', name: 'กร',   role: 'sale' },
+  { pin: '2526', name: 'แม็ก', role: 'sale' }
+];
+var currentUser = null; // { pin, name, role }
+
 // ===== STATE =====
 var bank = JSON.parse(localStorage.getItem('stk-bank2') || '[]'); // cache local
 var dbRef = null; // Firebase reference
@@ -317,6 +325,19 @@ var geocodeCache = {};
 
 // ===== INIT =====
 document.getElementById('plan-date').value = new Date().toISOString().split('T')[0];
+// ลอง restore session
+(function(){
+  try {
+    var saved = JSON.parse(localStorage.getItem('stk-user') || 'null');
+    if (saved && USERS.find(function(u){ return u.pin === saved.pin; })) {
+      currentUser = saved;
+      document.getElementById('pin-overlay').classList.add('hidden');
+      var badge = document.getElementById('user-badge');
+      badge.classList.remove('hidden');
+      badge.textContent = (saved.role === 'admin' ? '👑 ' : '👤 ') + saved.name + '  ออก';
+    }
+  } catch(e) {}
+})();
 initMap();
 if (!loadTrucks()) addTruck(); // ถ้าไม่มี saved trucks ให้เพิ่ม 1 คัน
 renderTrucks();
@@ -565,6 +586,61 @@ async function loadDeliveringFromFirebase() {
   } catch(e) { console.error('load delivering error:', e); }
 }
 
+// ===== PIN LOGIN =====
+var _pinBuffer = '';
+
+function pinPress(n) {
+  if (_pinBuffer.length >= 4) return;
+  _pinBuffer += n;
+  updatePinDots();
+  if (_pinBuffer.length === 4) setTimeout(pinCheck, 120);
+}
+
+function pinDel() {
+  _pinBuffer = _pinBuffer.slice(0, -1);
+  updatePinDots();
+}
+
+function pinClear() {
+  _pinBuffer = '';
+  updatePinDots();
+}
+
+function updatePinDots(error) {
+  for (var i = 0; i < 4; i++) {
+    var d = document.getElementById('pd' + i);
+    d.classList.toggle('filled', i < _pinBuffer.length && !error);
+    d.classList.toggle('error', !!error);
+  }
+}
+
+function pinCheck() {
+  var user = USERS.find(function(u) { return u.pin === _pinBuffer; });
+  if (user) {
+    currentUser = user;
+    localStorage.setItem('stk-user', JSON.stringify(user));
+    document.getElementById('pin-overlay').classList.add('hidden');
+    var badge = document.getElementById('user-badge');
+    badge.classList.remove('hidden');
+    badge.textContent = (user.role === 'admin' ? '👑 ' : '👤 ') + user.name + '  ออก';
+    _pinBuffer = '';
+    updatePinDots();
+  } else {
+    updatePinDots(true);
+    setTimeout(function() { _pinBuffer = ''; updatePinDots(); }, 600);
+  }
+}
+
+function pinLogout() {
+  if (!confirm('ออกจากระบบ?')) return;
+  currentUser = null;
+  localStorage.removeItem('stk-user');
+  document.getElementById('pin-overlay').classList.remove('hidden');
+  document.getElementById('user-badge').classList.add('hidden');
+  _pinBuffer = '';
+  updatePinDots();
+}
+
 // ===== TOAST =====
 function toast(msg) {
   var el = document.getElementById('toast');
@@ -608,11 +684,12 @@ function buildBankItem(item, i) {
   var delBtn = (isUsed || isDelivering) ? '' : '<button onclick="event.stopPropagation();deleteBank(' + "'" + item.id + "'" + ')" style="flex-shrink:0;width:18px;height:18px;border-radius:50%;border:none;background:rgba(239,83,80,0.15);color:var(--red);cursor:pointer;font-size:10px;line-height:1;padding:0;margin-top:1px" title="ลบออกจากคลัง">✕</button>';
   var delivBadge = isDelivering ? '<div class="bitem-badge" style="background:rgba(255,214,102,0.15);color:var(--amber)">🚚 กำลังส่ง</div>' : '';
   var coordWarn = !hasCoords ? ' <span style="font-size:9px;color:var(--amber)">📍?</span>' : '';
+  var addedByLabel = item.addedBy ? '<span style="font-size:9px;color:var(--text3);margin-left:4px">+' + item.addedBy + '</span>' : '';
   var usedBadge = isDelivering ? delivBadge : (isUsed ? '<div class="bitem-badge">✓ ' + used.join(',') + '</div>' : '');
   return '<div class="' + cls + '" id="bi-' + item.id + '" draggable="' + draggable + '"' + onDragStart + onDragEnd + onClick + '>'
     + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">'
     + '<div style="flex:1;min-width:0">'
-    + '<div class="bitem-name"><span class="bitem-num" style="background:' + numColor + '">' + i + '</span>' + esc(item.name) + coordWarn + '</div>'
+    + '<div class="bitem-name"><span class="bitem-num" style="background:' + numColor + '">' + i + '</span>' + esc(item.name) + coordWarn + addedByLabel + '</div>'
     + '<div class="bitem-sub">' + (item.tel ? '📞' + item.tel + ' • ' : '') + item.items.length + ' สินค้า</div>'
     + usedBadge
     + '</div>'
@@ -678,6 +755,10 @@ function panelDrop(e, targetStatus) {
 }
 // ===== ADD/EDIT =====
 function deleteBank(id) {
+  if (!currentUser || currentUser.role !== 'admin') {
+    toast('⛔ เฉพาะ admin เท่านั้นที่ลบได้');
+    return;
+  }
   var item = bank.find(function(b){ return b.id===id; });
   if (!item) return;
   showConfirmModal(
@@ -870,6 +951,7 @@ function saveItem() {
     lng: isNaN(lng) ? null : lng,
     note: document.getElementById('m-note').value.trim(),
     status: document.getElementById('s-ready').dataset.active==='1' ? 'ready' : 'pending',
+    addedBy: editId ? (bank.find(function(b){return b.id===editId;})||{}).addedBy || (currentUser?currentUser.name:'') : (currentUser?currentUser.name:''),
     items: items
   };
   if (editId) {
@@ -1301,5 +1383,36 @@ function escVal(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&qu
 // geocode ทุกรายการในพื้นหลัง
 setTimeout(geocodeAll, 1000);
 </script>
+<!-- PIN LOGIN OVERLAY -->
+<div id="pin-overlay">
+  <div class="pin-box">
+    <div class="pin-logo">🔩</div>
+    <div class="pin-title">STK Metal</div>
+    <div class="pin-sub">กรุณาใส่ PIN เพื่อเข้าใช้งาน</div>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn del" onclick="pinClear()">ล้าง</button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    </div>
+  </div>
+</div>
+<!-- USER BADGE -->
+<div class="pin-user-badge hidden" id="user-badge" onclick="pinLogout()" title="กดเพื่อออกจากระบบ"></div>
+
 </body>
 </html>

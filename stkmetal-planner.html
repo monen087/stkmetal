@@ -29,7 +29,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
 
 /* 3-COLUMN LAYOUT */
-.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr 280px 480px;overflow:hidden;}
+.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr minmax(0,1fr) 420px;overflow:hidden;}
 
 /* ===== LEFT: คลังงาน ===== */
 .col-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
@@ -102,13 +102,13 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 
 /* ===== RIGHT: แผนที่ ===== */
 .col-panel.drop-over{outline:2px dashed var(--blue);outline-offset:-2px;}
-.delivering-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.delivering-col{min-width:260px;max-width:260px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}.delivering-empty{min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;padding:20px;}
 .truck.delivering{border:1px solid var(--amber);background:rgba(255,214,102,0.05);}
 .truck.delivering .truck-hd input{pointer-events:none;color:var(--amber);}
 .citem.locked{opacity:0.85;}
 .citem.locked .citem-del{display:none;}
 .citem-actions{display:flex;flex-direction:column;gap:4px;margin-top:6px;}
-.citem-act-btn{width:100%;padding:6px 8px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;}
+.citem-act-btn{display:block;width:100%;padding:5px 4px;border:1px solid var(--border2);border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;text-align:center;box-sizing:border-box;}
 .deliver-success-btn{width:100%;padding:10px;background:#1e90ff;color:#fff;border:none;border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;}
 .deliver-success-btn:hover{background:#1565c0;}
 .right{display:flex;flex-direction:column;overflow:hidden;}
@@ -213,19 +213,15 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
     <div class="panel-hd" style="flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border)">
       <span class="panel-title">🚛 จัดเข้ารถ</span>
       <span style="font-size:11px;color:var(--text3);margin-left:4px" id="plan-info"></span>
+      <span style="font-size:11px;color:var(--amber);margin-left:8px">🚚 กำลังส่ง: <span id="delivering-count">0</span> คัน</span>
     </div>
     <div class="trucks" id="trucks">
       <button class="add-truck" id="add-truck-btn" onclick="addTruck()">+</button>
     </div>
   </div>
 
-  <!-- DELIVERING: กำลังส่ง -->
-  <div class="delivering-panel">
-    <div class="panel-hd" style="flex-shrink:0">
-      <span class="panel-title" style="color:var(--amber)">🚚 กำลังส่ง</span>
-      <span class="badge" id="delivering-count" style="background:var(--amber-pale);color:var(--amber)">0</span>
-    </div>
-    <div id="delivering-list" style="flex:1;overflow-y:auto;padding:8px"></div>
+  <!-- DELIVERING: กำลังส่ง — แต่ละคันเป็น column แยก scroll แนวนอน -->
+  <div id="delivering-wrap" style="display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:1px solid var(--border);background:var(--bg2);min-width:0;">
   </div>
 
   <!-- RIGHT: แผนที่ -->
@@ -1073,14 +1069,15 @@ function delTruck(id) {
 var deliveringPlans = []; // [{planId, truckName, driver, custs:[{bid,name,tel,items,done}], savedAt}]
 
 function renderDelivering() {
-  var list = document.getElementById('delivering-list');
-  var badge = document.getElementById('delivering-count');
-  badge.textContent = deliveringPlans.length;
+  var wrap = document.getElementById('delivering-wrap');
+  // อัปเดต header badge
+  var hdrBadge = document.getElementById('delivering-count');
+  if (hdrBadge) hdrBadge.textContent = deliveringPlans.length;
   if (!deliveringPlans.length) {
-    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">ยังไม่มีงานที่กำลังส่ง</div>';
+    wrap.innerHTML = '<div class="delivering-empty">🚚<br>ยังไม่มีงานกำลังส่ง</div>';
     return;
   }
-  list.innerHTML = deliveringPlans.map(function(plan, pi) {
+  wrap.innerHTML = deliveringPlans.map(function(plan, pi) {
     var custsHtml = plan.custs.map(function(c, ci) {
       var doneStyle = c.done ? 'text-decoration:line-through;color:var(--text3);' : '';
       return '<div class="citem locked" style="' + (c.done?'opacity:0.5':'') + '">'
@@ -1089,14 +1086,13 @@ function renderDelivering() {
         + '<div class="citem-actions">'
         + '<button class="citem-act-btn" style="background:var(--bg3);color:var(--text2)" onclick="editDeliveringCust(' + pi + ',' + ci + ')">✏️ แก้ไข</button>'
         + '<button class="citem-act-btn" style="background:' + (c.done?'var(--bg3)':'rgba(30,144,255,0.15)') + ';color:' + (c.done?'var(--text3)':'#1e90ff') + '" onclick="toggleDeliveringDone(' + pi + ',' + ci + ')">' + (c.done?'↺ ยังไม่เสร็จ':'✅ เสร็จสิ้น') + '</button>'
-        + '</div>'
-        + (!c.done ? '<div style="padding:2px 0 2px"><button class="citem-act-btn" style="width:100%;background:rgba(255,214,102,0.1);color:var(--amber);border:1px solid rgba(255,214,102,0.3)" onclick="postponeSingle(' + pi + ',' + ci + ')">↩️ เลื่อนส่ง</button></div>' : '')
+        + (!c.done ? '<button class="citem-act-btn" style="background:rgba(255,214,102,0.08);color:var(--amber);border:1px solid rgba(255,214,102,0.3)" onclick="postponeSingle(' + pi + ',' + ci + ')">↩️ เลื่อนส่ง</button>' : '')
         + '</div>';
     }).join('');
     var allDone = plan.custs.every(function(c){ return c.done; });
-    return '<div class="truck delivering" style="margin-bottom:10px">'
-      + '<div class="truck-hd"><input value="' + esc(plan.truckName) + '" readonly style="pointer-events:none;color:var(--amber)"></div>'
-      + '<div class="truck-sub" style="padding:4px 8px;font-size:11px;color:var(--text3)">🕐 บันทึก: ' + plan.savedAt + ' • ' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + ' เสร็จ</div>'
+    return '<div class="delivering-col"><div class="panel-hd" style="flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border)"><span class="panel-title" style="color:var(--amber);font-size:12px">🚚 ' + esc(plan.truckName) + '</span><span class="badge" style="background:var(--amber-pale);color:var(--amber)">' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + '</span></div><div style="flex:1;overflow-y:auto;padding:6px"><div class="truck delivering" style="margin-bottom:6px">'
+      + ''
+      + '<div style="padding:4px 8px;font-size:10px;color:var(--text3)">🕐 ' + plan.savedAt + '</div>'
       + '<div style="padding:4px 8px">' + custsHtml + '</div>'
       + '<div style="padding:4px 8px 8px;display:flex;flex-direction:column;gap:6px">'
       + '<button class="deliver-success-btn" style="background:' + (allDone?'#1e90ff':'var(--bg3)') + ';color:' + (allDone?'#fff':'var(--text3)') + '" onclick="completeDelivery(' + pi + ')">'
@@ -1104,7 +1100,7 @@ function renderDelivering() {
       + '</button>'
       + '<button class="deliver-success-btn" style="background:rgba(255,214,102,0.1);color:var(--amber);border:1px solid var(--amber)" onclick="postponeDelivery(' + pi + ')">↩️ เลื่อนส่ง — คืนสู่คลัง</button>'
       + '</div>'
-      + '</div>';
+      + '</div></div></div>';
   }).join('');
 }
 

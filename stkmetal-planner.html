@@ -1033,10 +1033,35 @@ function saveItem() {
     bank.push(data);
   }
   saveBank();
-  saveBankItemToFirebase(data); // sync Firebase
+  saveBankItemToFirebase(data); // sync Firebase bank
   renderBank(document.getElementById('search-inp').value);
   closeAdd();
   toast(editId?'✅ แก้ไขแล้ว':'✅ เพิ่มในคลังแล้ว');
+
+  // ถ้าแก้ไข bank item ที่อยู่ใน deliveringPlans → sync กลับด้วย
+  if (editId) {
+    var syncPlans = [];
+    deliveringPlans.forEach(function(plan) {
+      var changed = false;
+      plan.custs.forEach(function(c) {
+        if (c.bid === editId) {
+          c.name = data.name;
+          c.tel = data.tel;
+          c.items = data.items;
+          c.note = data.note;
+          c.location = data.location;
+          changed = true;
+        }
+      });
+      if (changed) syncPlans.push(plan);
+    });
+    if (syncPlans.length) {
+      saveDeliveringToFirebase();
+      renderDelivering();
+      syncPlans.forEach(function(plan){ updateDeliveryPlanInFirebase(plan); });
+    }
+  }
+
   // geocode ในพื้นหลัง
   geocodeItem(data).then(function(c){ if(c) { saveBankItemToFirebase(data); refreshMap(); } });
 }

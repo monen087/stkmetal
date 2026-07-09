@@ -1225,22 +1225,39 @@ async function updateDeliveryPlanInFirebase(plan) {
   if (!dbRef) return;
   try {
     var fm = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    // อัปเดต delivering collection
     await fm.setDoc(fm.doc(dbRef, 'delivering', plan.planId), plan);
+    // อัปเดต plans collection — plans ใช้ field "customers" (flat array) ไม่ใช่ trucks
     if (plan.planId) {
       var planSnap = await fm.getDoc(fm.doc(dbRef, 'plans', plan.planId));
       if (planSnap.exists()) {
         var planData = planSnap.data();
-        if (planData.trucks) {
-          planData.trucks = planData.trucks.map(function(t) {
-            if (t.name === plan.truckName) {
-              t.custs = plan.custs.map(function(c) {
-                return { bid: c.bid, name: c.name, tel: c.tel||'', items: c.items, note: c.note||'' };
-              });
-            }
-            return t;
-          });
-          await fm.setDoc(fm.doc(dbRef, 'plans', plan.planId), planData);
-        }
+        // สร้าง customers ใหม่จาก plan.custs — merge กับ existing (เพื่อรักษา checkedItems/photos/done)
+        var existingCusts = planData.customers || [];
+        var newCusts = plan.custs.map(function(c) {
+          // หา existing customer ที่ตรงกัน เพื่อรักษาข้อมูลที่คนขับกรอกไว้
+          var existing = existingCusts.find(function(ec){ return ec.name === c.name; });
+          if (existing) return existing; // ใช้ของเดิมถ้ามี
+          // ถ้าเป็นงานใหม่ที่เพิ่งแทรก
+          return {
+            name: c.name,
+            tel: c.tel||'',
+            location: c.location||'',
+            note: c.note||'',
+            items: c.items||[],
+            done: false,
+            checkedItems: (c.items||[]).map(function(){ return false; }),
+            photos: [],
+            photoCount: 0,
+            problem: null,
+            problemNote: null,
+            problemAt: null,
+            doneAt: null,
+            subChoice: 'person'
+          };
+        });
+        await fm.setDoc(fm.doc(dbRef, 'plans', plan.planId), Object.assign({}, planData, { customers: newCusts }));
+        console.log('plans updated:', plan.planId, 'customers:', newCusts.length);
       }
     }
   } catch(e) { console.error('updateDeliveryPlan error:', e); }

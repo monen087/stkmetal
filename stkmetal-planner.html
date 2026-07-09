@@ -29,7 +29,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 .date-inp{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--rs);background:var(--bg3);color:var(--text);font-size:13px;font-family:inherit;}
 
 /* 3-COLUMN LAYOUT */
-.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr minmax(0,1fr) 420px;overflow:hidden;}
+.layout{flex:1;display:grid;grid-template-columns:200px 200px 1fr 300px 420px;overflow:hidden;}
 
 /* ===== LEFT: คลังงาน ===== */
 .col-panel{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
@@ -102,7 +102,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
 
 /* ===== RIGHT: แผนที่ ===== */
 .col-panel.drop-over{outline:2px dashed var(--blue);outline-offset:-2px;}
-.delivering-col{min-width:260px;max-width:260px;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}.delivering-empty{min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;padding:20px;}
+.delivering-col{width:100%;border-bottom:2px solid var(--border2);display:flex;flex-direction:column;flex-shrink:0;}.delivering-empty{min-width:200px;display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px;padding:20px;}
 .truck.delivering{border:1px solid var(--amber);background:rgba(255,214,102,0.05);}
 .truck.delivering .truck-hd input{pointer-events:none;color:var(--amber);}
 .citem.locked{opacity:0.85;}
@@ -221,7 +221,7 @@ body{font-family:Tahoma,sans-serif;background:var(--bg);color:var(--text);height
   </div>
 
   <!-- DELIVERING: กำลังส่ง — แต่ละคันเป็น column แยก scroll แนวนอน -->
-  <div id="delivering-wrap" style="display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:1px solid var(--border);background:var(--bg2);min-width:0;">
+  <div id="delivering-wrap" style="display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;border-right:1px solid var(--border);background:var(--bg2);">
   </div>
 
   <!-- RIGHT: แผนที่ -->
@@ -1070,38 +1070,180 @@ var deliveringPlans = []; // [{planId, truckName, driver, custs:[{bid,name,tel,i
 
 function renderDelivering() {
   var wrap = document.getElementById('delivering-wrap');
-  // อัปเดต header badge
   var hdrBadge = document.getElementById('delivering-count');
   if (hdrBadge) hdrBadge.textContent = deliveringPlans.length;
   if (!deliveringPlans.length) {
-    wrap.innerHTML = '<div class="delivering-empty">🚚<br>ยังไม่มีงานกำลังส่ง</div>';
+    wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12px">ยังไม่มีงานกำลังส่ง</div>';
     return;
   }
-  wrap.innerHTML = deliveringPlans.map(function(plan, pi) {
-    var custsHtml = plan.custs.map(function(c, ci) {
-      var doneStyle = c.done ? 'text-decoration:line-through;color:var(--text3);' : '';
-      return '<div class="citem locked" style="' + (c.done?'opacity:0.5':'') + '">'
-        + '<div class="citem-name" style="' + doneStyle + '"><span style="color:var(--text3);font-size:10px;margin-right:3px">' + (ci+1) + '.</span>' + esc(c.name) + '</div>'
-        + '<div class="citem-sub">' + c.items.length + ' สินค้า' + (c.tel?'  📞'+esc(c.tel):'') + '</div>'
-        + '<div class="citem-actions">'
-        + '<button class="citem-act-btn" style="background:var(--bg3);color:var(--text2)" onclick="editDeliveringCust(' + pi + ',' + ci + ')">✏️ แก้ไข</button>'
-        + '<button class="citem-act-btn" style="background:' + (c.done?'var(--bg3)':'rgba(30,144,255,0.15)') + ';color:' + (c.done?'var(--text3)':'#1e90ff') + '" onclick="toggleDeliveringDone(' + pi + ',' + ci + ')">' + (c.done?'↺ ยังไม่เสร็จ':'✅ เสร็จสิ้น') + '</button>'
-        + (!c.done ? '<button class="citem-act-btn" style="background:rgba(255,214,102,0.08);color:var(--amber);border:1px solid rgba(255,214,102,0.3)" onclick="postponeSingle(' + pi + ',' + ci + ')">↩️ เลื่อนส่ง</button>' : '')
+  // สร้าง HTML โดยใช้ DOM จริง ไม่ใช้ string concat ซับซ้อน
+  wrap.innerHTML = '';
+  deliveringPlans.forEach(function(plan, pi) {
+    var col = document.createElement('div');
+    col.style.cssText = 'width:100%;border-bottom:2px solid var(--border2);flex-shrink:0;';
+
+    // Header ของคัน
+    var hd = document.createElement('div');
+    hd.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg3);border-bottom:1px solid var(--border);';
+    var doneCount = plan.custs.filter(function(c){return c.done;}).length;
+    hd.innerHTML = '<span style="font-size:13px;font-weight:700;color:var(--amber)">🚚 ' + esc(plan.truckName) + '</span>'
+      + '<span style="font-size:11px;color:var(--text3)">🕐' + plan.savedAt + ' &nbsp; ' + doneCount + '/' + plan.custs.length + '</span>';
+    col.appendChild(hd);
+
+    // รายการลูกค้า
+    plan.custs.forEach(function(c, ci) {
+      var item = document.createElement('div');
+      item.style.cssText = 'padding:8px 10px;border-bottom:1px solid var(--border);' + (c.done?'opacity:0.5':'');
+      item.innerHTML = '<div style="font-size:12px;font-weight:600;' + (c.done?'text-decoration:line-through;color:var(--text3);':'color:var(--text);') + '">'
+        + '<span style="color:var(--text3);font-size:10px;margin-right:3px">' + (ci+1) + '.</span>' + esc(c.name) + '</div>'
+        + '<div style="font-size:11px;color:var(--text3);margin:2px 0">' + c.items.length + ' สินค้า' + (c.tel ? ' 📞' + esc(c.tel) : '') + '</div>'
+        + '<div style="display:flex;flex-direction:column;gap:3px;margin-top:5px">'
+        + '<button onclick="editDeliveringCust(' + pi + ',' + ci + ')" style="padding:5px;border:1px solid var(--border2);border-radius:6px;background:var(--bg3);color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✏️ แก้ไข</button>'
+        + '<button onclick="toggleDeliveringDone(' + pi + ',' + ci + ')" style="padding:5px;border:1px solid var(--border2);border-radius:6px;background:' + (c.done?'var(--bg3)':'rgba(30,144,255,0.15)') + ';color:' + (c.done?'var(--text3)':'#1e90ff') + ';font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">' + (c.done?'↺ ยังไม่เสร็จ':'✅ เสร็จสิ้น') + '</button>'
+        + (!c.done ? '<button onclick="postponeSingle(' + pi + ',' + ci + ')" style="padding:5px;border:1px solid rgba(255,214,102,0.3);border-radius:6px;background:rgba(255,214,102,0.08);color:var(--amber);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">↩️ เลื่อนส่ง</button>' : '')
         + '</div>';
-    }).join('');
+      col.appendChild(item);
+    });
+
+    // ปุ่มท้าย
     var allDone = plan.custs.every(function(c){ return c.done; });
-    return '<div class="delivering-col"><div class="panel-hd" style="flex-shrink:0;background:var(--bg2);border-bottom:1px solid var(--border)"><span class="panel-title" style="color:var(--amber);font-size:12px">🚚 ' + esc(plan.truckName) + '</span><span class="badge" style="background:var(--amber-pale);color:var(--amber)">' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + '</span></div><div style="flex:1;overflow-y:auto;padding:6px"><div class="truck delivering" style="margin-bottom:6px">'
-      + ''
-      + '<div style="padding:4px 8px;font-size:10px;color:var(--text3)">🕐 ' + plan.savedAt + '</div>'
-      + '<div style="padding:4px 8px">' + custsHtml + '</div>'
-      + '<div style="padding:4px 8px 8px;display:flex;flex-direction:column;gap:6px">'
-      + '<button class="deliver-success-btn" style="background:' + (allDone?'#1e90ff':'var(--bg3)') + ';color:' + (allDone?'#fff':'var(--text3)') + '" onclick="completeDelivery(' + pi + ')">'
-      + (allDone ? '🏁 จัดส่งสำเร็จ ✅' : '🚚 กำลังส่ง... (' + plan.custs.filter(function(c){return c.done;}).length + '/' + plan.custs.length + ')')
+    var footer = document.createElement('div');
+    footer.style.cssText = 'padding:8px;display:flex;flex-direction:column;gap:5px;';
+    footer.innerHTML = '<button onclick="completeDelivery(' + pi + ')" style="padding:9px;border:none;border-radius:8px;background:' + (allDone?'#1e90ff':'var(--bg3)') + ';color:' + (allDone?'#fff':'var(--text3)') + ';font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">'
+      + (allDone ? '🏁 จัดส่งสำเร็จ ✅' : '🚚 กำลังส่ง... (' + doneCount + '/' + plan.custs.length + ')')
       + '</button>'
-      + '<button class="deliver-success-btn" style="background:rgba(255,214,102,0.1);color:var(--amber);border:1px solid var(--amber)" onclick="postponeDelivery(' + pi + ')">↩️ เลื่อนส่ง — คืนสู่คลัง</button>'
-      + '</div>'
-      + '</div></div></div>';
-  }).join('');
+      + '<button onclick="addToDelivering(' + pi + ')" style="padding:7px;border:1px solid #1e90ff;border-radius:8px;background:rgba(30,144,255,0.1);color:#1e90ff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">➕ เพิ่ม/แทรกงาน</button>'
+      + '<button onclick="postponeDelivery(' + pi + ')" style="padding:7px;border:1px solid var(--amber);border-radius:8px;background:rgba(255,214,102,0.08);color:var(--amber);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">↩️ เลื่อนส่งทั้งคัน — คืนสู่คลัง</button>';
+    col.appendChild(footer);
+
+    wrap.appendChild(col);
+  });
+}
+
+function addToDelivering(pi) {
+  var plan = deliveringPlans[pi];
+  var available = bank.filter(function(b){
+    return !b.delivering && !trucks.some(function(t){ return t.custs.some(function(c){ return c.bid===b.id; }); })
+           && !deliveringPlans.some(function(p){ return p.custs.some(function(c){ return c.bid===b.id; }); });
+  });
+  if (!available.length) { toast('ไม่มีลูกค้าในคลังพร้อมส่งแล้ว'); return; }
+
+  var old = document.getElementById('insert-picker');
+  if (old) old.remove();
+
+  var picker = document.createElement('div');
+  picker.id = 'insert-picker';
+  picker.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;z-index:9999;width:300px;max-height:70vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.6)';
+
+  // Title
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:13px;font-weight:700;color:var(--text2);margin-bottom:4px';
+  title.textContent = '➕ เพิ่ม/แทรกงานใน ' + plan.truckName;
+  picker.appendChild(title);
+
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:11px;color:var(--text3);margin-bottom:10px';
+  sub.textContent = 'เลือกตำแหน่งและลูกค้า';
+  picker.appendChild(sub);
+
+  // Position selector
+  var posLabel = document.createElement('div');
+  posLabel.style.cssText = 'font-size:11px;color:var(--text3);margin-bottom:6px';
+  posLabel.textContent = 'แทรกที่ตำแหน่ง:';
+  picker.appendChild(posLabel);
+
+  var posWrap = document.createElement('div');
+  posWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px';
+  window._insertPos = plan.custs.length;
+  window._insertPi = pi;
+
+  for (var pos = 0; pos <= plan.custs.length; pos++) {
+    (function(p){
+      var label = p === 0 ? 'หน้าสุด' : (p === plan.custs.length ? 'ท้ายสุด' : 'หลัง ' + p);
+      var btn = document.createElement('button');
+      btn.textContent = label;
+      btn.style.cssText = 'padding:4px 8px;border:1px solid var(--border2);border-radius:6px;background:' + (p === window._insertPos ? 'rgba(30,144,255,0.2)' : 'var(--bg3)') + ';color:' + (p === window._insertPos ? '#1e90ff' : 'var(--text3)') + ';font-size:11px;cursor:pointer;font-family:inherit';
+      btn.addEventListener('click', function(){
+        window._insertPos = p;
+        posWrap.querySelectorAll('button').forEach(function(b){
+          b.style.background = 'var(--bg3)'; b.style.color = 'var(--text3)'; b.style.borderColor = 'var(--border2)';
+        });
+        btn.style.background = 'rgba(30,144,255,0.2)'; btn.style.color = '#1e90ff'; btn.style.borderColor = '#1e90ff';
+      });
+      posWrap.appendChild(btn);
+    })(pos);
+  }
+  picker.appendChild(posWrap);
+
+  // Customer list
+  var custLabel = document.createElement('div');
+  custLabel.style.cssText = 'font-size:11px;color:var(--text3);margin-bottom:6px';
+  custLabel.textContent = 'เลือกลูกค้า:';
+  picker.appendChild(custLabel);
+
+  available.forEach(function(b, i) {
+    var btn = document.createElement('button');
+    btn.style.cssText = 'display:block;width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--bg3);color:var(--text);font-size:12px;text-align:left;cursor:pointer;margin-bottom:4px;font-family:inherit;box-sizing:border-box';
+    btn.innerHTML = '<b>' + (i+1) + '. ' + esc(b.name) + '</b><br><span style="color:var(--text3);font-size:10px">' + b.items.length + ' สินค้า' + (b.tel ? ' 📞' + esc(b.tel) : '') + '</span>';
+    btn.addEventListener('click', function(){ doAddToDelivering(window._insertPi, b.id); });
+    picker.appendChild(btn);
+  });
+
+  // Cancel
+  var cancel = document.createElement('button');
+  cancel.style.cssText = 'width:100%;padding:7px;border:1px solid var(--border2);border-radius:8px;background:transparent;color:var(--text3);font-size:12px;cursor:pointer;margin-top:4px;font-family:inherit';
+  cancel.textContent = 'ยกเลิก';
+  cancel.addEventListener('click', function(){ picker.remove(); });
+  picker.appendChild(cancel);
+
+  document.body.appendChild(picker);
+}
+
+function setInsertPos(pos) {
+  window._insertPos = pos;
+}
+
+async function doAddToDelivering(pi, bid) {
+  var plan = deliveringPlans[pi];
+  var item = bank.find(function(b){ return b.id === bid; });
+  if (!item) return;
+  var pos = (typeof window._insertPos !== 'undefined') ? window._insertPos : plan.custs.length;
+  var newCust = { bid: item.id, name: item.name, tel: item.tel||'', items: item.items, done: false };
+  plan.custs.splice(pos, 0, newCust);
+  item.delivering = true;
+  var p = document.getElementById('insert-picker');
+  if (p) p.remove();
+  await updateDeliveryPlanInFirebase(plan);
+  saveDeliveringToFirebase();
+  renderDelivering();
+  renderBank(document.getElementById('search-inp').value);
+  refreshMap();
+  toast('✅ เพิ่ม ' + item.name.substring(0,20) + ' ที่ตำแหน่ง ' + (pos+1) + ' แล้ว');
+}
+
+async function updateDeliveryPlanInFirebase(plan) {
+  if (!dbRef) return;
+  try {
+    var fm = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    await fm.setDoc(fm.doc(dbRef, 'delivering', plan.planId), plan);
+    if (plan.planId) {
+      var planSnap = await fm.getDoc(fm.doc(dbRef, 'plans', plan.planId));
+      if (planSnap.exists()) {
+        var planData = planSnap.data();
+        if (planData.trucks) {
+          planData.trucks = planData.trucks.map(function(t) {
+            if (t.name === plan.truckName) {
+              t.custs = plan.custs.map(function(c) {
+                return { bid: c.bid, name: c.name, tel: c.tel||'', items: c.items, note: c.note||'' };
+              });
+            }
+            return t;
+          });
+          await fm.setDoc(fm.doc(dbRef, 'plans', plan.planId), planData);
+        }
+      }
+    }
+  } catch(e) { console.error('updateDeliveryPlan error:', e); }
 }
 
 async function toggleDeliveringDone(pi, ci) {
